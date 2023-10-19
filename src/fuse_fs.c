@@ -26,6 +26,8 @@ static struct options {
 	int show_help;
 } options;
 
+static int fill_dir_plus = 0;
+
 #define OPTION(t, p)                           \
     { t, offsetof(struct options, p), 1 }
 static const struct fuse_opt option_spec[] = {
