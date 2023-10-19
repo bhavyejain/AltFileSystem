@@ -112,6 +112,7 @@ static int hello_open(const char *path, struct fuse_file_info *fi)
 static int hello_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
     fprintf(stderr, "Inside write\n");
+	
 }
 
 static int hello_read(const char *path, char *buf, size_t size, off_t offset,
