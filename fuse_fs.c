@@ -1,24 +1,3 @@
-/*
-  FUSE: Filesystem in Userspace
-  Copyright (C) 2001-2007  Miklos Szeredi <miklos@szeredi.hu>
-
-  This program can be distributed under the terms of the GNU GPLv2.
-  See the file COPYING.
-*/
-
-/** @file
- *
- * minimal example filesystem using high-level API
- *
- * Compile with:
- *
- *     gcc -Wall hello.c `pkg-config fuse3 --cflags --libs` -o hello
- *
- * ## Source code ##
- * \include hello.c
- */
-
-
 #define FUSE_USE_VERSION 31
 
 #include <fuse.h>
@@ -74,7 +53,7 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 		//stbuf->st_mode = S_IFREG | 0444;
 		// Give permissions more than just reading file 
 		// to all users
-		stbuf->st_mode = S_IFREG | 0755;
+		stbuf->st_mode = S_IFREG | 0644;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(options.contents);
 	} else
@@ -114,14 +93,28 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 static int altfs_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
-    fprintf(stderr, "Inside write\n");
-	FILE *fo;
-	char lsOutput[150];
-	fo = popen("ls -l","r");
-	while(fgets(lsOutput,sizeof(lsOutput),fo))
-		printf("%s",lsOutput);
-	pclose(fo);
-	return 0;
+    // fprintf(stderr, "Inside write\n");
+	// FILE *fo;
+	// char lsOutput[150];
+	// fo = popen("ls -l","r");
+	// while(fgets(lsOutput,sizeof(lsOutput),fo))
+	// 	printf("%s",lsOutput);
+	// pclose(fo);
+	// return 0;
+	int fd;
+	int res;
+
+	(void) fi;
+	fd = open(path, O_WRONLY);
+	if (fd == -1)
+		return -errno;
+
+	res = pwrite(fd, buf, size, offset);
+	if (res == -1)
+		res = -errno;
+
+	close(fd);
+	return res;
 }
 
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
