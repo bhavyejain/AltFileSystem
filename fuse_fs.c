@@ -1,9 +1,6 @@
 #define FUSE_USE_VERSION 31
 
-#ifdef linux
-/* For pread()/pwrite() */
 #define _XOPEN_SOURCE 500
-#endif
 
 #include <fuse.h>
 #include <stdio.h>
@@ -11,6 +8,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
+#include <sys/stat.h>
+#include <dirent.h>
 #include <assert.h>
 
 /*
