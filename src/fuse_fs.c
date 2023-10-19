@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <assert.h>
+#include <unistd.h>
 
 /*
  * Command line options
