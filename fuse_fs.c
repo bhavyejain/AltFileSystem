@@ -110,7 +110,7 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 	return 0;
 }
 
-static int altfs_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
+static int altfs_write(const char* path, const char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
     // fprintf(stderr, "Inside write\n");
 	// FILE *fo;
