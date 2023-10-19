@@ -71,7 +71,10 @@ static int hello_getattr(const char *path, struct stat *stbuf,
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
 	} else if (strcmp(path+1, options.filename) == 0) {
-		stbuf->st_mode = S_IFREG | 0444;
+		//stbuf->st_mode = S_IFREG | 0444;
+		// Give permissions more than just reading file 
+		// to all users
+		stbuf->st_mode = S_IFREG | 0755;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(options.contents);
 	} else
@@ -103,9 +106,21 @@ static int hello_open(const char *path, struct fuse_file_info *fi)
 	if (strcmp(path+1, options.filename) != 0)
 		return -ENOENT;
 
-	if ((fi->flags & O_ACCMODE) != O_RDONLY)
-		return -EACCES;
+	//if ((fi->flags & O_ACCMODE) != O_RDONLY)
+	//	return -EACCES;
 
+	return 0;
+}
+
+static int hello_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
+{
+    fprintf(stderr, "Inside write\n");
+	FILE *fo;
+	char lsOutput[150];
+	fo = popen("ls -l","r");
+	while(fgets(lsOutput,sizeof(lsOutput),fo))
+		printf("%s",lsOutput);
+	pclose(fo);
 	return 0;
 }
 
@@ -134,6 +149,7 @@ static const struct fuse_operations hello_oper = {
 	.readdir	= hello_readdir,
 	.open		= hello_open,
 	.read		= hello_read,
+    .write      = hello_write,
 };
 
 static void show_help(const char *progname)
