@@ -78,12 +78,12 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	if (strcmp(path+1, options.filename) != 0)
 		return -ENOENT;
 
+	int res;
 	res = open(path, fi->flags);
 	if (res == -1)
 		return -errno;
 
 	fi->fh = res;
-	fi->parallel_direct_writes = 1;
 
 	return 0;
 }
@@ -192,9 +192,7 @@ int main(int argc, char *argv[])
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	/* Set defaults -- we have to use strdup so that
-	   fuse_opt_parse can free the defaults if other
-	   values are specified */
+	// set default filename
 	options.filename = strdup("testfile");
 
 	/* Parse options */
@@ -211,6 +209,9 @@ int main(int argc, char *argv[])
 		assert(fuse_opt_add_arg(&args, "--help") == 0);
 		args.argv[0][0] = '\0';
 	}
+	
+	int fd;
+	fd = open(options.filename, O_CREAT|O_RDWR, 0600);
 
 	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
 	fuse_opt_free_args(&args);
