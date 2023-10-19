@@ -26,8 +26,6 @@ static struct options {
 	int show_help;
 } options;
 
-static int fill_dir_plus = 0;
-
 #define OPTION(t, p)                           \
     { t, offsetof(struct options, p), 1 }
 static const struct fuse_opt option_spec[] = {
@@ -61,24 +59,11 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
-	// (void) offset;
-	// (void) fi;
-	// (void) flags;
-
-	// if (strcmp(path, "/") != 0)
-	// 	return -ENOENT;
-
-	// filler(buf, ".", NULL, 0, 0);
-	// filler(buf, "..", NULL, 0, 0);
-	// filler(buf, options.filename, NULL, 0, 0);
-
-	// return 0;
 	DIR *dp;
 	struct dirent *de;
 
 	(void) offset;
 	(void) fi;
-	(void) flags;
 
 	dp = opendir(path);
 	if (dp == NULL)
@@ -89,7 +74,7 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_ino;
 		st.st_mode = de->d_type << 12;
-		if (filler(buf, de->d_name, &st, 0, fill_dir_plus))
+		if (filler(buf, de->d_name, &st, 0))
 			break;
 	}
 
@@ -128,14 +113,6 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 
 static int altfs_write(const char* path, const char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
-    // fprintf(stderr, "Inside write\n");
-	// FILE *fo;
-	// char lsOutput[150];
-	// fo = popen("ls -l","r");
-	// while(fgets(lsOutput,sizeof(lsOutput),fo))
-	// 	printf("%s",lsOutput);
-	// pclose(fo);
-	// return 0;
 	int fd;
 	int res;
 
@@ -160,21 +137,6 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
-	// size_t len;
-	// (void) fi;
-	// if(strcmp(path+1, options.filename) != 0)
-	// 	return -ENOENT;
-
-	// len = strlen(options.contents);
-	// if (offset < len) {
-	// 	if (offset + size > len)
-	// 		size = len - offset;
-	// 	memcpy(buf, options.contents + offset, size);
-	// } else
-	// 	size = 0;
-
-	// return size;
-
 	int fd;
 	int res;
 
@@ -235,9 +197,10 @@ int main(int argc, char *argv[])
 	}
 	
 	int fd;
-	fd = open(options.filename, O_CREAT|O_RDWR, 0600);
 
 	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
+	fd = open(options.filename, O_CREAT|O_RDWR, 0600);
+
 	fuse_opt_free_args(&args);
 	return ret;
 }
