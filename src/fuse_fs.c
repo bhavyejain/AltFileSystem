@@ -2,15 +2,16 @@
 
 #define _XOPEN_SOURCE 500
 
-#include <fuse.h>
-#include <stdio.h>
-#include <string.h>
+#include <assert.h>
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fuse.h>
 #include <stddef.h>
+#include <string.h>
+#include <stdio.h>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <assert.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 /*
@@ -22,7 +23,6 @@
  */
 static struct options {
 	const char *filename;
-	const char *contents;
 	int show_help;
 } options;
 
@@ -30,7 +30,6 @@ static struct options {
     { t, offsetof(struct options, p), 1 }
 static const struct fuse_opt option_spec[] = {
 	OPTION("--name=%s", filename),
-	OPTION("--contents=%s", contents),
 	OPTION("-h", show_help),
 	OPTION("--help", show_help),
 	FUSE_OPT_END
@@ -47,24 +46,13 @@ static void *altfs_init(struct fuse_conn_info *conn,
 static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
-	(void) fi;
-	int res = 0;
+	int res;
 
-	memset(stbuf, 0, sizeof(struct stat));
-	if (strcmp(path, "/") == 0) {
-		stbuf->st_mode = S_IFDIR | 0755;
-		stbuf->st_nlink = 2;
-	} else if (strcmp(path+1, options.filename) == 0) {
-		//stbuf->st_mode = S_IFREG | 0444;
-		// Give permissions more than just reading file 
-		// to all users
-		stbuf->st_mode = S_IFREG | 0644;
-		stbuf->st_nlink = 1;
-		stbuf->st_size = strlen(options.contents);
-	} else
-		res = -ENOENT;
+	res = lstat(path, stbuf);
+	if (res == -1)
+		return -errno;
 
-	return res;
+	return 0;
 }
 
 static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -144,20 +132,35 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
-	size_t len;
+	// size_t len;
+	// (void) fi;
+	// if(strcmp(path+1, options.filename) != 0)
+	// 	return -ENOENT;
+
+	// len = strlen(options.contents);
+	// if (offset < len) {
+	// 	if (offset + size > len)
+	// 		size = len - offset;
+	// 	memcpy(buf, options.contents + offset, size);
+	// } else
+	// 	size = 0;
+
+	// return size;
+
+	int fd;
+	int res;
+
 	(void) fi;
-	if(strcmp(path+1, options.filename) != 0)
-		return -ENOENT;
+	fd = open(path, O_RDONLY);
+	if (fd == -1)
+		return -errno;
 
-	len = strlen(options.contents);
-	if (offset < len) {
-		if (offset + size > len)
-			size = len - offset;
-		memcpy(buf, options.contents + offset, size);
-	} else
-		size = 0;
+	res = pread(fd, buf, size, offset);
+	if (res == -1)
+		res = -errno;
 
-	return size;
+	close(fd);
+	return res;
 }
 
 // The suffix altfs stands for AltFileSystem
@@ -175,10 +178,8 @@ static void show_help(const char *progname)
 {
 	printf("usage: %s [options] <mountpoint>\n\n", progname);
 	printf("File-system specific options:\n"
-	       "    --name=<s>          Name of the \"hello\" file\n"
-	       "                        (default: \"hello\")\n"
-	       "    --contents=<s>      Contents \"hello\" file\n"
-	       "                        (default \"Hello, World!\\n\")\n"
+	       "    --name=<s>          Name of the generated file\n"
+	       "                        (default: \"testfile\")\n"
 	       "\n");
 }
 
@@ -190,8 +191,7 @@ int main(int argc, char *argv[])
 	/* Set defaults -- we have to use strdup so that
 	   fuse_opt_parse can free the defaults if other
 	   values are specified */
-	options.filename = strdup("hello");
-	options.contents = strdup("Hello World!\n");
+	options.filename = strdup("testfile");
 
 	/* Parse options */
 	if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
