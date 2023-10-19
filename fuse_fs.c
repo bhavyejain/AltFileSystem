@@ -1,5 +1,10 @@
 #define FUSE_USE_VERSION 31
 
+#ifdef linux
+/* For pread()/pwrite() */
+#define _XOPEN_SOURCE 500
+#endif
+
 #include <fuse.h>
 #include <stdio.h>
 #include <string.h>
@@ -91,11 +96,14 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	return 0;
 }
 
-static int altfs_truncate(const char *path, off_t size)
+static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
 	int res;
 
-	res = truncate(path, size);
+	if (fi != NULL)
+		res = ftruncate(fi->fh, size);
+	else
+		res = truncate(path, size);
 	if (res == -1)
 		return -errno;
 
@@ -116,7 +124,11 @@ static int altfs_write(const char* path, char *buf, size_t size, off_t offset, s
 	int res;
 
 	(void) fi;
-	fd = open(path, O_WRONLY);
+	if(fi == NULL)
+		fd = open(path, O_WRONLY);
+	else
+		fd = fi->fh;
+	
 	if (fd == -1)
 		return -errno;
 
@@ -124,7 +136,8 @@ static int altfs_write(const char* path, char *buf, size_t size, off_t offset, s
 	if (res == -1)
 		res = -errno;
 
-	close(fd);
+	if(fi == NULL)
+		close(fd);
 	return res;
 }
 
