@@ -78,8 +78,12 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	if (strcmp(path+1, options.filename) != 0)
 		return -ENOENT;
 
-	//if ((fi->flags & O_ACCMODE) != O_RDONLY)
-	//	return -EACCES;
+	res = open(path, fi->flags);
+	if (res == -1)
+		return -errno;
+
+	fi->fh = res;
+	fi->parallel_direct_writes = 1;
 
 	return 0;
 }
