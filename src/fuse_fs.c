@@ -59,27 +59,45 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
-	DIR *dp;
-	struct dirent *de;
+	// DIR *dp;
+	// struct dirent *de;
 
-	(void) offset;
-	(void) fi;
+	// (void) offset;
+	// (void) fi;
 
-	dp = opendir(path);
-	if (dp == NULL)
-		return -errno;
+	// dp = opendir(path);
+	// if (dp == NULL)
+	// 	return -errno;
 
-	while ((de = readdir(dp)) != NULL) {
-		struct stat st;
-		memset(&st, 0, sizeof(st));
-		st.st_ino = de->d_ino;
-		st.st_mode = de->d_type << 12;
-		if (filler(buf, de->d_name, &st, 0))
-			break;
-	}
+	// while ((de = readdir(dp)) != NULL) {
+	// 	struct stat st;
+	// 	memset(&st, 0, sizeof(st));
+	// 	st.st_ino = de->d_ino;
+	// 	st.st_mode = de->d_type << 12;
+	// 	if (filler(buf, de->d_name, &st, 0, 0))
+	// 		break;
+	// }
 
-	closedir(dp);
-	return 0;
+	// closedir(dp);
+	// return 0;
+
+	int retstat = 0;
+    DIR *dp;
+    struct dirent *de;
+    
+    dp = (DIR *) (uintptr_t) fi->fh;
+
+    de = readdir(dp);
+    if (de == 0)
+        return -errno;
+
+    do {
+        log_msg("calling filler with name %s\n", de->d_name);
+        if (filler(buf, de->d_name, NULL, 0, 0) != 0)
+            return -ENOMEM;
+    } while ((de = readdir(dp)) != NULL);
+    
+    return retstat;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
@@ -199,7 +217,7 @@ int main(int argc, char *argv[])
 	int fd;
 
 	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
-	fd = open(options.filename, O_CREAT|O_RDWR, 0600);
+	fd = create(options.filename, 0600);
 
 	fuse_opt_free_args(&args);
 	return ret;
