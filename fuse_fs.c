@@ -52,7 +52,7 @@ static const struct fuse_opt option_spec[] = {
 	FUSE_OPT_END
 };
 
-static void *hello_init(struct fuse_conn_info *conn,
+static void *altfs_init(struct fuse_conn_info *conn,
 			struct fuse_config *cfg)
 {
 	(void) conn;
@@ -60,7 +60,7 @@ static void *hello_init(struct fuse_conn_info *conn,
 	return NULL;
 }
 
-static int hello_getattr(const char *path, struct stat *stbuf,
+static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
 	(void) fi;
@@ -83,7 +83,7 @@ static int hello_getattr(const char *path, struct stat *stbuf,
 	return res;
 }
 
-static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
@@ -101,7 +101,7 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
-static int hello_open(const char *path, struct fuse_file_info *fi)
+static int altfs_open(const char *path, struct fuse_file_info *fi)
 {
 	if (strcmp(path+1, options.filename) != 0)
 		return -ENOENT;
@@ -112,7 +112,7 @@ static int hello_open(const char *path, struct fuse_file_info *fi)
 	return 0;
 }
 
-static int hello_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
+static int altfs_write(const char* path, char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
     fprintf(stderr, "Inside write\n");
 	FILE *fo;
@@ -124,7 +124,7 @@ static int hello_write(const char* path, char *buf, size_t size, off_t offset, s
 	return 0;
 }
 
-static int hello_read(const char *path, char *buf, size_t size, off_t offset,
+static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
 	size_t len;
@@ -143,13 +143,14 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 	return size;
 }
 
-static const struct fuse_operations hello_oper = {
-	.init           = hello_init,
-	.getattr	= hello_getattr,
-	.readdir	= hello_readdir,
-	.open		= hello_open,
-	.read		= hello_read,
-    .write      = hello_write,
+// The suffix altfs stands for AltFileSystem
+static const struct fuse_operations altfs_oper = {
+	.init       = altfs_init,
+	.getattr	= altfs_getattr,
+	.readdir	= altfs_readdir,
+	.open		= altfs_open,
+	.read		= altfs_read,
+    .write      = altfs_write,
 };
 
 static void show_help(const char *progname)
@@ -189,7 +190,7 @@ int main(int argc, char *argv[])
 		args.argv[0][0] = '\0';
 	}
 
-	ret = fuse_main(args.argc, args.argv, &hello_oper, NULL);
+	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
 	fuse_opt_free_args(&args);
 	return ret;
 }
