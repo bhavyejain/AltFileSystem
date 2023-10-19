@@ -92,7 +92,6 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
         return -errno;
 
     do {
-        log_msg("calling filler with name %s\n", de->d_name);
         if (filler(buf, de->d_name, NULL, 0, 0) != 0)
             return -ENOMEM;
     } while ((de = readdir(dp)) != NULL);
@@ -217,7 +216,7 @@ int main(int argc, char *argv[])
 	int fd;
 
 	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
-	fd = create(options.filename, 0600);
+	fd = creat(options.filename, 0600);
 
 	fuse_opt_free_args(&args);
 	return ret;
