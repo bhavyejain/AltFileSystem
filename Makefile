@@ -8,6 +8,8 @@ PKGFLAGS = `pkg-config fuse3 --cflags --libs`
 
 CFLAGS = -g -Og -Wall -std=gnu11 $(PKGFLAGS)
 
+$(shell  mkdir -p $(BIN))
+
 filesystem: $(BIN)/altfs 
 
 $(BIN)/altfs: $(SOURCE)/fuse_fs.c
@@ -15,3 +17,4 @@ $(BIN)/altfs: $(SOURCE)/fuse_fs.c
 
 clean:
 	rm -rf obj/*
+	rm -rf ./bin
