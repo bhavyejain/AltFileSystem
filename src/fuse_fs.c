@@ -2,8 +2,6 @@
 
 #define _XOPEN_SOURCE 500
 
-#define PATH_MAX 100
-
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
