@@ -2,11 +2,14 @@
 
 #define _XOPEN_SOURCE 500
 
+#define PATH_MAX 100
+
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <fuse.h>
+#include <limits.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -14,114 +17,89 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-/*
- * Command line options
- *
- * We can't set default values for the char* fields here because
- * fuse_opt_parse would attempt to free() them when the user specifies
- * different values on the command line.
- */
-static struct options {
-	const char *filename;
-	int show_help;
-} options;
-
-#define OPTION(t, p)                           \
-    { t, offsetof(struct options, p), 1 }
-static const struct fuse_opt option_spec[] = {
-	OPTION("--name=%s", filename),
-	OPTION("-h", show_help),
-	OPTION("--help", show_help),
-	FUSE_OPT_END
+struct altfs_state {
+    char *rootdir;
 };
+#define ALTFS_DATA ((struct altfs_state *) fuse_get_context()->private_data)
+
+static void get_fullpath(char fpath[PATH_MAX], const char *path)
+{
+    strcpy(fpath, ALTFS_DATA->rootdir);
+    strncat(fpath, path, PATH_MAX);
+
+    log_msg("    bb_fullpath:  rootdir = \"%s\", path = \"%s\", fpath = \"%s\"\n",
+	    ALTFS_DATA->rootdir, path, fpath);
+}
 
 static void *altfs_init(struct fuse_conn_info *conn,
 			struct fuse_config *cfg)
 {
 	(void) conn;
 	cfg->kernel_cache = 1;
-	return NULL;
+	return ALTFS_DATA;
 }
 
 static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
 	int res;
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
 
-	res = lstat(path, stbuf);
+	res = lstat(fpath, stbuf);
 	if (res == -1)
 		return -errno;
 
 	return 0;
 }
 
-static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi,
-			 enum fuse_readdir_flags flags)
-{
-	// DIR *dp;
-	// struct dirent *de;
-
-	// (void) offset;
-	// (void) fi;
-
-	// dp = opendir(path);
-	// if (dp == NULL)
-	// 	return -errno;
-
-	// while ((de = readdir(dp)) != NULL) {
-	// 	struct stat st;
-	// 	memset(&st, 0, sizeof(st));
-	// 	st.st_ino = de->d_ino;
-	// 	st.st_mode = de->d_type << 12;
-	// 	if (filler(buf, de->d_name, &st, 0, 0))
-	// 		break;
-	// }
-
-	// closedir(dp);
-	// return 0;
-
-	int retstat = 0;
-    DIR *dp;
-    struct dirent *de;
+// static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+// 			 off_t offset, struct fuse_file_info *fi,
+// 			 enum fuse_readdir_flags flags)
+// {
+// 	int retstat = 0;
+//     DIR *dp;
+//     struct dirent *de;
     
-    dp = (DIR *) (uintptr_t) fi->fh;
+//     dp = (DIR *) (uintptr_t) fi->fh;
 
-    de = readdir(dp);
-    if (de == 0)
-        return -errno;
+//     de = readdir(dp);
+//     if (de == 0)
+//         return -errno;
 
-    do {
-        if (filler(buf, de->d_name, NULL, 0, 0) != 0)
-            return -ENOMEM;
-    } while ((de = readdir(dp)) != NULL);
+//     do {
+//         if (filler(buf, de->d_name, NULL, 0, 0) != 0)
+//             return -ENOMEM;
+//     } while ((de = readdir(dp)) != NULL);
     
-    return retstat;
-}
+//     return retstat;
+// }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
 {
-	if (strcmp(path+1, options.filename) != 0)
-		return -ENOENT;
-
 	int res;
-	res = open(path, fi->flags);
-	if (res == -1)
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
+
+	res = open(fpath, fi->flags);
+	if (res < 0)
 		return -errno;
 
 	fi->fh = res;
 
-	return 0;
+	return res;
 }
 
 static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
 	int res;
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
 
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(path, size);
+		res = truncate(fpath, size);
 	if (res == -1)
 		return -errno;
 
@@ -133,11 +111,9 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int fd;
 	int res;
 
-	(void) fi;
-	if(fi == NULL)
-		fd = open(path, O_WRONLY);
-	else
-		fd = fi->fh;
+	char fpath[PATH_MAX];
+	get_fullpath(fpath, path);
+	fd = open(fpath, O_CREAT | O_WRONLY, 0600);
 	
 	if (fd == -1)
 		return -errno;
@@ -156,9 +132,10 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 {
 	int fd;
 	int res;
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
 
-	(void) fi;
-	fd = open(path, O_RDONLY);
+	fd = open(fpath, O_RDONLY);
 	if (fd == -1)
 		return -errno;
 
@@ -171,52 +148,35 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 // The suffix altfs stands for AltFileSystem
+// static const struct fuse_operations altfs_oper = {
+// 	.init       = altfs_init,
+// 	.getattr	= altfs_getattr,
+// 	.readdir	= altfs_readdir,
+// 	.open		= altfs_open,
+// 	.read		= altfs_read,
+// 	.truncate   = altfs_truncate,
+//  .write      = altfs_write,
+// };
+
 static const struct fuse_operations altfs_oper = {
 	.init       = altfs_init,
 	.getattr	= altfs_getattr,
-	.readdir	= altfs_readdir,
 	.open		= altfs_open,
 	.read		= altfs_read,
 	.truncate   = altfs_truncate,
     .write      = altfs_write,
 };
 
-static void show_help(const char *progname)
-{
-	printf("usage: %s [options] <mountpoint>\n\n", progname);
-	printf("File-system specific options:\n"
-	       "    --name=<s>          Name of the generated file\n"
-	       "                        (default: \"testfile\")\n"
-	       "\n");
-}
-
 int main(int argc, char *argv[])
 {
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	// set default filename
-	options.filename = strdup("testfile");
+	struct altfs_state *altfs_data;
+	altfs_data = malloc(sizeof(struct altfs_state));
+	altfs_data->rootdir = realpath(argv[argc-1], NULL);
 
-	/* Parse options */
-	if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
-		return 1;
-
-	/* When --help is specified, first print our own file-system
-	   specific help text, then signal fuse_main to show
-	   additional help (by adding `--help` to the options again)
-	   without usage: line (by setting argv[0] to the empty
-	   string) */
-	if (options.show_help) {
-		show_help(argv[0]);
-		assert(fuse_opt_add_arg(&args, "--help") == 0);
-		args.argv[0][0] = '\0';
-	}
-	
-	int fd;
-
-	ret = fuse_main(args.argc, args.argv, &altfs_oper, NULL);
-	fd = creat(options.filename, 0600);
+	ret = fuse_main(argc, argv, &altfs_oper, altfs_data);
 
 	fuse_opt_free_args(&args);
 	return ret;
