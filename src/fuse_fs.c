@@ -11,6 +11,7 @@
 #include <fuse.h>
 #include <limits.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -26,9 +27,6 @@ static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, ALTFS_DATA->rootdir);
     strncat(fpath, path, PATH_MAX);
-
-    log_msg("    bb_fullpath:  rootdir = \"%s\", path = \"%s\", fpath = \"%s\"\n",
-	    ALTFS_DATA->rootdir, path, fpath);
 }
 
 static void *altfs_init(struct fuse_conn_info *conn,
