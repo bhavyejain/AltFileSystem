@@ -39,10 +39,10 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
-	res = lstat(fpath, stbuf);
+	res = lstat(path, stbuf);
 	if (res == -1)
 		return -errno;
 
@@ -74,10 +74,10 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 static int altfs_open(const char *path, struct fuse_file_info *fi)
 {
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
-	res = open(fpath, fi->flags);
+	res = open(path, fi->flags);
 	if (res < 0)
 		return -errno;
 
@@ -89,13 +89,13 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(fpath, size);
+		res = truncate(path, size);
 	if (res == -1)
 		return -errno;
 
@@ -107,9 +107,9 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int fd;
 	int res;
 
-	char fpath[PATH_MAX];
-	get_fullpath(fpath, path);
-	fd = open(fpath, O_CREAT | O_WRONLY, 0600);
+	// char fpath[PATH_MAX];
+	// get_fullpath(fpath, path);
+	fd = open(path, O_CREAT | O_WRONLY, 0600);
 	
 	if (fd == -1)
 		return -errno;
@@ -128,10 +128,10 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 {
 	int fd;
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
-	fd = open(fpath, O_RDONLY);
+	fd = open(path, O_RDONLY);
 	if (fd == -1)
 		return -errno;
 
