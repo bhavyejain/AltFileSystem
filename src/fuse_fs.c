@@ -109,7 +109,7 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 
 	// char fpath[PATH_MAX];
 	// get_fullpath(fpath, path);
-	fd = open(path, O_CREAT | O_WRONLY, 0600);
+	fd = open(path, O_CREAT | O_WRONLY, 0644);
 	
 	if (fd == -1)
 		return -errno;
