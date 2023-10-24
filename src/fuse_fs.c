@@ -51,14 +51,14 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
+	fprintf(stderr, "Inside readdir\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int retstat = 0;
     DIR *dp;
     struct dirent *de;
 
-	fprintf(stderr, "adding . and ..\n");
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
-	fprintf(stderr, ". and .. added\n");
     
     dp = (DIR *) (uintptr_t) fi->fh;
 
@@ -88,6 +88,8 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside create\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
 
 	res = open(path, fi->flags, 0666);
@@ -100,6 +102,8 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside open\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
 	// char fpath[PATH_MAX];
     // get_fullpath(fpath, path);
@@ -115,6 +119,8 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside truncate\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
 	// char fpath[PATH_MAX];
     // get_fullpath(fpath, path);
@@ -131,6 +137,8 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 
 static int altfs_write(const char* path, const char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
+	fprintf(stderr, "Inside write\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
 
@@ -153,6 +161,8 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside read\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
 	// char fpath[PATH_MAX];
@@ -169,17 +179,6 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 	close(fd);
 	return res;
 }
-
-// The suffix altfs stands for AltFileSystem
-// static const struct fuse_operations altfs_oper = {
-// 	.init       = altfs_init,
-// 	.getattr	= altfs_getattr,
-// 	.readdir	= altfs_readdir,
-// 	.open		= altfs_open,
-// 	.read		= altfs_read,
-// 	.truncate   = altfs_truncate,
-//  .write      = altfs_write,
-// };
 
 static const struct fuse_operations altfs_oper = {
 	.init       = altfs_init,
