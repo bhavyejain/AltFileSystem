@@ -2,6 +2,7 @@
 
 #define _XOPEN_SOURCE 500
 
+#define _GNU_SOURCE
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
@@ -16,14 +17,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-struct altfs_state {
-    char *rootdir;
-};
-#define ALTFS_DATA ((struct altfs_state *) fuse_get_context()->private_data)
+static char rootdir[100];
+static char *fname = "myfile.txt";
 
 static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
-    strcpy(fpath, ALTFS_DATA->rootdir);
+    strcpy(fpath, rootdir);
+	strcat(fpath, "/");
     strncat(fpath, path, PATH_MAX);
 }
 
@@ -32,54 +32,101 @@ static void *altfs_init(struct fuse_conn_info *conn,
 {
 	(void) conn;
 	cfg->kernel_cache = 1;
-	return ALTFS_DATA;
+	return NULL;
 }
 
 static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
-	res = lstat(fpath, stbuf);
+	res = lstat(path, stbuf);
 	if (res == -1)
 		return -errno;
 
 	return 0;
 }
 
-// static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-// 			 off_t offset, struct fuse_file_info *fi,
-// 			 enum fuse_readdir_flags flags)
-// {
-// 	int retstat = 0;
-//     DIR *dp;
-//     struct dirent *de;
-    
-//     dp = (DIR *) (uintptr_t) fi->fh;
+static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+			 off_t offset, struct fuse_file_info *fi,
+			 enum fuse_readdir_flags flags)
+{
+	fprintf(stderr, "Inside readdir\n");
+	fprintf(stderr, "Path: %s\n", path);
+	int retstat = 0;
+    DIR *dp;
+    struct dirent *de;
 
-//     de = readdir(dp);
-//     if (de == 0)
-//         return -errno;
-
-//     do {
-//         if (filler(buf, de->d_name, NULL, 0, 0) != 0)
-//             return -ENOMEM;
-//     } while ((de = readdir(dp)) != NULL);
+	filler(buf, ".", NULL, 0, 0);
+	filler(buf, "..", NULL, 0, 0);
     
-//     return retstat;
-// }
+    dp = (DIR *) (uintptr_t) fi->fh;
+
+	if (dp != NULL) {
+		fprintf(stderr, "attempting to read dir\n");
+		de = readdir(dp);
+		fprintf(stderr, "got first readdir\n");
+		if (de == 0)
+		{
+			fprintf(stderr, "error in reading dir");
+			return -errno;
+		}
+
+		do {
+			fprintf(stderr, "adding entry %s", de->d_name);
+			if (filler(buf, de->d_name, NULL, 0, 0) != 0) {
+				fprintf(stderr, "buffer full");
+				return -ENOMEM;
+			}
+		} while ((de = readdir(dp)) != NULL);
+	} else {
+		fprintf(stderr, "dp is null\n");
+	}
+    
+    return retstat;
+}
+
+static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+	fprintf(stderr, "Inside create\n");
+	fprintf(stderr, "Path: %s\n", path);
+	int res;
+	// char fpath[PATH_MAX];
+    // strcpy(fpath, path);
+	// strcat(fpath, fname);
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
+
+	res = creat(fpath, mode);
+	fprintf(stderr, "Result of create: %d\n", res);
+	if (res == -1)
+		return -errno;
+
+	fi->fh = res;
+	return 0;
+}
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside open\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
+	// char fpath[PATH_MAX];
+    // strcpy(fpath, path);
+	// strcat(fpath, fname);
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+    get_fullpath(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
+	fprintf(stderr, "attempting to open");
 	res = open(fpath, fi->flags);
-	if (res < 0)
+	if (res < 0) {
+		fprintf(stderr, "error in opening!");
 		return -errno;
+	}
 
 	fi->fh = res;
 
@@ -88,14 +135,16 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside truncate\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+	// char fpath[PATH_MAX];
+    // get_fullpath(fpath, path);
 
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(fpath, size);
+		res = truncate(path, size);
 	if (res == -1)
 		return -errno;
 
@@ -104,12 +153,17 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 
 static int altfs_write(const char* path, const char *buf, size_t size, off_t offset, struct fuse_file_info* fi)
 {
+	fprintf(stderr, "Inside write\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
 
 	char fpath[PATH_MAX];
-	get_fullpath(fpath, path);
-	fd = open(fpath, O_CREAT | O_WRONLY, 0600);
+    strcpy(fpath, path);
+	strcat(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
+
+	fd = open(fpath, O_CREAT | O_WRONLY, 0644);
 	
 	if (fd == -1)
 		return -errno;
@@ -126,10 +180,15 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside read\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
+	
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+    strcpy(fpath, path);
+	strcat(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_RDONLY);
 	if (fd == -1)
@@ -143,20 +202,11 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 	return res;
 }
 
-// The suffix altfs stands for AltFileSystem
-// static const struct fuse_operations altfs_oper = {
-// 	.init       = altfs_init,
-// 	.getattr	= altfs_getattr,
-// 	.readdir	= altfs_readdir,
-// 	.open		= altfs_open,
-// 	.read		= altfs_read,
-// 	.truncate   = altfs_truncate,
-//  .write      = altfs_write,
-// };
-
 static const struct fuse_operations altfs_oper = {
 	.init       = altfs_init,
 	.getattr	= altfs_getattr,
+	.readdir	= altfs_readdir,
+	.create		= altfs_create,
 	.open		= altfs_open,
 	.read		= altfs_read,
 	.truncate   = altfs_truncate,
@@ -165,14 +215,22 @@ static const struct fuse_operations altfs_oper = {
 
 int main(int argc, char *argv[])
 {
+	fprintf(stderr, "In main!!\n");
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	struct altfs_state *altfs_data;
-	altfs_data = malloc(sizeof(struct altfs_state));
-	altfs_data->rootdir = realpath(argv[argc-1], NULL);
+	// char *temp = realpath(argv[argc-1], NULL);
+	char *temp = get_current_dir_name();
+	strcpy(rootdir, temp);
+	fprintf(stderr, "rootdir: %s\n", rootdir);
 
-	ret = fuse_main(argc, argv, &altfs_oper, altfs_data);
+	// char filep[100];
+	// strcpy(filep, rootdir);
+	// strcat(filep, "/hello.txt");
+	// fprintf(stderr, "full file: %s\n", filep);
+
+	// int i = creat(filep, 0666);
+	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
 	return ret;
