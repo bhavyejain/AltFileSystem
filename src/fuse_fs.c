@@ -22,7 +22,6 @@ static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, rootdir);
     strncat(fpath, path, PATH_MAX);
-	return NULL;
 }
 
 static void *altfs_init(struct fuse_conn_info *conn,
@@ -30,6 +29,7 @@ static void *altfs_init(struct fuse_conn_info *conn,
 {
 	(void) conn;
 	cfg->kernel_cache = 1;
+	return NULL;
 }
 
 static int altfs_getattr(const char *path, struct stat *stbuf,
