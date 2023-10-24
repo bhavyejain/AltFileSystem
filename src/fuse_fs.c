@@ -22,6 +22,7 @@ static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, rootdir);
     strncat(fpath, path, PATH_MAX);
+	return NULL;
 }
 
 static void *altfs_init(struct fuse_conn_info *conn,
@@ -196,7 +197,8 @@ int main(int argc, char *argv[])
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
 	// altfs_data->rootdir = realpath(argv[argc-1], NULL);
-	strcpy(rootdir, get_current_dir_name());
+	char *temp = get_current_dir_name();
+	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s", rootdir);
 
 	int i = creat("~/hello.txt", 0666);
