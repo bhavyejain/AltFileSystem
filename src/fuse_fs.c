@@ -105,10 +105,11 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	fprintf(stderr, "Inside open\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
-	// char fpath[PATH_MAX];
-    // get_fullpath(fpath, path);
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(path, fi->flags);
+	res = open(fpath, fi->flags);
 	if (res < 0)
 		return -errno;
 
@@ -201,10 +202,11 @@ int main(int argc, char *argv[])
 	// char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
-	char filep[100];
-	strcpy(filep, rootdir);
-	strcat(filep, "/hello.txt");
-	fprintf(stderr, "full file: %s\n", filep);
+
+	// char filep[100];
+	// strcpy(filep, rootdir);
+	// strcat(filep, "/hello.txt");
+	// fprintf(stderr, "full file: %s\n", filep);
 
 	// int i = creat(filep, 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
