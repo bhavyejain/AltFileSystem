@@ -100,7 +100,8 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
     get_fullpath(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(fpath, fi->flags, mode);
+	res = creat(fpath, mode);
+	fprintf(stderr, "Result of create: %d\n", res);
 	if (res == -1)
 		return -errno;
 
