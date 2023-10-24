@@ -193,14 +193,15 @@ static const struct fuse_operations altfs_oper = {
 
 int main(int argc, char *argv[])
 {
-	fprintf(stderr, "In main!!");
+	fprintf(stderr, "In main!!\n");
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
 	// altfs_data->rootdir = realpath(argv[argc-1], NULL);
 	char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
-	fprintf(stderr, "rootdir: %s", rootdir);
+	fprintf(stderr, "rootdir: %s\n", rootdir);
+	fprintf(stderr, "arg: %s\n", argv[argc-1]);
 
 	int i = creat("~/hello.txt", 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
