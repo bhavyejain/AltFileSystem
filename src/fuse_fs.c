@@ -29,7 +29,6 @@ static void *altfs_init(struct fuse_conn_info *conn,
 {
 	(void) conn;
 	cfg->kernel_cache = 1;
-	return ALTFS_DATA;
 }
 
 static int altfs_getattr(const char *path, struct stat *stbuf,
@@ -197,11 +196,11 @@ int main(int argc, char *argv[])
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
 	// altfs_data->rootdir = realpath(argv[argc-1], NULL);
-	rootdir = get_current_dir_name();
+	strcpy(rootdir, get_current_dir_name());
 	fprintf(stderr, "rootdir: %s", rootdir);
 
 	int i = creat("~/hello.txt", 0666);
-	ret = fuse_main(argc, argv, &altfs_oper, altfs_data);
+	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
 	return ret;
