@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 static char rootdir[100];
+static char *fname = "myfile.txt";
 
 static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
@@ -91,8 +92,12 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 	fprintf(stderr, "Inside create\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
+	char fpath[PATH_MAX];
+    strcpy(fpath, path);
+	strcat(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(path, fi->flags, 0666);
+	res = open(fpath, fi->flags, 0666);
 	if (res == -1)
 		return -errno;
 
@@ -106,7 +111,8 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
+    strcpy(fpath, path);
+	strcat(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	res = open(fpath, O_CREAT | O_RDWR, 0666);
@@ -143,9 +149,12 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int fd;
 	int res;
 
-	// char fpath[PATH_MAX];
-	// get_fullpath(fpath, path);
-	fd = open(path, O_CREAT | O_WRONLY, 0644);
+	char fpath[PATH_MAX];
+    strcpy(fpath, path);
+	strcat(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
+
+	fd = open(fpath, O_CREAT | O_WRONLY, 0644);
 	
 	if (fd == -1)
 		return -errno;
@@ -166,10 +175,13 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
-	// char fpath[PATH_MAX];
-    // get_fullpath(fpath, path);
+	
+	char fpath[PATH_MAX];
+    strcpy(fpath, path);
+	strcat(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
-	fd = open(path, O_RDONLY);
+	fd = open(fpath, O_RDONLY);
 	if (fd == -1)
 		return -errno;
 
