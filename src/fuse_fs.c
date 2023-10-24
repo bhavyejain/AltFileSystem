@@ -53,22 +53,45 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
-	int retstat = 0;
-    DIR *dp;
-    struct dirent *de;
+	// int retstat = 0;
+    // DIR *dp;
+    // struct dirent *de;
     
-    dp = (DIR *) (uintptr_t) fi->fh;
+    // dp = (DIR *) (uintptr_t) fi->fh;
 
-    de = readdir(dp);
-    if (de == 0)
-        return -errno;
+    // de = readdir(dp);
+    // if (de == 0)
+    //     return -errno;
 
-    do {
-        if (filler(buf, de->d_name, NULL, 0, 0) != 0)
-            return -ENOMEM;
-    } while ((de = readdir(dp)) != NULL);
+    // do {
+    //     if (filler(buf, de->d_name, NULL, 0, 0) != 0)
+    //         return -ENOMEM;
+    // } while ((de = readdir(dp)) != NULL);
     
-    return retstat;
+    // return retstat;
+
+	DIR *dp;
+	struct dirent *de;
+
+	(void) offset;
+	(void) fi;
+	(void) flags;
+
+	dp = opendir(path);
+	if (dp == NULL)
+		return -errno;
+
+	while ((de = readdir(dp)) != NULL) {
+		struct stat st;
+		memset(&st, 0, sizeof(st));
+		st.st_ino = de->d_ino;
+		st.st_mode = de->d_type << 12;
+		if (filler(buf, de->d_name, &st, 0, fill_dir_plus))
+			break;
+	}
+
+	closedir(dp);
+	return 0;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
@@ -166,15 +189,17 @@ static const struct fuse_operations altfs_oper = {
 
 int main(int argc, char *argv[])
 {
+	fprintf(stderr, "In main!!");
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
 	struct altfs_state *altfs_data;
 	altfs_data = malloc(sizeof(struct altfs_state));
 	altfs_data->rootdir = realpath(argv[argc-1], NULL);
+	fprintf(stderr, "rootdir: %s", altfs_data->rootdir);
 
+	int i = creat("~/hello.txt", 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, altfs_data);
-	int i = creat("hello.txt", 0666);
 
 	fuse_opt_free_args(&args);
 	return ret;
