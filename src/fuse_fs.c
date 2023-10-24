@@ -84,29 +84,15 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	}
     
     return retstat;
+}
 
-	// DIR *dp;
-	// struct dirent *de;
-
-	// (void) offset;
-	// (void) fi;
-	// (void) flags;
-
-	// dp = opendir(fpath);
-	// if (dp == NULL)
-	// 	return -errno;
-
-	// while ((de = readdir(dp)) != NULL) {
-	// 	struct stat st;
-	// 	memset(&st, 0, sizeof(st));
-	// 	st.st_ino = de->d_ino;
-	// 	st.st_mode = de->d_type << 12;
-	// 	if (filler(buf, de->d_name, &st, 0, 0))
-	// 		break;
-	// }
-
-	// closedir(dp);
-	// return 0;
+static int altfs_create(const char *, mode_t, struct fuse_file_info *)
+{
+	int res;
+	res = open(path, O_CREAT | O_RDWR, 0666);
+	if (res < 0)
+		return -errno;
+	return res;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
@@ -196,6 +182,7 @@ static const struct fuse_operations altfs_oper = {
 	.init       = altfs_init,
 	.getattr	= altfs_getattr,
 	.readdir	= altfs_readdir,
+	.create		= altfs_create,
 	.open		= altfs_open,
 	.read		= altfs_read,
 	.truncate   = altfs_truncate,
@@ -217,7 +204,7 @@ int main(int argc, char *argv[])
 	strcat(filep, "/hello.txt");
 	fprintf(stderr, "full file: %s\n", filep);
 
-	int i = creat(filep, 0666);
+	// int i = creat(filep, 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
