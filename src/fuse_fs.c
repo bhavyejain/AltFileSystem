@@ -106,7 +106,7 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 		return -errno;
 
 	fi->fh = res;
-	return 0;
+	return res;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
