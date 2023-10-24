@@ -16,14 +16,11 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-struct altfs_state {
-    char *rootdir;
-};
-#define ALTFS_DATA ((struct altfs_state *) fuse_get_context()->private_data)
+static char rootdir[100];
 
 static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
-    strcpy(fpath, ALTFS_DATA->rootdir);
+    strcpy(fpath, rootdir);
     strncat(fpath, path, PATH_MAX);
 }
 
@@ -81,12 +78,18 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	if (dp == NULL)
 		return -errno;
 
+	fprintf(stderr, "In readdir with path: %s", path);
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, path);
+	fprintf(stderr, "Full path: %s", fpath);
+
+
 	while ((de = readdir(dp)) != NULL) {
 		struct stat st;
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_ino;
 		st.st_mode = de->d_type << 12;
-		if (filler(buf, de->d_name, &st, 0, fill_dir_plus))
+		if (filler(buf, de->d_name, &st, 0, 0))
 			break;
 	}
 
@@ -193,10 +196,9 @@ int main(int argc, char *argv[])
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	struct altfs_state *altfs_data;
-	altfs_data = malloc(sizeof(struct altfs_state));
-	altfs_data->rootdir = realpath(argv[argc-1], NULL);
-	fprintf(stderr, "rootdir: %s", altfs_data->rootdir);
+	// altfs_data->rootdir = realpath(argv[argc-1], NULL);
+	rootdir = get_current_dir_name();
+	fprintf(stderr, "rootdir: %s", rootdir);
 
 	int i = creat("~/hello.txt", 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, altfs_data);
