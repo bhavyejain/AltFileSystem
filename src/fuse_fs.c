@@ -95,7 +95,6 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 		return -errno;
 
 	fi->fh = res;
-	fi->parallel_direct_writes = 1;
 	return 0;
 }
 
