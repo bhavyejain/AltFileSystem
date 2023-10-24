@@ -97,7 +97,7 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 	strcat(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(fpath, fi->flags, 0666);
+	res = open(fpath, fi->flags, mode);
 	if (res == -1)
 		return -errno;
 
@@ -110,14 +110,19 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	fprintf(stderr, "Inside open\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
+	// char fpath[PATH_MAX];
+    // strcpy(fpath, path);
+	// strcat(fpath, fname);
 	char fpath[PATH_MAX];
-    strcpy(fpath, path);
-	strcat(fpath, fname);
+    get_fullpath(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(fpath, O_CREAT | O_RDWR, 0666);
-	if (res < 0)
+	fprintf(stderr, "attempting to open");
+	res = open(fpath, fi->flags);
+	if (res < 0) {
+		fprintf(stderr, "error in opening!");
 		return -errno;
+	}
 
 	fi->fh = res;
 
@@ -210,8 +215,8 @@ int main(int argc, char *argv[])
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	char *temp = realpath(argv[argc-1], NULL);
-	// char *temp = get_current_dir_name();
+	// char *temp = realpath(argv[argc-1], NULL);
+	char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
 
