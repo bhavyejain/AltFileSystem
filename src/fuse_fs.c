@@ -86,7 +86,7 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     return retstat;
 }
 
-static int altfs_create(const char *, mode_t, struct fuse_file_info *)
+static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	int res;
 	res = open(path, O_CREAT | O_RDWR, 0666);
