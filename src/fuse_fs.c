@@ -200,10 +200,10 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "rootdir: %s\n", rootdir);
 	char filep[100];
 	strcpy(filep, rootdir);
-	strcat(filep, "hello.txt");
+	strcat(filep, "/hello.txt");
 	fprintf(stderr, "full file: %s\n", filep);
 
-	// int i = creat("~/hello.txt", 0666);
+	int i = creat(filep, 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
