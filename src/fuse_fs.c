@@ -51,53 +51,48 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
 {
-	// int retstat = 0;
-    // DIR *dp;
-    // struct dirent *de;
+	int retstat = 0;
+    DIR *dp;
+    struct dirent *de;
     
-    // dp = (DIR *) (uintptr_t) fi->fh;
+    dp = (DIR *) (uintptr_t) fi->fh;
 
-    // de = readdir(dp);
-    // if (de == 0)
-    //     return -errno;
-
-    // do {
-    //     if (filler(buf, de->d_name, NULL, 0, 0) != 0)
-    //         return -ENOMEM;
-    // } while ((de = readdir(dp)) != NULL);
-    
-    // return retstat;
-
-	DIR *dp;
-	struct dirent *de;
-
-	(void) offset;
-	(void) fi;
-	(void) flags;
-
-	fprintf(stderr, "In readdir with path: %s", path);
-	char fpath[PATH_MAX];
-    get_fullpath(fpath, path);
-	fprintf(stderr, "Full path: %s", fpath);
-
-	dp = opendir(fpath);
-	if (dp == NULL)
-		return -errno;
+    de = readdir(dp);
+    if (de == 0)
+        return -errno;
 
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
 
-	while ((de = readdir(dp)) != NULL) {
-		struct stat st;
-		memset(&st, 0, sizeof(st));
-		st.st_ino = de->d_ino;
-		st.st_mode = de->d_type << 12;
-		if (filler(buf, de->d_name, &st, 0, 0))
-			break;
-	}
+    do {
+        if (filler(buf, de->d_name, NULL, 0, 0) != 0)
+            return -ENOMEM;
+    } while ((de = readdir(dp)) != NULL);
+    
+    return retstat;
 
-	closedir(dp);
-	return 0;
+	// DIR *dp;
+	// struct dirent *de;
+
+	// (void) offset;
+	// (void) fi;
+	// (void) flags;
+
+	// dp = opendir(fpath);
+	// if (dp == NULL)
+	// 	return -errno;
+
+	// while ((de = readdir(dp)) != NULL) {
+	// 	struct stat st;
+	// 	memset(&st, 0, sizeof(st));
+	// 	st.st_ino = de->d_ino;
+	// 	st.st_mode = de->d_type << 12;
+	// 	if (filler(buf, de->d_name, &st, 0, 0))
+	// 		break;
+	// }
+
+	// closedir(dp);
+	// return 0;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
