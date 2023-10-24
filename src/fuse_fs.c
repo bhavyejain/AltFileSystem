@@ -84,6 +84,8 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	if (dp == NULL)
 		return -errno;
 
+	filler(buf, ".", NULL, 0, 0);
+	filler(buf, "..", NULL, 0, 0);
 
 	while ((de = readdir(dp)) != NULL) {
 		struct stat st;
