@@ -23,6 +23,7 @@ static char *fname = "myfile.txt";
 static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, rootdir);
+	str(fpath, "/");
     strncat(fpath, path, PATH_MAX);
 }
 
