@@ -57,16 +57,24 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     
     dp = (DIR *) (uintptr_t) fi->fh;
 
+	fprintf(stderr, "attempting to read dir");
     de = readdir(dp);
     if (de == 0)
+	{
+		fprintf(stderr, "error in reading dir");
         return -errno;
+	}
 
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
+	fprintf(stderr, ". and .. added");
 
     do {
-        if (filler(buf, de->d_name, NULL, 0, 0) != 0)
+		fprintf(stderr, "adding entry %s", de->d_name);
+        if (filler(buf, de->d_name, NULL, 0, 0) != 0) {
+			fprintf(stderr, "buffer full");
             return -ENOMEM;
+		}
     } while ((de = readdir(dp)) != NULL);
     
     return retstat;
