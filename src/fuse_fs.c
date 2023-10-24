@@ -109,7 +109,7 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
     get_fullpath(fpath, path);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
-	res = open(fpath, fi->flags);
+	res = open(fpath, O_CREAT | O_RDWR, 0666);
 	if (res < 0)
 		return -errno;
 
