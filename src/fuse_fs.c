@@ -54,29 +54,34 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	int retstat = 0;
     DIR *dp;
     struct dirent *de;
-    
-    dp = (DIR *) (uintptr_t) fi->fh;
 
-	fprintf(stderr, "attempting to read dir\n");
-    de = readdir(dp);
-	fprintf(stderr, "got first readdir\n");
-    if (de == 0)
-	{
-		fprintf(stderr, "error in reading dir");
-        return -errno;
-	}
 	fprintf(stderr, "adding . and ..\n");
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
 	fprintf(stderr, ". and .. added\n");
+    
+    dp = (DIR *) (uintptr_t) fi->fh;
 
-    do {
-		fprintf(stderr, "adding entry %s", de->d_name);
-        if (filler(buf, de->d_name, NULL, 0, 0) != 0) {
-			fprintf(stderr, "buffer full");
-            return -ENOMEM;
+	if (dp != NULL) {
+		fprintf(stderr, "attempting to read dir\n");
+		de = readdir(dp);
+		fprintf(stderr, "got first readdir\n");
+		if (de == 0)
+		{
+			fprintf(stderr, "error in reading dir");
+			return -errno;
 		}
-    } while ((de = readdir(dp)) != NULL);
+
+		do {
+			fprintf(stderr, "adding entry %s", de->d_name);
+			if (filler(buf, de->d_name, NULL, 0, 0) != 0) {
+				fprintf(stderr, "buffer full");
+				return -ENOMEM;
+			}
+		} while ((de = readdir(dp)) != NULL);
+	} else {
+		fprintf(stderr, "dp is null\n");
+	}
     
     return retstat;
 
