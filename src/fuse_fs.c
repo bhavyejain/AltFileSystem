@@ -89,10 +89,14 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	int res;
-	res = open(path, O_CREAT | O_RDWR, 0666);
-	if (res < 0)
+
+	res = open(path, fi->flags, 0666);
+	if (res == -1)
 		return -errno;
-	return res;
+
+	fi->fh = res;
+	fi->parallel_direct_writes = 1;
+	return 0;
 }
 
 static int altfs_open(const char *path, struct fuse_file_info *fi)
