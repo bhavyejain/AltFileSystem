@@ -75,14 +75,14 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	(void) fi;
 	(void) flags;
 
-	dp = opendir(path);
-	if (dp == NULL)
-		return -errno;
-
 	fprintf(stderr, "In readdir with path: %s", path);
 	char fpath[PATH_MAX];
     get_fullpath(fpath, path);
 	fprintf(stderr, "Full path: %s", fpath);
+
+	dp = opendir(fpath);
+	if (dp == NULL)
+		return -errno;
 
 
 	while ((de = readdir(dp)) != NULL) {
@@ -201,7 +201,6 @@ int main(int argc, char *argv[])
 	// char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
-	fprintf(stderr, "arg: %s\n", argv[argc-1]);
 
 	int i = creat("~/hello.txt", 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
