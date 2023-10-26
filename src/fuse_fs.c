@@ -20,7 +20,7 @@
 static char rootdir[100];
 static char *fname = "/myfile.txt";
 
-static void get_fullpath(char fpath[PATH_MAX], const char *path)
+static void get_file_path(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, rootdir);
     strncat(fpath, path, PATH_MAX);
@@ -39,7 +39,7 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 {
 	int res;
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, fname);
+    get_file_path(fpath, fname);
 
 	res = lstat(fpath, stbuf);
 	if (res == -1)
@@ -94,7 +94,7 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 	int res;
 
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, fname);
+    get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	res = creat(fpath, mode);
@@ -111,17 +111,15 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	fprintf(stderr, "Inside open\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
-	// char fpath[PATH_MAX];
-    // strcpy(fpath, path);
-	// strcat(fpath, fname);
+
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, fname);
+    get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
-	fprintf(stderr, "attempting to open");
+	fprintf(stderr, "attempting to open\n");
 	res = open(fpath, fi->flags);
 	if (res < 0) {
-		fprintf(stderr, "error in opening!");
+		fprintf(stderr, "error in opening!\n");
 		return -errno;
 	}
 
@@ -135,13 +133,15 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 	fprintf(stderr, "Inside truncate\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
-	// char fpath[PATH_MAX];
-    // get_fullpath(fpath, path);
+
+	char fpath[PATH_MAX];
+    get_file_path(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(path, size);
+		res = truncate(fpath, size);
 	if (res == -1)
 		return -errno;
 
@@ -156,7 +156,7 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int res;
 
 	char fpath[PATH_MAX];
-    get_fullpath(fpath, fname);
+    get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_CREAT | O_WRONLY, 0644);
@@ -182,8 +182,7 @@ static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
 	int res;
 	
 	char fpath[PATH_MAX];
-    strcpy(fpath, path);
-	strcat(fpath, fname);
+    get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_RDONLY);
@@ -220,12 +219,6 @@ int main(int argc, char *argv[])
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
 
-	// char filep[100];
-	// strcpy(filep, rootdir);
-	// strcat(filep, "/hello.txt");
-	// fprintf(stderr, "full file: %s\n", filep);
-
-	// int i = creat(filep, 0666);
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
