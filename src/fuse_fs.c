@@ -37,9 +37,13 @@ static void *altfs_init(struct fuse_conn_info *conn,
 static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
+	fprintf(stderr, "Inside getattr\n");
+	fprintf(stderr, "Path: %s\n", path);
 	int res;
+
 	char fpath[PATH_MAX];
     get_file_path(fpath, fname);
+	fprintf(stderr, "FPath: %s\n", fpath);
 
 	res = lstat(fpath, stbuf);
 	if (res == -1)
@@ -118,7 +122,7 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 	fprintf(stderr, "attempting to open\n");
 	res = open(fpath, fi->flags);
-	fprintf(stderr, "Result: %d", res);
+	fprintf(stderr, "Result: %d\n", res);
 	if (res < 0) {
 		fprintf(stderr, "error in opening!\n");
 		return -errno;
