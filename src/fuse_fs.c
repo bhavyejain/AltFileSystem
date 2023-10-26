@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 static char rootdir[100];
+
 static char *fname = "/myfile.txt";
 
 static void get_file_path(char fpath[PATH_MAX], const char *path)
@@ -94,7 +95,7 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	} else {
 		fprintf(stderr, "dp is null\n");
 	}
-    
+
     return retstat;
 }
 
@@ -153,7 +154,7 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(fpath, size);
+		res = truncate(path, size);
 	if (res == -1)
 		return -errno;
 
@@ -230,7 +231,7 @@ int main(int argc, char *argv[])
 	char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
-
+  
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
