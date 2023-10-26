@@ -23,12 +23,12 @@ static char *fname = "/myfile.txt";
 
 static void get_file_path(char fpath[PATH_MAX], const char *path)
 {
-    strcpy(fpath, rootdir);
-    strncat(fpath, path, PATH_MAX);
+	strcpy(fpath, rootdir);
+	strncat(fpath, path, PATH_MAX);
 }
 
 static void *altfs_init(struct fuse_conn_info *conn,
-			struct fuse_config *cfg)
+				struct fuse_config *cfg)
 {
 	(void) conn;
 	cfg->kernel_cache = 1;
@@ -36,7 +36,7 @@ static void *altfs_init(struct fuse_conn_info *conn,
 }
 
 static int altfs_getattr(const char *path, struct stat *stbuf,
-			 struct fuse_file_info *fi)
+				struct fuse_file_info *fi)
 {
 	fprintf(stderr, "Inside getattr\n");
 	fprintf(stderr, "Path: %s\n", path);
@@ -61,19 +61,19 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 }
 
 static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi,
-			 enum fuse_readdir_flags flags)
+				off_t offset, struct fuse_file_info *fi,
+				enum fuse_readdir_flags flags)
 {
 	fprintf(stderr, "Inside readdir\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int retstat = 0;
-    DIR *dp;
-    struct dirent *de;
+	DIR *dp;
+	struct dirent *de;
 
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
-    
-    dp = (DIR *) (uintptr_t) fi->fh;
+
+	dp = (DIR *) (uintptr_t) fi->fh;
 
 	if (dp != NULL) {
 		fprintf(stderr, "attempting to read dir\n");
@@ -96,7 +96,7 @@ static int altfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		fprintf(stderr, "dp is null\n");
 	}
 
-    return retstat;
+	return retstat;
 }
 
 static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
@@ -106,7 +106,7 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 	int res;
 
 	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
+	get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	res = creat(fpath, mode);
@@ -125,7 +125,7 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 	int res;
 
 	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
+	get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fprintf(stderr, "attempting to open\n");
@@ -148,13 +148,14 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 	int res;
 
 	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
+	get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
 		res = truncate(fpath, size);
+
 	if (res == -1)
 		return -errno;
 
@@ -169,11 +170,11 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int res;
 
 	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
+	get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_CREAT | O_WRONLY, 0644);
-	
+
 	if (fd == -1)
 		return -errno;
 
@@ -187,15 +188,15 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 }
 
 static int altfs_read(const char *path, char *buf, size_t size, off_t offset,
-		      struct fuse_file_info *fi)
+struct fuse_file_info *fi)
 {
 	fprintf(stderr, "Inside read\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int fd;
 	int res;
-	
+
 	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
+	get_file_path(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_RDONLY);
@@ -218,7 +219,7 @@ static const struct fuse_operations altfs_oper = {
 	.open		= altfs_open,
 	.read		= altfs_read,
 	.truncate   = altfs_truncate,
-    .write      = altfs_write,
+	.write      = altfs_write,
 };
 
 int main(int argc, char *argv[])
@@ -231,7 +232,7 @@ int main(int argc, char *argv[])
 	char *temp = get_current_dir_name();
 	strcpy(rootdir, temp);
 	fprintf(stderr, "rootdir: %s\n", rootdir);
-  
+
 	ret = fuse_main(argc, argv, &altfs_oper, NULL);
 
 	fuse_opt_free_args(&args);
