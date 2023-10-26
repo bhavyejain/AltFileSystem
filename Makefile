@@ -5,7 +5,7 @@ SOURCE=./src
 
 TEST=./test
 TEST_BIN=./test/bin
-TESTS = test1
+TESTS = test1 # add more tests here
 
 SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
