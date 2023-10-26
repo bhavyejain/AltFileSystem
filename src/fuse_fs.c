@@ -41,11 +41,18 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
 
-	char fpath[PATH_MAX];
-    get_file_path(fpath, fname);
-	fprintf(stderr, "FPath: %s\n", fpath);
+	memset(stbuf, 0, sizeof(struct stat));
+	if (strcmp(path, "/") == 0) {
+		stbuf->st_mode = S_IFDIR | 0755;
+		stbuf->st_nlink = 2;
+	}
+	else {
+		char fpath[PATH_MAX];
+		get_file_path(fpath, fname);
+		fprintf(stderr, "FPath: %s\n", fpath);
+		res = lstat(fpath, stbuf);
+	}
 
-	res = lstat(fpath, stbuf);
 	if (res == -1)
 		return -errno;
 
