@@ -118,6 +118,7 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 	fprintf(stderr, "attempting to open\n");
 	res = open(fpath, fi->flags);
+	fprintf(stderr, "Result: %d", res);
 	if (res < 0) {
 		fprintf(stderr, "error in opening!\n");
 		return -errno;
@@ -125,7 +126,7 @@ static int altfs_open(const char *path, struct fuse_file_info *fi)
 
 	fi->fh = res;
 
-	return res;
+	return 0;
 }
 
 static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
