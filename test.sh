@@ -1,7 +1,10 @@
 #! /bin/sh
 
+echo "BUILDING TESTS..."
 make clean_tests
 make tests
+echo "TESTS BUILT!!"
+echo ""
 
 script_dir="$(dirname "$0")"
 test_path="$script_dir/test/bin"
