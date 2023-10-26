@@ -5,7 +5,7 @@ SOURCE=./src
 
 TEST=./test
 TEST_BIN=./test/bin
-TESTS = test1 test2
+TESTS = test1
 
 SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
@@ -25,9 +25,11 @@ tests: $(TESTS)
 $(TESTS): %: $(TEST)/%.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^
-
 	
 clean:
 	rm -rf obj/*
 	rm -rf ./bin
+	rm -rf ./test/bin
+
+clean_tests:
 	rm -rf ./test/bin

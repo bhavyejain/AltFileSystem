@@ -7,12 +7,21 @@
 #include <unistd.h>
 #include <string.h>
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 2) {
+        printf("Mount point not provided!");
+        return 0;
+    }
+
+    char m_point[100];
+    strcpy(m_point, argv[1]);
+    strcat(m_point, "/hi.txt");
+
     int fptr;
 
     printf("Trying to open a file...\n");
-    fptr = open("mnt/hi.txt", O_CREAT | O_RDWR, 0666);
+    fptr = open(m_point, O_CREAT | O_RDWR, 0666);
     printf("Checking the file descriptor...\n");
 
     if(fptr < 0)
@@ -47,5 +56,5 @@ int main()
     printf("Closing file descriptor...\n");
     close(fptr);
 
-   return 0;
+    return 0;
 }
