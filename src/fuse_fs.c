@@ -41,7 +41,7 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 	char fpath[PATH_MAX];
     get_fullpath(fpath, fname);
 
-	res = lstat(fpath, fname);
+	res = lstat(fpath, stbuf);
 	if (res == -1)
 		return -errno;
 
