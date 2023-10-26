@@ -92,9 +92,7 @@ static int altfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 	fprintf(stderr, "Inside create\n");
 	fprintf(stderr, "Path: %s\n", path);
 	int res;
-	// char fpath[PATH_MAX];
-    // strcpy(fpath, path);
-	// strcat(fpath, fname);
+
 	char fpath[PATH_MAX];
     get_fullpath(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
@@ -158,8 +156,7 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	int res;
 
 	char fpath[PATH_MAX];
-    strcpy(fpath, path);
-	strcat(fpath, fname);
+    get_fullpath(fpath, fname);
 	fprintf(stderr, "FPath: %s\n", fpath);
 
 	fd = open(fpath, O_CREAT | O_WRONLY, 0644);
