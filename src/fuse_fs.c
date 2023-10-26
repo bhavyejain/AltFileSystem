@@ -154,7 +154,7 @@ static int altfs_truncate(const char *path, off_t size, struct fuse_file_info *f
 	if (fi != NULL)
 		res = ftruncate(fi->fh, size);
 	else
-		res = truncate(path, size);
+		res = truncate(fpath, size);
 	if (res == -1)
 		return -errno;
 
