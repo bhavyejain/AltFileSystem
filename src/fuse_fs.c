@@ -39,7 +39,7 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 {
 	fprintf(stderr, "Inside getattr\n");
 	fprintf(stderr, "Path: %s\n", path);
-	int res;
+	int res = 0;
 
 	memset(stbuf, 0, sizeof(struct stat));
 	if (strcmp(path, "/") == 0) {
