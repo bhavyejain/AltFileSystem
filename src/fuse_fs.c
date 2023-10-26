@@ -18,12 +18,11 @@
 #include <unistd.h>
 
 static char rootdir[100];
-static char *fname = "myfile.txt";
+static char *fname = "/myfile.txt";
 
 static void get_fullpath(char fpath[PATH_MAX], const char *path)
 {
     strcpy(fpath, rootdir);
-	strcat(fpath, "/");
     strncat(fpath, path, PATH_MAX);
 }
 
@@ -39,10 +38,10 @@ static int altfs_getattr(const char *path, struct stat *stbuf,
 			 struct fuse_file_info *fi)
 {
 	int res;
-	// char fpath[PATH_MAX];
-    // get_fullpath(fpath, path);
+	char fpath[PATH_MAX];
+    get_fullpath(fpath, fname);
 
-	res = lstat(path, stbuf);
+	res = lstat(fpath, fname);
 	if (res == -1)
 		return -errno;
 
