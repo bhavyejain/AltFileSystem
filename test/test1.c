@@ -40,17 +40,19 @@ int main(int argc, char *argv[])
     printf("\n");
 
     char *read_buffer[50];
+
+    memset(read_buffer, 0, sizeof(read_buffer));
     printf("Reading without lseek()...\n");
-    read(fptr, read_buffer, 4);
-    printf("Read: [%s]\n", read_buffer);
+    int t = read(fptr, read_buffer, 4);
+    printf("Read %d bytes: [%s]\n", t, read_buffer);
     printf("\n");
 
     memset(read_buffer, 0, sizeof(read_buffer));
     printf("Doing lseek() to byte 0\n");
     lseek(fptr, 0, SEEK_SET);
     printf("Reading after lseek()...\n");
-    read(fptr, read_buffer, 4);
-    printf("Read: [%s]\n", read_buffer);
+    t = read(fptr, read_buffer, 4);
+    printf("Read %d bytes: [%s]\n", t, read_buffer);
     printf("\n");
 
     printf("Closing file descriptor...\n");
