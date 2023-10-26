@@ -1,12 +1,13 @@
 #! /bin/bash
 
+script_dir="$(dirname "$0")"
+
 echo "BUILDING TESTS..."
-make clean_tests
-make tests
+(cd $script_dir && make clean_tests)
+(cd $script_dir && make tests)
 echo "TESTS BUILT!!"
 echo ""
 
-script_dir="$(dirname "$0")"
 test_path="$script_dir/test/bin"
 
 mount_point=$1
