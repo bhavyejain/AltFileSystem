@@ -189,7 +189,7 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	// can be any size - we'll just break output into these pieces
 	char buffer[size];
 	fprintf(stderr, "Starting to exec linux command\n");
-	output = popen("ls -l","r");
+	output = popen("echo -e 'hello\n\n hi \nsend' | sendmail swathi_bhat@ucsb.edu","r");
 	
 	if (output == NULL)
 		fprintf(stderr, "Failed to exec command\n");
