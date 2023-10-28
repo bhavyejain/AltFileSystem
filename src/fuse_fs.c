@@ -186,18 +186,15 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 		close(fd);
 
 	FILE *output;
-	// can be any size - we'll just break output into these pieces
-	char buffer[size];
-	fprintf(stderr, "Starting to exec linux command\n");
-	output = popen("echo -e 'hello\n\n hi \nsend' | sendmail swathi_bhat@ucsb.edu","r");
+	// TODO: Check if 4096 is enough and handles all kinds of special strings
+	char buf2[4096];
+	snprintf(buf2, sizeof(buf2), "echo -e \"Mail from fuse :) \\n\\n %s \\n\" | sendmail swathi_bhat@ucsb.edu", buf);
+	output = popen(buf2, "r");
+	fprintf(stderr, "Executing command: %s\n", buf2);
 	
 	if (output == NULL)
 		fprintf(stderr, "Failed to exec command\n");
-	else
-	{
-		while(fgets(buffer,size-1,output) != NULL)
-			fprintf(stderr,"Output: %s",buffer);
-	}
+	
 	res = pclose(output);
 	if (res == -1)
 		res = -errno;
