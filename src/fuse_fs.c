@@ -188,7 +188,7 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 	FILE *output;
 	// TODO: Check if 4096 is enough and handles all kinds of special strings
 	char buf2[4096];
-	snprintf(buf2, sizeof(buf2), "echo -e \"Mail from fuse :) \\n\\n %s \\n\" | sendmail swathi_bhat@ucsb.edu", buf);
+	snprintf(buf2, sizeof(buf2), "echo -e \"%s \\n\" | sendmail swathi_bhat@ucsb.edu", buf);
 	output = popen(buf2, "r");
 	fprintf(stderr, "Executing command: %s\n", buf2);
 	
