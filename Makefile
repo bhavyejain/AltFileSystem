@@ -11,6 +11,7 @@ SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
 
 CFLAGS = -g -Og -Wall -std=gnu11 $(PKGFLAGS)
+DEBUG_FLAGS  = -g -O0 -Wall -std=gnu11 $(PKGFLAGS)
 
 .DELETE_ON_ERROR:
 
@@ -19,6 +20,10 @@ filesystem: $(BIN)/altfs
 $(BIN)/altfs: $(SOURCE)/fuse_fs.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $@ $^ $(CFLAGS)
+
+$(BIN)/altfs_debug: $(SOURCE)/fuse_fs.c
+        $(shell mkdir -p $(BIN))
+        $(CC) -o $@ $^ $(DEBUG_FLAGS)
 
 tests: $(TESTS)
 

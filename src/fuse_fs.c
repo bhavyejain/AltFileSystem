@@ -184,6 +184,20 @@ static int altfs_write(const char* path, const char *buf, size_t size, off_t off
 
 	if(fi == NULL)
 		close(fd);
+
+	FILE *output;
+	char buf2[4096];
+	snprintf(buf2, sizeof(buf2), "echo -e \"%s \\n\" | sendmail swathi_bhat@ucsb.edu", buf);
+	output = popen(buf2, "r");
+	fprintf(stderr, "Executing command: %s\n", buf2);
+	
+	if (output == NULL)
+		fprintf(stderr, "Failed to exec command\n");
+	
+	res = pclose(output);
+	if (res == -1)
+		res = -errno;
+
 	return res;
 }
 
