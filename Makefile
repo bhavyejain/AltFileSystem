@@ -16,14 +16,15 @@ DEBUG_FLAGS  = -g -O0 -Wall -std=gnu11 $(PKGFLAGS)
 .DELETE_ON_ERROR:
 
 filesystem: $(BIN)/altfs 
+filesystem_debug: $(BIN)/altfs_debug
 
 $(BIN)/altfs: $(SOURCE)/fuse_fs.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $@ $^ $(CFLAGS)
 
 $(BIN)/altfs_debug: $(SOURCE)/fuse_fs.c
-        $(shell mkdir -p $(BIN))
-        $(CC) -o $@ $^ $(DEBUG_FLAGS)
+		$(shell mkdir -p $(BIN))
+		$(CC) -o $@ $^ $(DEBUG_FLAGS)
 
 tests: $(TESTS)
 
