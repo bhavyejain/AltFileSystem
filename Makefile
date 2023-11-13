@@ -5,7 +5,7 @@ SOURCE=./src
 
 TEST=./test
 TEST_BIN=./test/bin
-TESTS = test1 # add more tests here
+TESTS = test1 test2 # add more tests here
 
 SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
@@ -27,6 +27,10 @@ $(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 		$(CC) -o $@ $^ $(DEBUG_FLAGS)
 
 tests: $(TESTS)
+
+test_disk_layer: test/test_disklayer.c 
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^
 
 $(TESTS): %: $(TEST)/%.c
 	$(shell  mkdir -p $(TEST_BIN))
