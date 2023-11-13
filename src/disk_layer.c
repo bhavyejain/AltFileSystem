@@ -7,7 +7,7 @@
 #define ALTFS_ALLOC_MEMORY "altfs_alloc_memory"
 #define ALTFS_DEALLOC_MEMORY "altfs_dealloc_memory"
 
-char *fs_memory;
+static char *fs_memory;
 
 bool altfs_alloc_memory()
 {
