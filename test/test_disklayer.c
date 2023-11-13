@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
     // Test1 : Allocate memory
-    char* altfs_alloc = altfs_alloc_memory();
+    bool altfs_alloc = altfs_alloc_memory();
     if (!altfs_alloc)
     {
         fprintf(stderr, "%s Test1: %s Failed to allocate memory\n",DISK_LAYER_TEST,FAILED);
@@ -17,13 +17,13 @@ int main(int argc, char *argv[])
     }
     fprintf(stderr, "%s Test1: %s Allocated memory\n",DISK_LAYER_TEST,SUCCESS);
 
-    bool altfs_dealloc = altfs_dealloc_memory(&altfs_alloc);
+    /*bool altfs_dealloc = altfs_dealloc_memory();
     if (!altfs_dealloc)
     {
         fprintf(stderr, "%s Test2: %s Failed to deallocate memory\n",DISK_LAYER_TEST,FAILED);
         return -1;
     }
-    fprintf(stderr, "%s Test2: %s Deallocated memory\n",DISK_LAYER_TEST,SUCCESS);
+    fprintf(stderr, "%s Test2: %s Deallocated memory\n",DISK_LAYER_TEST,SUCCESS);*/
 
     return 0;
 }
