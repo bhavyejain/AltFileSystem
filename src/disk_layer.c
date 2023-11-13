@@ -9,7 +9,7 @@
 
 static char *fs_memory;
 
-bool altfs_alloc_memory()
+char* altfs_alloc_memory()
 {
     fprintf(stderr, "%s Allocating memory\n", ALTFS_ALLOC_MEMORY);
     // TODO: Check that it works for all data types in files
@@ -20,19 +20,19 @@ bool altfs_alloc_memory()
     if (!fs_memory)
     {
         fprintf(stderr, "%s Error allocating memory\n", ALTFS_ALLOC_MEMORY);
-        return false;
+        return NULL;
     }
     //memset(fs_memory,0,1048576);
     //fuse_log(FUSE_LOG_DEBUG, "Inside atlfs alloc memory");
     fprintf(stderr, "%s Allocated memory for FS at %p\n", ALTFS_ALLOC_MEMORY, &fs_memory);
-    return true;
+    return fs_memory;
 }
 
-bool altfs_dealloc_memory()
+bool altfs_dealloc_memory(char** fs_memory)
 {
     fprintf(stderr, "%s Deallocating memory\n",ALTFS_DEALLOC_MEMORY);
-    if (!fs_memory)
-        free(fs_memory);
+    if (!(*fs_memory))
+        free(*fs_memory);
     else
     {
         fprintf(stderr,"%s No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
