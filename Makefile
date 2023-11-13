@@ -18,11 +18,11 @@ DEBUG_FLAGS  = -g -O0 -Wall -std=gnu11 $(PKGFLAGS)
 filesystem: $(BIN)/altfs 
 filesystem_debug: $(BIN)/altfs_debug
 
-$(BIN)/altfs: $(SOURCE)/fuse_fs.c
+$(BIN)/altfs: $(SOURCE)/disk_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $@ $^ $(CFLAGS)
 
-$(BIN)/altfs_debug: $(SOURCE)/fuse_fs.c
+$(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 		$(shell mkdir -p $(BIN))
 		$(CC) -o $@ $^ $(DEBUG_FLAGS)
 
