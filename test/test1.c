@@ -20,7 +20,19 @@ int main(int argc, char *argv[])
 
     int fptr;
 
-    printf("Trying to open a file...\n");
+    char *testStrings[7];
+    testStrings[0] = "Hi. This is a simple sample string.";
+    testStrings[1] = "Voila! I have a lot of punctuation marks %d $!@#$\%^&*()_-~`\";,./?";
+    testStrings[2] = "I have a lot of escaped sequences. \\n \\s \\& \"\"";
+    testStrings[3] = "I'm a number string! 12345456767980";
+    testStrings[4] = "I'm very very very long aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    testStrings[5] = "&\n";
+    testStrings[6] = "hi \n there";
+
+    int n = sizeof(testStrings)/sizeof(testStrings[0]);
+    for(int i=0;i<n;i++)
+    {
+        printf("Trying to open a file...\n");
     fptr = open(m_point, O_CREAT | O_RDWR, 0666);
     printf("Checking the file descriptor...\n");
 
@@ -57,6 +69,7 @@ int main(int argc, char *argv[])
 
     printf("Closing file descriptor...\n");
     close(fptr);
-
+    }
+    
     return 0;
 }
