@@ -10,8 +10,8 @@ TESTS = test1 # add more tests here
 SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
 
-CFLAGS = -g -Og -Wall -std=gnu11 $(PKGFLAGS)
-DEBUG_FLAGS  = -g -O0 -Wall -std=gnu11 $(PKGFLAGS)
+CFLAGS = -g -Og -I./header -Wall -std=gnu11 $(PKGFLAGS)
+DEBUG_FLAGS  = -g -O0 -I./header -Wall -std=gnu11 $(PKGFLAGS)
 
 .DELETE_ON_ERROR:
 

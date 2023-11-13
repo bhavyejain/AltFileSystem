@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<stdbool.h>
 //#include<fuse_log.h>
+#include "../header/disk_layer.h"
 
 #define ALTFS_ALLOC_MEMORY "altfs_alloc_memory"
 #define ALTFS_DEALLOC_MEMORY "altfs_dealloc_memory"
