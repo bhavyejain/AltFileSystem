@@ -42,8 +42,3 @@ bool altfs_dealloc_memory()
     return true;
 }
 
-int main()
-{
-    return 0;
-}
-
