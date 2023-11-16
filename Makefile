@@ -30,7 +30,7 @@ tests: $(TESTS)
 
 test_disk_layer: test/test_disklayer.c 
 	$(shell  mkdir -p $(TEST_BIN))
-	$(CC) -o $(TEST_BIN)/$@ $^
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
 $(TESTS): %: $(TEST)/%.c
 	$(shell  mkdir -p $(TEST_BIN))
