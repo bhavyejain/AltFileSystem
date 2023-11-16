@@ -15,7 +15,6 @@ static char *fs_memory;
 bool altfs_alloc_memory()
 {
     fuse_log(FUSE_LOG_DEBUG, "%s Allocating memory\n",ALTFS_ALLOC_MEMORY);
-    // fprintf(stderr, "%s Allocating memory\n", ALTFS_ALLOC_MEMORY);
     // TODO: Check that it works for all data types in files
     //fs_memory = (char*)malloc(1048576); // allocate 1 MB
     // TODO: check if calloc works same as malloc+memset
@@ -24,28 +23,23 @@ bool altfs_alloc_memory()
     if (!fs_memory)
     {
         fuse_log(FUSE_LOG_ERR, "%s Error allocating memory\n",ALTFS_ALLOC_MEMORY);
-        //fprintf(stderr, "%s Error allocating memory\n", ALTFS_ALLOC_MEMORY);
         return false;
     }
     //memset(fs_memory,0,1048576);
-    //fprintf(stderr, "%s Allocated memory for FS at %p\n", ALTFS_ALLOC_MEMORY, &fs_memory);
     fuse_log(FUSE_LOG_DEBUG, "%s Allocated memory for FS at %p\n", ALTFS_ALLOC_MEMORY, &fs_memory);
     return true;
 }
 
 bool altfs_dealloc_memory()
 {
-    //fprintf(stderr, "%s Deallocating memory\n",ALTFS_DEALLOC_MEMORY);
     fuse_log(FUSE_LOG_DEBUG, "%s Deallocating memory\n",ALTFS_DEALLOC_MEMORY);
     if (!fs_memory)
         free(fs_memory);
     else
     {
-        //fprintf(stderr,"%s No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
         fuse_log(FUSE_LOG_ERR, "%s No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
         return false;
     }
-    //fprintf(stderr,"%s Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     fuse_log(FUSE_LOG_DEBUG, "%s Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     return true;
 }
