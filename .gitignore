@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# bin folders
+bin/
+test/bin/
