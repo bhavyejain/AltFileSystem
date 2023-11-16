@@ -1,7 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<stdbool.h>
-//#include<fuse_log.h>
+#include<fuse_log.h>
 #include "../header/disk_layer.h"
 
 #define ALTFS_ALLOC_MEMORY "altfs_alloc_memory"
@@ -23,7 +23,7 @@ bool altfs_alloc_memory()
         return false;
     }
     //memset(fs_memory,0,1048576);
-    //fuse_log(FUSE_LOG_DEBUG, "Inside atlfs alloc memory");
+    fuse_log(FUSE_LOG_DEBUG, "Inside atlfs alloc memory");
     fprintf(stderr, "%s Allocated memory for FS at %p\n", ALTFS_ALLOC_MEMORY, &fs_memory);
     return true;
 }

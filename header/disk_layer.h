@@ -1,5 +1,5 @@
-#ifndef _DISK_LAYER_HEADER_
-#define _DISK_LAYER_HEADER_
+#ifndef __DISK_LAYER__
+#define __DISK_LAYER__
 
 #include<stdio.h>
 #include<stdlib.h>
