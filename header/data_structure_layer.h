@@ -14,6 +14,9 @@
 */
 
 #define ALTFS_MAKEFS "altfs_makefs"
+#define ALTFS_CREATE_SUPERBLOCK "altfs_create_superblock"
+
+#define NUM_OF_DIRECT_BLOCKS 12;
 
 // Data structure for inode
 // Follows a structure similar to ext4 - https://www.kernel.org/doc/html/latest/filesystems/ext4/inodes.html?highlight=inode
@@ -31,8 +34,8 @@ struct inode
     ssize_t i_file_size; // file size
     ssize_t i_blocks_num; // num of blocks the file has
     bool i_allocated; // flag to indicate if inode is allocated
-    // TODO: extract all numbers in constants above
-    ssize_t i_direct_blocks[10];
+    // TODO: Kept number of direct blocks as 12 in sync with ext4
+    ssize_t i_direct_blocks[NUM_OF_DIRECT_BLOCKS];
     ssize_t i_single_indirect;
     ssize_t i_double_indirect;
     ssize_t i_triple_indirect;
