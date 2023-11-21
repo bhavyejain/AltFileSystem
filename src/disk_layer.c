@@ -5,6 +5,7 @@
 #include<stdbool.h>
 #include<fuse.h>
 #include<stdarg.h>
+#include<string.h>
 #include "../header/disk_layer.h"
 
 // TODO: change this while moving to disk 
@@ -46,7 +47,7 @@ bool altfs_dealloc_memory()
 
 bool isBlockOutOfRange(ssize_t blockid)
 {
-    return (blockid < 0 || blockid >= BLOCK_COUNT)
+    return (blockid < 0 || blockid >= BLOCK_COUNT);
 }
 
 bool altfs_read_block(ssize_t blockid, char *buffer)

@@ -14,16 +14,9 @@ void print_superblock()
         fprintf(stderr, "%s : Failed to read block 0 for superblock\n", SUPERBLOCK_LAYER_TEST);
         return;
     }
-    ssize_t s_inodes_count;
-    //ssize_t s_free_blocks_count;
-    ssize_t s_first_ino; // first non-reserved inode
-    ssize_t s_freelist_head;
-    ssize_t s_inode_size; // ??? check if required or not
-    ssize_t s_num_of_inodes_per_block;
     struct superblock *superblockObj = (struct superblock*)buffer;
     printf("\n******************** SUPERBLOCK ********************\n");
-    printf("\nNUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n
-            INODE SIZE: %ld \n INODES PER BLOCK: %ld \n", 
+    printf("\nNUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n INODE SIZE: %ld \n INODES PER BLOCK: %ld \n", 
         superblockObj->s_inodes_count, superblockObj->s_first_ino, superblockObj->s_freelist_head, 
         superblockObj->s_inode_size, superblockObj->s_num_of_inodes_per_block);
     printf("\n");
