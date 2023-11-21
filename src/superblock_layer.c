@@ -35,8 +35,16 @@ bool altfs_create_superblock()
 bool altfs_create_ilist()
 {
     // TODO: Verify all elements of struct are getting initialized correctly
-    struct inode inodeObj[sizeof(struct inode)] = {0};
+    struct inode inodeObj[sizeof(struct inode)];
+    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
+        inodeObj->i_direct_blocks[i] = 0;
     inodeObj->i_allocated = false;
+    inodeObj->i_single_indirect = 0;
+    inodeObj->i_double_indirect = 0;
+    inodeObj->i_triple_indirect = 0;
+    inodeObj->i_links_count = 0;
+    inodeObj->i_file_size = 0;
+    inodeObj->i_blocks_num = 0;
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     char buffer[BLOCK_SIZE];
