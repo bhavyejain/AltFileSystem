@@ -48,6 +48,7 @@ bool altfs_create_ilist()
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     char buffer[BLOCK_SIZE];
+    fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
     for(int blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
     {
         int offset = 0;
