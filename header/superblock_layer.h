@@ -1,5 +1,5 @@
-#ifndef __DATA_STRUCTURE_LAYER__
-#define __DATA_STRUCTURE_LAYER__
+#ifndef __SUPERBLOCK_LAYER__
+#define __SUPERBLOCK_LAYER__
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -15,8 +15,17 @@
 
 #define ALTFS_MAKEFS "altfs_makefs"
 #define ALTFS_CREATE_SUPERBLOCK "altfs_create_superblock"
+#define ALTFS_CREATE_ILIST "altfs_create_ilist"
+#define ALTFS_CREATE_FREELIST "altfs_create_freelist"
 
 #define NUM_OF_DIRECT_BLOCKS 12;
+#define ADDRESS_SIZE 8;
+// TODO: check if all inodes have max size files, can disk handle the scenario
+#define INODE_BLOCK_COUNT (BLOCK_COUNT/10) // 10% blocks reserved for inodes TODO: Check if we can reduce this
+#define NUM_OF_DATA_BLOCKS (BLOCK_COUNT - INODE_BLOCK_COUNT - 1) // -1 for superblock
+#define NUM_OF_ADDRESSES_PER_BLOCK (BLOCK_SIZE / ADDRESS_SIZE) // Assuming each address is 8B 
+#define NUM_OF_FREE_LIST_BLOCKS (NUM_OF_DATA_BLOCKS / NUM_OF_ADDRESSES_PER_BLOCK + 1) // Num of free list blocks = data required to store that many addresses
+
 
 // Data structure for inode
 // Follows a structure similar to ext4 - https://www.kernel.org/doc/html/latest/filesystems/ext4/inodes.html?highlight=inode

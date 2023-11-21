@@ -12,8 +12,6 @@
 
 #define BLOCK_SIZE ((ssize_t) 4096)
 #define BLOCK_COUNT ((ssize_t) (FS_SIZE/BLOCK_SIZE))
-// TODO: check if all inodes have max size files, can disk handle the scenario
-#define INODE_BLOCK_COUNT (BLOCK_COUNT/10) // 10% blocks reserved for inodes
 #define FS_SIZE ((ssize_t) 104857600) // TODO: put this under if condition once disk implementation is done
 
 // Allocates memory - returns true on success
