@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include "../src/disk_layer.c"
+#include "../src/superblock_layer.c"
 
 #define SUPERBLOCK_LAYER_TEST "altfs_superblock_layer_test"
 #define SUCCESS "Success: "
