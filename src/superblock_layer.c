@@ -14,7 +14,8 @@ bool altfs_create_superblock()
     altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
     // fd 0,1,2 = input, output, error => first ino will start from 3
     altfs_superblock->s_first_ino = 3;
-    altfs_superblock->s_inode_size = sizeof(struct inode);
+    //altfs_superblock->s_inode_size = sizeof(struct inode);
+    altfs_superblock->s_num_of_inodes_per_block = (BLOCK_SIZE) / sizeof(struct inode);
     altfs_superblock->s_inodes_count = INODE_BLOCK_COUNT*altfs_superblock->s_num_of_inodes_per_block;
     // first data block will be the head of free list
     altfs_superblock->s_freelist_head = INODE_BLOCK_COUNT+1;

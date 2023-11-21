@@ -56,7 +56,7 @@ struct superblock
     //ssize_t s_free_blocks_count;
     ssize_t s_first_ino; // first non-reserved inode
     ssize_t s_freelist_head;
-    ssize_t s_inode_size; // ??? check if required or not
+    //ssize_t s_inode_size; // ??? check if required or not
     ssize_t s_num_of_inodes_per_block;
 };
 
