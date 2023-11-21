@@ -18,13 +18,13 @@
 #define ALTFS_CREATE_ILIST "altfs_create_ilist"
 #define ALTFS_CREATE_FREELIST "altfs_create_freelist"
 
-#define NUM_OF_DIRECT_BLOCKS 12;
-#define ADDRESS_SIZE 8;
+#define NUM_OF_DIRECT_BLOCKS ((ssize_t) 12)
+#define ADDRESS_SIZE ((ssize_t) 8)
 // TODO: check if all inodes have max size files, can disk handle the scenario
-#define INODE_BLOCK_COUNT (BLOCK_COUNT/10) // 10% blocks reserved for inodes TODO: Check if we can reduce this
-#define NUM_OF_DATA_BLOCKS (BLOCK_COUNT - INODE_BLOCK_COUNT - 1) // -1 for superblock
-#define NUM_OF_ADDRESSES_PER_BLOCK (BLOCK_SIZE / ADDRESS_SIZE) // Assuming each address is 8B 
-#define NUM_OF_FREE_LIST_BLOCKS (NUM_OF_DATA_BLOCKS / NUM_OF_ADDRESSES_PER_BLOCK + 1) // Num of free list blocks = data required to store that many addresses
+#define INODE_BLOCK_COUNT ((ssize_t) (BLOCK_COUNT/10)) // 10% blocks reserved for inodes TODO: Check if we can reduce this
+#define NUM_OF_DATA_BLOCKS ((ssize_t) (BLOCK_COUNT - INODE_BLOCK_COUNT - 1)) // -1 for superblock
+#define NUM_OF_ADDRESSES_PER_BLOCK ((ssize_t) (BLOCK_SIZE / ADDRESS_SIZE)) // Assuming each address is 8B 
+#define NUM_OF_FREE_LIST_BLOCKS ((ssize_t) (NUM_OF_DATA_BLOCKS / NUM_OF_ADDRESSES_PER_BLOCK + 1)) // Num of free list blocks = data required to store that many addresses
 
 
 // Data structure for inode

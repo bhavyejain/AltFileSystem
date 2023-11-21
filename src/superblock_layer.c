@@ -3,8 +3,8 @@
 #include<string.h>
 #include<stdio.h>
 #include<fuse.h>
-#include "../header/superblock_layer.h";
-#include "../header/disk_layer.h";
+#include "../header/superblock_layer.h"
+#include "../header/disk_layer.h"
 
 static struct superblock* altfs_superblock = NULL;
 
@@ -43,8 +43,8 @@ bool altfs_create_ilist()
     for(int blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
     {
         int offset = 0;
-        memset(buff, 0, BLOCK_SIZE);
-        for(int inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; i++)
+        memset(buffer, 0, BLOCK_SIZE);
+        for(int inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; inodenum++)
         {
             memcpy(buffer + offset, inodeObj, sizeof(struct inode));
             offset += sizeof(struct inode);
