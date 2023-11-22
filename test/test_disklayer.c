@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
         return -1;
     }
     if (strcmp(buff, teststr) == 0)
-        printf("%s Test7: contents are same as teststr\n", DISK_LAYER_TEST, SUCCESS);
+        printf("%s Test7: %s contents are same as teststr\n", DISK_LAYER_TEST, SUCCESS);
     else
     {
-        printf("%s Test7: contents are not the as teststr\n", DISK_LAYER_TEST, FAILED);
+        printf("%s Test7: %s contents are not the as teststr\n", DISK_LAYER_TEST, FAILED);
         return -1;
     }
     printf("%s Test7: %s Read from valid block\n",DISK_LAYER_TEST,SUCCESS);
@@ -85,20 +85,20 @@ int main(int argc, char *argv[])
         memcpy(buff, teststr, strlen(teststr));
         if(!altfs_write_block(i, buff))
         {
-            printf("%s Test8: Write to block %ld failed\n", i);
+            printf("%s Test8: Write to block %ld failed\n",DISK_LAYER_TEST, i);
             return -1;
         }
         if(!altfs_read_block(i, buff))
         {
-            printf("%s Test8: Read from block %ld failed\n", i);
+            printf("%s Test8: Read from block %ld failed\n",DISK_LAYER_TEST, i);
             return -1;
         }
         if(strcmp(buff, teststr) != 0)
         {
-            printf("%s Test8: String compare for block %ld failed\n", i);
+            printf("%s Test8: String compare for block %ld failed\n",DISK_LAYER_TEST, i);
         }
     }
-    printf("%s Test8: Write, read and data compare for all blocks passed\n");
+    printf("%s Test8: Write, read and data compare for all blocks passed\n",DISK_LAYER_TEST);
 
     /*bool altfs_dealloc = altfs_dealloc_memory();
     if (!altfs_dealloc)
