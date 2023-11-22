@@ -38,7 +38,7 @@ bool altfs_write_superblock()
 {
     char buffer[BLOCK_SIZE];
     memset(buffer, 0, BLOCK_SIZE);
-    memccpy(buffer, altfs_superblock, sizeof(struct superblock));
+    memcpy(buffer, altfs_superblock, sizeof(struct superblock));
     if(!altfs_write_block(0, buffer))
     {
         fuse_log(FUSE_LOG_ERR, "%s Error writing superblock to memory.\n", "altfs_write_superblock");
