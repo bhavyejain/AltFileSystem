@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
     print_superblock(superblockObj);
     fprintf(stdout, "%s Test2: %s Printed superblock contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
 
-    // Test3 : 
+    // Test3 : Verify freelist 
+    print_freelist(superblockObj);
+    fprintf(stdout, "%s Test3: %s Printed freelist contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
     return 0;
 }
