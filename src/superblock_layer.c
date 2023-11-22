@@ -23,11 +23,13 @@ bool altfs_create_superblock()
     char buff[BLOCK_SIZE];
     memset(buff, 0, BLOCK_SIZE);
     memcpy(buff, altfs_superblock, sizeof(struct superblock));
+    fuse_log(FUSE_LOG_DEBUG, "%s Writing superblock...\n",ALTFS_CREATE_SUPERBLOCK);
     if (!altfs_write_block(0, buff))
     {
         fuse_log(FUSE_LOG_ERR, "%s Error writing to superblock\n", ALTFS_CREATE_SUPERBLOCK);
         return false;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s Finished writing superblock...\n",ALTFS_CREATE_SUPERBLOCK);
     return true;
 }
 
@@ -59,6 +61,7 @@ bool altfs_create_ilist()
             memcpy(buffer + offset, inodeObj, sizeof(struct inode));
             offset += sizeof(struct inode);
         }
+        fuse_log(FUSE_LOG_DEBUG, "%s Writing blocknum %ld and buffer %s\n",ALTFS_CREATE_ILIST, blocknum, *buffer);
         if (!altfs_write_block(blocknum, buffer)){
             fuse_log(FUSE_LOG_ERR, "%s Error writing to inode block number %d\n", ALTFS_CREATE_ILIST, blocknum);
             return false;
