@@ -9,6 +9,7 @@
 int print_freelist(ssize_t blocknum)
 {   
     printf("\n******************** FREELIST ********************\n");
+    printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
     char *buff = (char*)malloc(BLOCK_SIZE);
     ssize_t offset = 0;
 
