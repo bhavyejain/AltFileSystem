@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     // Test6: Write to valid block
     char *teststr = "This is a test string.";
     memcpy(buff,teststr,strlen(teststr));
-    if (altfs_write_block(10,buff))
+    if (!altfs_write_block(10,buff))
     {
         printf("%s Test6: %s Failed to write to valid block\n",DISK_LAYER_TEST,FAILED);
         return -1;
