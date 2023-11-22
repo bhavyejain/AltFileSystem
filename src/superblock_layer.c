@@ -127,7 +127,7 @@ bool altfs_create_freelist()
             fuse_log(FUSE_LOG_ERR, "%s Error writing block number %d to free list\n", ALTFS_CREATE_FREELIST, currblocknum);
             return false;
         }
-        fuse_debug(FUSE_LOG_DEBUG, "%s Successfully wrote block number %ld with contents %s\n", ALTFS_CREATE_FREELIST, currblocknum, buffer);
+        fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote block number %ld with contents %s\n", ALTFS_CREATE_FREELIST, currblocknum, buffer);
         // TODO: Check on below check
         //if (blocknum >= BLOCK_COUNT)
         //    break;
