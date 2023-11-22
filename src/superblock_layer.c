@@ -38,25 +38,31 @@ bool altfs_create_superblock()
 bool altfs_create_ilist()
 {
     // TODO: Verify all elements of struct are getting initialized correctly
-    struct inode inodeObj[sizeof(struct inode)];
-    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-        inodeObj->i_direct_blocks[i] = 0;
-    inodeObj->i_allocated = false;
-    inodeObj->i_single_indirect = 0;
-    inodeObj->i_double_indirect = 0;
-    inodeObj->i_triple_indirect = 0;
-    inodeObj->i_links_count = 0;
-    inodeObj->i_file_size = 0;
-    inodeObj->i_blocks_num = 0;
+    // TODO: The ilist size is set to number of inodes - Check that this works fine
+    //struct inode inodeObj[sizeof(struct inode)];
+    struct inode inodeObj[altfs_superblock->s_inodes_count];
+    // TODO: Adding loop for initialization of inodes - Verify this
+    for(ssize_t k = 0; k < altfs_superblock->s_inodes_count; k++)
+    {
+        for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
+            inodeObj[k]->i_direct_blocks[i] = 0;
+        inodeObj[k]->i_allocated = false;
+        inodeObj[k]->i_single_indirect = 0;
+        inodeObj[k]->i_double_indirect = 0;
+        inodeObj[k]->i_triple_indirect = 0;
+        inodeObj[k]->i_links_count = 0;
+        inodeObj[k]->i_file_size = 0;
+        inodeObj[k]->i_blocks_num = 0;
+    }
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     char buffer[BLOCK_SIZE];
     fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
-    for(int blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
+    for(ssize_t blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
     {
-        int offset = 0;
+        ssize_t offset = 0;
         memset(buffer, 0, BLOCK_SIZE);
-        for(int inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; inodenum++)
+        for(ssize_t inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; inodenum++)
         {
             memcpy(buffer + offset, inodeObj, sizeof(struct inode));
             offset += sizeof(struct inode);
@@ -75,19 +81,19 @@ bool altfs_create_freelist()
 {
     // iterate over all blocks meant for free list 
     // Initialize the addresses
-    int blocknum = altfs_superblock->s_freelist_head;
+    ssize_t blocknum = altfs_superblock->s_freelist_head;
     char buffer[BLOCK_SIZE];
-    int nullvalue = 0;
+    ssize_t nullvalue = 0;
 
-    for(int i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
+    for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
     {
-        int currblocknum = blocknum;
+        ssize_t currblocknum = blocknum;
         // initialize block with zeroes
         memset(buffer, 0, BLOCK_SIZE);
-        int offset = 0;
+        ssize_t offset = 0;
         // for each block, initialize addresses
         // Starts from index 1 since first one witll have block address off next free list block
-        for(int j=1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
+        for(ssize_t j=1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
         {
             offset += ADDRESS_SIZE; 
             blocknum += 1;

@@ -25,7 +25,7 @@ void print_superblock()
 void print_constants()
 {
     printf("\n******************** CONSTANTS ********************\n");
-    printf("\n NUM_OF_DIRECT_BLOCKS: %ld \n BLOCK_SIZE: %ld \n Number of inodes per block: %ld\n",NUM_OF_DIRECT_BLOCKS,BLOCK_SIZE, (BLOCK_SIZE) / sizeof(struct inode));
+    printf("\n BLOCK COUNT: %ld \n NUM_OF_DATA_BLOCKS: %ld \n NUM OF DIRECT BLOCKS: %ld \n BLOCK SIZE: %ld \n Number of inodes per block: %ld\n INODE BLOCK COUNT: %ld\n",BLOCK_COUNT, NUM_OF_DATA_BLOCKS, NUM_OF_DIRECT_BLOCKS,BLOCK_SIZE, (BLOCK_SIZE) / sizeof(struct inode), INODE_BLOCK_COUNT, );
     printf("\n******************** CONSTANTS ********************\n");
 }
 
