@@ -45,14 +45,14 @@ bool altfs_create_ilist()
     for(ssize_t k = 0; k < altfs_superblock->s_inodes_count; k++)
     {
         for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-            inodeObj[k]->i_direct_blocks[i] = 0;
-        inodeObj[k]->i_allocated = false;
-        inodeObj[k]->i_single_indirect = 0;
-        inodeObj[k]->i_double_indirect = 0;
-        inodeObj[k]->i_triple_indirect = 0;
-        inodeObj[k]->i_links_count = 0;
-        inodeObj[k]->i_file_size = 0;
-        inodeObj[k]->i_blocks_num = 0;
+            inodeObj[k].i_direct_blocks[i] = 0;
+        inodeObj[k].i_allocated = false;
+        inodeObj[k].i_single_indirect = 0;
+        inodeObj[k].i_double_indirect = 0;
+        inodeObj[k].i_triple_indirect = 0;
+        inodeObj[k].i_links_count = 0;
+        inodeObj[k].i_file_size = 0;
+        inodeObj[k].i_blocks_num = 0;
     }
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
