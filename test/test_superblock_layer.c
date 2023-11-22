@@ -6,25 +6,25 @@
 #define SUCCESS "Success: "
 #define FAILED "Failed: "
 
-void print_freelist(struct superblock *superblockObj)
+int print_freelist(ssize_t blocknum)
 {   
-    ssize_t freelist_start_blocknum = superblockObj->s_freelist_head;
-    ssize_t currblock = freelist_start_blocknum;
     printf("\n******************** FREELIST ********************\n");
     char *buff = (char*)malloc(BLOCK_SIZE);
     ssize_t offset = 0;
 
-    if (!altfs_read_block(currblock, buff))
+    if (!altfs_read_block(blocknum, buff))
     {
-        printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
+        printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
         return;
     }
-    ssize_t *dblock_num_ptr = (ssize_t *)buff;
-    printf("dptr: %ld\n", dblock_num_ptr);
+    ssize_t *buff_numptr = (ssize_t *)buff;
     for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
     {
         for (size_t j = 0; j < 8; j++)
         {
+            if (i == 0 && j == 0)
+                printf("Next free block: %ld\n", buff_numptr[0]);
+            else
             printf("%ld ", dblock_num_ptr[i * 8 + j]);
         }
         printf("\n");
@@ -57,6 +57,7 @@ void print_freelist(struct superblock *superblockObj)
         }
     }*/
     printf("\n******************** FREELIST ********************\n");
+    return buff_numptr[0];
 }
 
 void print_superblock(struct superblock *superblockObj)
@@ -107,8 +108,18 @@ int main(int argc, char *argv[])
     print_superblock(superblockObj);
     fprintf(stdout, "%s Test2: %s Printed superblock contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
 
-    // Test3 : Verify freelist 
-    print_freelist(superblockObj);
+    // Test3 : Verify freelist by printing first free block
+    int nextfreeblock = print_freelist(superblockObj->s_freelist_head);
     fprintf(stdout, "%s Test3: %s Printed freelist contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
+    
+    // Test4 : Verify first 10 free blocks
+    for(int i=1;i<10;i++)
+    {
+        nextfreeblock = print_freelist(nextfreeblock);
+    }
+    fprintf(stdout, "%s Test4: %s Printed first 10 freelist block contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
+
     return 0;
+
+
 }
