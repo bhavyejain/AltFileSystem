@@ -60,11 +60,15 @@ struct superblock
     ssize_t s_num_of_inodes_per_block;
 };
 
+bool altfs_write_superblock();
+
 // makefs - Calls disk layer to allocate memory, initializes superblock, i-list and free list
 bool altfs_makefs();
 
 ssize_t altfs_create_inode();
 
 //struct inode* altfs_read_inode(ssize_t )
+
+static struct superblock* altfs_superblock = NULL;
 
 #endif
