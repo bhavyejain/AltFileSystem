@@ -19,7 +19,7 @@ bool altfs_alloc_memory()
     //mem_ptr = (char*)malloc(1048576); // allocate 1 MB
     // TODO: check if calloc works same as malloc+memset
     // TODO: Check why this should be cast to char* and not void*
-    mem_ptr = (char*)calloc(1,1048576);
+    mem_ptr = (char*)calloc(1,FS_SIZE);
     if (!mem_ptr)
     {
         fuse_log(FUSE_LOG_ERR, "%s Error allocating memory\n",ALTFS_ALLOC_MEMORY);
