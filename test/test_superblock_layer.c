@@ -20,10 +20,10 @@ void print_freelist(struct superblock *superblockObj)
         memset(buff, 0, BLOCK_SIZE);
         if (!altfs_read_block(currblock, buff))
         {
-            fuse_log(FUSE_LOG_ERR, "Print freelist: Error reading contents of free list block number: %ld\n",currblock);
+            printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
             return;
         }
-        printf("Finished reading free list block\n");
+        printf("Free list first block contents: %s\n", buffer);
         for(ssize_t j = 1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
         {
             currblock += 1;
