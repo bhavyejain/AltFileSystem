@@ -9,15 +9,16 @@
 void print_freelist(struct superblock *superblockObj)
 {   
     ssize_t freelist_start_blocknum = superblockObj->s_freelist_head;
+    ssize_t currblock = freelist_start_blocknum;
     printf("\n******************** FREELIST ********************\n");
-    char buff[BLOCK_SIZE];
+    char* buff = (char *)malloc(BLOCK_SIZE); 
     ssize_t offset = 0;
     for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
     {
-        printf("Next free list block: %ld\n", freelist_start_blocknum);
-        ssize_t currblock = freelist_start_blocknum;
+        printf("Next free list block: %ld\n", currblock);
         // buffer has contents of 1 free list block
         memset(buff, 0, BLOCK_SIZE);
+
         if (!altfs_read_block(currblock, buff))
         {
             printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
