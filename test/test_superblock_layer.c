@@ -25,7 +25,7 @@ int print_freelist(ssize_t blocknum)
             if (i == 0 && j == 0)
                 printf("Next free block: %ld\n", buff_numptr[0]);
             else
-            printf("%ld ", dblock_num_ptr[i * 8 + j]);
+            printf("%ld ", buff_numptr[i * 8 + j]);
         }
         printf("\n");
     }
