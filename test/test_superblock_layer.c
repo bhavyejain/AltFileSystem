@@ -23,7 +23,7 @@ void print_freelist(struct superblock *superblockObj)
             printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
             return;
         }
-        printf("Free list first block contents: %s\n", buffer);
+        printf("Free list first block contents: %s\n", buff);
         for(ssize_t j = 1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
         {
             currblock += 1;
