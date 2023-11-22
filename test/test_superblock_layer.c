@@ -29,7 +29,7 @@ void print_freelist(struct superblock *superblockObj)
             currblock += 1;
             offset += ADDRESS_SIZE;
             char *blockcontents = (char*)(*(buffer+offset));
-            printf("block num: %ld block address: %p block contents: %s\n", currblock, *(buffer+offset), blockcontents);
+            printf("block num: %ld block address: %p block contents: %s\n", currblock, *(buff+offset), blockcontents);
         }
     }
     printf("\n******************** FREELIST ********************\n");
