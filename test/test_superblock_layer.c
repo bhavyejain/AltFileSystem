@@ -16,7 +16,7 @@ int print_freelist(ssize_t blocknum)
     if (!altfs_read_block(blocknum, buff))
     {
         printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
-        return;
+        return -1;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
     for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
@@ -30,47 +30,12 @@ int print_freelist(ssize_t blocknum)
         }
         printf("\n");
     }
-
-
-    /*for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
-    {
-        printf("Next free list block: %ld\n", currblock);
-        // buffer has contents of 1 free list block
-        memset(buff, 0, BLOCK_SIZE);
-
-        if (!altfs_read_block(currblock, buff))
-        {
-            printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
-            return;
-        }
-        printf("Free list first block contents: %s\n", buff);
-        ssize_t *blocknum_ptr = (ssize_t *)buff;
-        for(ssize_t j = 1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
-        {
-            currblock += 1;
-            if (currblock >= BLOCK_COUNT)
-                return;
-            offset += ADDRESS_SIZE;
-            
-            //printf("block num: %ld block address: %ld \n", currblock, *(buff+offset));
-            //char *blockcontents = (char*)(*(buff+offset));
-            //printf("block contents: %s\n", buff);
-        }
-    }*/
     printf("\n******************** FREELIST ********************\n");
     return buff_numptr[0];
 }
 
 void print_superblock(struct superblock *superblockObj)
 {
-    /*char *buffer = (char*)malloc(BLOCK_SIZE);
-    // read block 0 = superblock
-    if (!altfs_read_block(0, buffer))
-    {
-        fprintf(stderr, "%s : Failed to read block 0 for superblock\n", SUPERBLOCK_LAYER_TEST);
-        return;
-    }
-    struct superblock *superblockObj = (struct superblock*)buffer;*/
     printf("\n******************** SUPERBLOCK ********************\n");
     printf("\nNUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n INODES PER BLOCK: %ld \n", superblockObj->s_inodes_count, superblockObj->s_first_ino, superblockObj->s_freelist_head, superblockObj->s_num_of_inodes_per_block);
     printf("\n******************** SUPERBLOCK ********************\n");
@@ -116,7 +81,8 @@ int main(int argc, char *argv[])
     // Test4 : Verify first 10 free blocks
     for(int i=1;i<10;i++)
     {
-        nextfreeblock = print_freelist(nextfreeblock);
+        if (nextfreeblock > -1)
+            nextfreeblock = print_freelist(nextfreeblock);
     }
     fprintf(stdout, "%s Test4: %s Printed first 10 freelist block contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
 
