@@ -11,9 +11,27 @@ void print_freelist(struct superblock *superblockObj)
     ssize_t freelist_start_blocknum = superblockObj->s_freelist_head;
     ssize_t currblock = freelist_start_blocknum;
     printf("\n******************** FREELIST ********************\n");
-    char* buff = (char *)malloc(BLOCK_SIZE); 
+    char *buff = (char*)malloc(BLOCK_SIZE);
     ssize_t offset = 0;
-    for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
+
+    if (!altfs_read_block(currblock, buff))
+    {
+        printf("Print freelist: Error reading contents of free list block number: %ld\n",currblock);
+        return;
+    }
+    ssize_t *dblock_num_ptr = (ssize_t *)buff;
+    printf("dptr: %ld\n", dblock_num_ptr);
+    for (size_t i = 0; i < DBLOCKS_PER_BLOCK / 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            printf("%ld ", dblock_num_ptr[i * 8 + j]);
+        }
+        printf("\n");
+    }
+
+
+    /*for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
     {
         printf("Next free list block: %ld\n", currblock);
         // buffer has contents of 1 free list block
@@ -25,6 +43,7 @@ void print_freelist(struct superblock *superblockObj)
             return;
         }
         printf("Free list first block contents: %s\n", buff);
+        ssize_t *blocknum_ptr = (ssize_t *)buff;
         for(ssize_t j = 1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
         {
             currblock += 1;
@@ -36,7 +55,7 @@ void print_freelist(struct superblock *superblockObj)
             //char *blockcontents = (char*)(*(buff+offset));
             //printf("block contents: %s\n", buff);
         }
-    }
+    }*/
     printf("\n******************** FREELIST ********************\n");
 }
 
