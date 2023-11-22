@@ -22,9 +22,17 @@ void print_superblock()
     return;
 }
 
+void print_constants()
+{
+    printf("\n******************** CONSTANTS ********************\n");
+    printf("\n NUM_OF_DIRECT_BLOCKS: %ld \n BLOCK_SIZE: %ld \n Number of inodes per block: %ld\n",NUM_OF_DIRECT_BLOCKS,BLOCK_SIZE, (BLOCK_SIZE) / sizeof(struct inode));
+    printf("\n******************** CONSTANTS ********************\n");
+}
+
 int main(int argc, char *argv[])
 {
     // Test1 : Call makefs
+    print_constants();
     bool makefs = altfs_makefs();
     if (!makefs)
     {
