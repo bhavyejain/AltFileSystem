@@ -34,3 +34,6 @@
 # bin folders
 bin/
 test/bin/
+
+# vscode folder
+.vscode/

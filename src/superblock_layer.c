@@ -38,22 +38,18 @@ bool altfs_create_superblock()
 bool altfs_create_ilist()
 {
     // TODO: Verify all elements of struct are getting initialized correctly
-    // TODO: The ilist size is set to number of inodes - Check that this works fine
-    //struct inode inodeObj[sizeof(struct inode)];
-    struct inode inodeObj[altfs_superblock->s_inodes_count];
-    // TODO: Adding loop for initialization of inodes - Verify this
-    for(ssize_t k = 0; k < altfs_superblock->s_inodes_count; k++)
-    {
-        for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-            inodeObj[k].i_direct_blocks[i] = 0;
-        inodeObj[k].i_allocated = false;
-        inodeObj[k].i_single_indirect = 0;
-        inodeObj[k].i_double_indirect = 0;
-        inodeObj[k].i_triple_indirect = 0;
-        inodeObj[k].i_links_count = 0;
-        inodeObj[k].i_file_size = 0;
-        inodeObj[k].i_blocks_num = 0;
-    }
+    // Below line creates an array with just 1 element whose size = size of inode struct
+    // The initialization initializes the first element of the array (the array just has 1 element)
+    struct inode inodeObj[sizeof(struct inode)];
+    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
+        inodeObj->i_direct_blocks[i] = 0;
+    inodeObj->i_allocated = false;
+    inodeObj->i_single_indirect = 0;
+    inodeObj->i_double_indirect = 0;
+    inodeObj->i_triple_indirect = 0;
+    inodeObj->i_links_count = 0;
+    inodeObj->i_file_size = 0;
+    inodeObj->i_blocks_num = 0;
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     char buffer[BLOCK_SIZE];
