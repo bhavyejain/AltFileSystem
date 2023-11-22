@@ -110,10 +110,11 @@ bool altfs_create_freelist()
             offset += ADDRESS_SIZE; 
             blocknum += 1;
             // start writing at buffer + offset since first index will have address of next free block
+            // Copy address of the respective block into the buffer
             if (blocknum >= BLOCK_COUNT)
                 memcpy(buffer+offset, &nullvalue, ADDRESS_SIZE);
             else
-                memcpy(buffer+offset, &nullvalue, ADDRESS_SIZE);
+                memcpy(buffer+offset, &blocknum, ADDRESS_SIZE);
         }
         blocknum += 1;
         if (blocknum >= BLOCK_COUNT)
