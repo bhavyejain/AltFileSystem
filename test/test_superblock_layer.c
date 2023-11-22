@@ -23,10 +23,12 @@ void print_freelist(struct superblock *superblockObj)
             fuse_log(FUSE_LOG_ERR, "Print freelist: Error reading contents of free list block number: %ld\n",currblock);
             return;
         }
-
+        printf("Finished reading free list block\n");
         for(ssize_t j = 1; j < NUM_OF_ADDRESSES_PER_BLOCK; j++)
         {
             currblock += 1;
+            if (currblock >= BLOCK_COUNT)
+                return;
             offset += ADDRESS_SIZE;
             char *blockcontents = (char*)(*(buff+offset));
             printf("block num: %ld block address: %p block contents: %s\n", currblock, *(buff+offset), blockcontents);
