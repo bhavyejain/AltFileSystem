@@ -79,7 +79,7 @@ bool altfs_create_ilist()
             memcpy(buffer + offset, inodeObj, sizeof(struct inode));
             offset += sizeof(struct inode);
         }
-        fuse_log(FUSE_LOG_DEBUG, "%s Writing blocknum %ld and buffer %s\n",ALTFS_CREATE_ILIST, blocknum, *buffer);
+        //fuse_log(FUSE_LOG_DEBUG, "%s Writing blocknum %ld and buffer %s\n",ALTFS_CREATE_ILIST, blocknum, *buffer);
         if (!altfs_write_block(blocknum, buffer)){
             fuse_log(FUSE_LOG_ERR, "%s Error writing to inode block number %d\n", ALTFS_CREATE_ILIST, blocknum);
             return false;
