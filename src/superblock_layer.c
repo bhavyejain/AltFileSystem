@@ -6,7 +6,8 @@
 #include "../header/superblock_layer.h"
 #include "../header/disk_layer.h"
 
-static struct superblock* altfs_superblock = NULL;
+// shifted to heasder file
+// static struct superblock* altfs_superblock = NULL;
 
 // Initializes superblock and writes to block 0
 bool altfs_create_superblock()
@@ -30,6 +31,19 @@ bool altfs_create_superblock()
         return false;
     }
     fuse_log(FUSE_LOG_DEBUG, "%s Finished writing superblock...\n",ALTFS_CREATE_SUPERBLOCK);
+    return true;
+}
+
+bool altfs_write_superblock()
+{
+    char buffer[BLOCK_SIZE];
+    memset(buffer, 0, BLOCK_SIZE);
+    memccpy(buffer, altfs_superblock, sizeof(struct superblock));
+    if(!altfs_write_block(0, buffer))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s Error writing superblock to memory.\n", "altfs_write_superblock");
+        return false;
+    }
     return true;
 }
 
