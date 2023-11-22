@@ -21,7 +21,7 @@ void print_freelist(struct superblock *superblockObj)
     }
     ssize_t *dblock_num_ptr = (ssize_t *)buff;
     printf("dptr: %ld\n", dblock_num_ptr);
-    for (size_t i = 0; i < DBLOCKS_PER_BLOCK / 8; i++)
+    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
     {
         for (size_t j = 0; j < 8; j++)
         {
