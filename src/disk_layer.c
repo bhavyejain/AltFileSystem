@@ -76,6 +76,8 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
         return false;
     }
     ssize_t offset = BLOCK_SIZE*blockid;
+    fuse_log(FUSE_LOG_DEBUG,"write block: %ld buffer: %s\n", blockid, *buffer);
+    fuse_log(FUSE_LOG_DEBUG,"pointer: %p ptr val: %s\n",mem_ptr+offset, *(mem_ptr+offset));
     memcpy(mem_ptr+offset, buffer, BLOCK_SIZE);
     return true;
 }

@@ -64,14 +64,16 @@ bool altfs_create_ilist()
     inodeObj->i_links_count = 0;
     inodeObj->i_file_size = 0;
     inodeObj->i_blocks_num = 0;
+    
+    char buffer[BLOCK_SIZE];
+    ssize_t zeroval = 0;
+    fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
-    char buffer[BLOCK_SIZE];
-    fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
     for(ssize_t blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
     {
         ssize_t offset = 0;
-        memset(buffer, 0, BLOCK_SIZE);
+        memset(buffer, zeroval, BLOCK_SIZE);
         for(ssize_t inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; inodenum++)
         {
             memcpy(buffer + offset, inodeObj, sizeof(struct inode));
