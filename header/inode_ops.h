@@ -26,6 +26,15 @@ ssize_t allocate_inode();
 struct inode* get_inode(ssize_t index);
 
 /*
+@func: Read the inode referred to by inodenum.
+
+@param inodenum: The number to be associated with the inode.
+
+@return: true or false.
+*/
+bool read_inode(ssize_t inodenum);
+
+/*
 @func: Write the inode to the index.
 
 @param index: The number to be associated with the inode.

@@ -22,5 +22,7 @@ bool altfs_dealloc_memory();
 bool altfs_write_block(ssize_t blockid, char *buffer);
 // read from the block to the buffer
 bool altfs_read_block(ssize_t blockid, char *buffer);
+// free memory pointed to by ptr
+void altfs_free_memory(void *ptr);
 
 #endif 

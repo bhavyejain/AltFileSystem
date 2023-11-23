@@ -34,20 +34,19 @@ struct inode
     mode_t i_mode; // permission mode
     ssize_t i_uid; // lower 16-bits of owner id
     ssize_t i_gid; // lower 16-bits of group id
-    //ssize_t i_size_lo;
+    time_t i_status_change_time; // status change time
     time_t i_atime; // last access time
     time_t i_ctime; // last inode change time
     time_t i_mtime; // last data modification time
-    time_t i_dtime; // deletion time
     ssize_t i_links_count; // hard link count
     ssize_t i_file_size; // file size
     ssize_t i_blocks_num; // num of blocks the file has
     bool i_allocated; // flag to indicate if inode is allocated
     // TODO: Kept number of direct blocks as 12 in sync with ext4
     ssize_t i_direct_blocks[NUM_OF_DIRECT_BLOCKS];
-    ssize_t i_single_indirect;
-    ssize_t i_double_indirect;
-    ssize_t i_triple_indirect;
+    ssize_t i_single_indirect; // stores block num for single indirect block
+    ssize_t i_double_indirect; // stores block num for double indirect block
+    ssize_t i_triple_indirect; // stores block num for triple indirect block
 };
 
 struct superblock

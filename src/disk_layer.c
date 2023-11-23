@@ -79,3 +79,9 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
     memcpy(mem_ptr+offset, buffer, BLOCK_SIZE);
     return true;
 }
+
+void altfs_free_memory(void *ptr)
+{
+    if (ptr != NULL)
+        free(ptr);
+}
