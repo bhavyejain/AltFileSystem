@@ -188,7 +188,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
         }
         if(indirection == 1)
         {
-            fuse_log(FUSE_LOG_DEBUG, "%s Freeing indirect data block: %ld.\n", FREE_INODE, block_num);
+            // fuse_log(FUSE_LOG_DEBUG, "%s Freeing indirect data block: %ld.\n", FREE_INODE, block_num);
             // Free the data block
             if(!free_data_block(block_num))
             {
@@ -197,7 +197,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
             }
         } else
         {
-            fuse_log(FUSE_LOG_DEBUG, "%s Freeing %ld-1 indirect data blocks starting at: %ld.\n", FREE_INODE, indirection, block_num);
+            // fuse_log(FUSE_LOG_DEBUG, "%s Freeing %ld-1 indirect data blocks starting at: %ld.\n", FREE_INODE, indirection, block_num);
             // Recursively call the function with a lower indirection
             if(!free_indirect_blocks(block_num, indirection-1))
             {
@@ -207,7 +207,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
         }
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Freeing the %ld indirect data block %ld itself.\n", FREE_INODE, indirection, i_block_num);
+    // fuse_log(FUSE_LOG_DEBUG, "%s Freeing the %ld indirect data block %ld itself.\n", FREE_INODE, indirection, i_block_num);
     // Free the block containing the indirect addresses itself
     if(!free_data_block(i_block_num))
     {
@@ -253,7 +253,7 @@ bool free_data_blocks_in_inode(struct inode* node)
     // Free double indirect data blocks.
     if(node->i_double_indirect != 0)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s Freeing double indirect data blocks starting at: %ld.\n", FREE_INODE, node->i_double_indirect);
+        // fuse_log(FUSE_LOG_DEBUG, "%s Freeing double indirect data blocks starting at: %ld.\n", FREE_INODE, node->i_double_indirect);
         if(!free_indirect_blocks(node->i_double_indirect, 2))
         {
             fuse_log(FUSE_LOG_ERR, "%s Error freeing double indirect data blocks.\n", FREE_INODE);
