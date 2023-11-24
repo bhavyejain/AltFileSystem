@@ -35,6 +35,7 @@ int main()
     /*
     * Check data block ops.
     */
+    fprintf(stdout, "\n******************* TESTING DATA BLOCK OPERATIONS *********************\n");
 
     char* buffer = (char*)malloc(BLOCK_SIZE);
     char* str = "I really hope my block layer works!";
@@ -116,6 +117,7 @@ int main()
     /*
     * Check inode ops.
     */
+   fprintf(stdout, "\n******************* TESTING INODE OPERATIONS *********************\n");
     ssize_t inum = 0;
 
     fprintf(stdout, "%s : Attempting to allocate %ld inodes.\n", DATABLOCK_LAYER_TEST, sb->s_num_of_inodes_per_block);
