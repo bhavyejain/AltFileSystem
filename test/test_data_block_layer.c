@@ -77,7 +77,7 @@ int main()
         fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DATABLOCK_LAYER_TEST);
         return -1;
     }
-    struct superblock *sb = (struct superblock*)sb_buf;
+    struct superblock* sb = (struct superblock*)sb_buf;
     if(sb->s_freelist_head != INODE_BLOCK_COUNT + 1 + NUM_OF_ADDRESSES_PER_BLOCK)
     {
         fprintf(stderr, "%s : Freelist head inconsistent after CRUDS.\n", DATABLOCK_LAYER_TEST);
@@ -101,7 +101,7 @@ int main()
         fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DATABLOCK_LAYER_TEST);
         return -1;
     }
-    struct superblock *sb = (struct superblock*)sb_buf;
+    sb = (struct superblock*)sb_buf;
     if(sb->s_freelist_head != INODE_BLOCK_COUNT + 1)
     {
         fprintf(stderr, "%s : Freelist head inconsistent after free_data_block.\n", DATABLOCK_LAYER_TEST);

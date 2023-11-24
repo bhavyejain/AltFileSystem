@@ -1,6 +1,8 @@
 #ifndef __DISK_LAYER__
 #define __DISK_LAYER__
 
+#define FUSE_USE_VERSION 31
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdbool.h>
