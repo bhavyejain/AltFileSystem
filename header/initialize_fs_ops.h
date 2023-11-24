@@ -10,7 +10,7 @@
 #include "data_block_ops.h"
 
 #define INITIALIZE_FS "initialize_fs"
-#define ALTFS_ADD_INODE_ENTRY "altfs_add_inode_entry"
+#define ADD_DIRECTORY_ENTRY "add_directory_entry"
 #define GET_DBLOCK_FROM_FBLOCK "get_data_block_from_file_block"
 
 #define ROOT_INODE_NUM ((ssize_t) 2)
