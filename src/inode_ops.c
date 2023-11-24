@@ -15,7 +15,7 @@ bool is_valid_inode_number(ssize_t inum)
 }
 
 /*
-@func: Given the inode number, get which block contains it and what is the offset in the block.
+Given the inode number, get which block contains it and what is the offset in the block.
 */
 void inum_to_block_pos(ssize_t inum, ssize_t* block, ssize_t* offset)
 {
@@ -166,7 +166,7 @@ bool write_inode(ssize_t inum, struct inode* node)
 }
 
 /*
-@func: Helper function to free data blocks at n levels of indirection. (1 <= n <= 3)
+Helper function to free data blocks at n levels of indirection. (1 <= n <= 3)
 */
 bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
 {
@@ -219,7 +219,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
 }
 
 /*
-@func: Helper function to free all data blocks associated with an inode.
+Helper function to free all data blocks associated with an inode.
 */
 bool free_data_blocks_in_inode(struct inode* node)
 {

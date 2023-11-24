@@ -121,9 +121,9 @@ The allocated byte tells us if the entry is re-usable to store another file name
 If the value is 111 (true), then an active file holds this entry.
 If the value is 000 (false), then it is reusable.
 */
-bool add_directory_entry(struct inode *root_inode, ssize_t child_inum, char* file_name)
+bool add_directory_entry(struct inode *dir_inode, ssize_t child_inum, char* file_name)
 {
-    if(!S_ISDIR(root_inode->i_mode)){
+    if(!S_ISDIR(dir_inode->i_mode)){
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is not a directory. Exiting\n", ADD_DIRECTORY_ENTRY);
         return false;
     }
@@ -138,8 +138,8 @@ bool add_directory_entry(struct inode *root_inode, ssize_t child_inum, char* fil
     // 8 + 8 + 2 + file_name_len
     ssize_t new_entry_size = INODE_SIZE + ADDRESS_PTR_SIZE + FILE_NAME_SIZE + short_name_length;
     //if there is already a datablock for the dir file, we will add entry to it if it has space
-    if(root_inode->i_blocks_num > 0){
-        ssize_t data_block_num = get_data_block_from_file_block(root_inode, root_inode->i_blocks_num - 1);
+    if(dir_inode->i_blocks_num > 0){
+        ssize_t data_block_num = get_data_block_from_file_block(dir_inode, dir_inode->i_blocks_num - 1);
         
         if(data_block_num <= 0)
         {
@@ -207,12 +207,12 @@ bool add_directory_entry(struct inode *root_inode, ssize_t child_inum, char* fil
         return false;
     }
     //TODO: Verify below check and code
-    if(!add_dblock_to_inode(root_inode, data_block_num)){
+    if(!add_dblock_to_inode(dir_inode, data_block_num)){
         printf("couldn't add dblock to inode\n");
         return false;
     }
     
-    root_inode->file_size += BLOCK_SIZE;
+    dir_inode->file_size += BLOCK_SIZE;
     return true;
 }
 
