@@ -206,7 +206,16 @@ int main()
     fprintf(stdout, "%s : Read inode verified.\n", DATABLOCK_LAYER_TEST);
 
     // Free the inode
-    fprintf(stdout, "%s : Freeing the inode.\n", DATABLOCK_LAYER_TEST);
+    fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
+    if(!free_inode(inum))
+    {
+        fprintf(stderr, "%s : Unable to free inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
+        return -1;
+    }
+
+    // Free a smaller value inode
+    inum = 4;
+    fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
     if(!free_inode(inum))
     {
         fprintf(stderr, "%s : Unable to free inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
