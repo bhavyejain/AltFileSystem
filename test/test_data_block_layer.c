@@ -14,11 +14,11 @@ void print_inode(struct inode** node)
     printf("\n******************** INODE ********************\n");
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
     {
-        printf("Direct block %ld: %ld\n", i, *node->i_direct_blocks[i]);
+        printf("Direct block %ld: %ld\n", i, (*node)->i_direct_blocks[i]);
     }
-    printf("Single indirect block: %ld\n", *node->i_single_indirect);
-    printf("Double indirect block: %ld\n", *node->i_double_indirect);
-    printf("Triple indirect block: %ld\n", *node->i_triple_indirect);
+    printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
+    printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
+    printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
     printf("\n******************** INODE ********************\n");
 }
 
@@ -37,7 +37,7 @@ int main()
 
     char* buffer = (char*)malloc(BLOCK_SIZE);
     char* str = "I really hope my block layer works!";
-    memccpy(buffer, str, strlen(str));
+    memcpy(buffer, str, strlen(str));
 
     fprintf(stdout, "%s : Attemting to CRUD %ld data blocks.\n", DATABLOCK_LAYER_TEST, NUM_OF_ADDRESSES_PER_BLOCK);
     for(ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)

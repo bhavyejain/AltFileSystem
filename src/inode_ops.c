@@ -2,8 +2,12 @@
 #include <fuse.h>
 #include <stdlib.h>
 
-#include "../header/data_block_ops.h";
-#include "../header/inode_ops.h";
+#include "../header/data_block_ops.h"
+#include "../header/inode_ops.h"
+
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
 
 bool is_valid_inode_number(ssize_t inum)
 {
@@ -156,7 +160,7 @@ bool write_inode(ssize_t inum, struct inode* node)
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Written inode %d in block %d at offset %d\n", WRITE_INODE.
+    fuse_log(FUSE_LOG_DEBUG, "%s Written inode %d in block %d at offset %d\n", WRITE_INODE,
         inum, block_num, offset);
     return true;
 }
@@ -169,7 +173,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
     // Read the data block to get the indirect data block numbers
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(i_block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", FREE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", FREE_INODE, i_block_num);
         return false;
     }
     ssize_t* data_blocks = (ssize_t*)buffer;
@@ -219,7 +223,7 @@ bool free_data_blocks_in_inode(struct inode* node)
     // Free the direct blocks.
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
     {
-        ssize_t block_num = node->direct_blocks[i];
+        ssize_t block_num = node->i_direct_blocks[i];
         if(block_num != 0)
         {
             if(!free_data_block(block_num))

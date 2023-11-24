@@ -3,7 +3,7 @@
 #include<string.h>
 #include<stdio.h>
 #include<fuse.h>
-#include "../header/data_block_ops.h";
+#include "../header/data_block_ops.h"
 
 ssize_t allocate_data_block()
 {
@@ -129,7 +129,7 @@ bool free_data_block(ssize_t index) {
             return false;
         }
         memset(buffer, 0, BLOCK_SIZE);
-        memccpy(buffer, &temp, ADDRESS_SIZE);
+        memcpy(buffer, &temp, ADDRESS_SIZE);
         if(!altfs_write_block(index, buffer))
         {
             return false;
