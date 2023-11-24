@@ -46,25 +46,25 @@ int main()
         ssize_t block_num = allocate_data_block();
         if(block_num < 0)
         {
-            fprintf(stderr, "%s : Failed to create data block at i = %d.\n", DATABLOCK_LAYER_TEST, i);
+            fprintf(stderr, "%s : Failed to create data block at i = %ld.\n", DATABLOCK_LAYER_TEST, i);
             return -1;
         }
         // Write to the new data block
         if(!write_data_block(block_num, buffer))
         {
-            fprintf(stderr, "%s : Failed to write data block at i = %d.\n", DATABLOCK_LAYER_TEST, i);
+            fprintf(stderr, "%s : Failed to write data block at i = %ld.\n", DATABLOCK_LAYER_TEST, i);
             return -1;
         }
         // Read the data block
         buffer = read_data_block(block_num);
         if(buffer == NULL)
         {
-            fprintf(stderr, "%s : Failed to read data block at i = %d.\n", DATABLOCK_LAYER_TEST, i);
+            fprintf(stderr, "%s : Failed to read data block at i = %ld.\n", DATABLOCK_LAYER_TEST, i);
             return -1;
         }
         if(strcmp(buffer, str) != 0)
         {
-            fprintf(stderr, "%s : Read data from block does not match control string at i = %d.\n", DATABLOCK_LAYER_TEST, i);
+            fprintf(stderr, "%s : Read data from block does not match control string at i = %ld.\n", DATABLOCK_LAYER_TEST, i);
             return -1;
         }
     }
@@ -123,7 +123,7 @@ int main()
         inum = allocate_inode();
         if(!is_valid_inode_number(inum))
         {
-            fprintf(stderr, "%s : Failed to create inode at i = %d.\n", DATABLOCK_LAYER_TEST, i);
+            fprintf(stderr, "%s : Failed to create inode at i = %ld.\n", DATABLOCK_LAYER_TEST, i);
             return -1;
         }
     }
@@ -132,7 +132,7 @@ int main()
     fprintf(stdout, "%s : Building a new inode to write.\n", DATABLOCK_LAYER_TEST);
     // Keep a track of all allocated data block numbers
     ssize_t allocated_blocks[NUM_OF_DIRECT_BLOCKS + 9];
-    memset(allocated_blocks, 0, NUM_OF_DIRECT_BLOCKS + 9);
+    memset(allocated_blocks, 0, sizeof(allocated_blocks));
     ssize_t ab_offset = 0;
     struct inode* node = (struct inode*)malloc(sizeof(struct inode));
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
@@ -207,7 +207,7 @@ int main()
 
     // Read the inode form disc
     fprintf(stdout, "%s : Reading the inode from disc.\n", DATABLOCK_LAYER_TEST);
-    struct inode* read_inode = read_inode(inum);
+    struct inode* read_inode = get_inode(inum);
     if(read_inode == NULL)
     {
         fprintf(stderr, "%s : Unable to read inode %ld from disc.\n", DATABLOCK_LAYER_TEST, inum);

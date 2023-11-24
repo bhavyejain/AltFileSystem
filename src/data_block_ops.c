@@ -61,7 +61,7 @@ char* read_data_block(ssize_t index)
 {
     if(index <= INODE_BLOCK_COUNT || index > BLOCK_COUNT)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Invalid block index for read: %d\n", READ_DATA_BLOCK, index);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid block index for read: %ld\n", READ_DATA_BLOCK, index);
         return NULL;
     }
 
@@ -77,7 +77,7 @@ bool write_data_block(ssize_t index, char* buffer)
 {
     if(index <= INODE_BLOCK_COUNT || index > BLOCK_COUNT)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Invalid block index for write: %d\n", WRITE_DATA_BLOCK, index);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid block index for write: %ld\n", WRITE_DATA_BLOCK, index);
         return false;
     }
     return altfs_write_block(index, buffer);
@@ -86,7 +86,7 @@ bool write_data_block(ssize_t index, char* buffer)
 bool free_data_block(ssize_t index) {
     if(index <= INODE_BLOCK_COUNT || index > BLOCK_COUNT)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Invalid block index to free: %d\n", FREE_DATA_BLOCK, index);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid block index to free: %ld\n", FREE_DATA_BLOCK, index);
         return false;
     }
 

@@ -37,7 +37,7 @@ ssize_t allocate_inode()
 
     if(!is_valid_inode_number(inum_to_allocate))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for allocation:%d\n", ALLOCATE_INODE, altfs_superblock->s_first_ino);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for allocation:%ld\n", ALLOCATE_INODE, altfs_superblock->s_first_ino);
         return -1;
     }
 
@@ -47,7 +47,7 @@ ssize_t allocate_inode()
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(block_num, buffer))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", ALLOCATE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", ALLOCATE_INODE, block_num);
         return -1;
     }
 
@@ -59,12 +59,12 @@ ssize_t allocate_inode()
     // Some error in updating next free inode previously.
     if(node->i_allocated)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Inode %d is already allocated.\n", ALLOCATE_INODE, inum_to_allocate);
+        fuse_log(FUSE_LOG_ERR, "%s Inode %ld is already allocated.\n", ALLOCATE_INODE, inum_to_allocate);
         return -1;
     }
     // Mark the inode as allocated.
     node->i_allocated = true;
-    fuse_log(FUSE_LOG_DEBUG, "%s Allocated inum: %d (block: %d; offset: %d)\n",
+    fuse_log(FUSE_LOG_DEBUG, "%s Allocated inum: %ld (block: %ld; offset: %ld)\n",
         ALLOCATE_INODE, inum_to_allocate, block_num, offset);
 
     // Search for the next smallest inode number that is unallocated.
@@ -80,7 +80,7 @@ ssize_t allocate_inode()
             if(!node->i_allocated)
             {
                 altfs_superblock->s_first_ino = inum_to_allocate + visited;
-                fuse_log(FUSE_LOG_DEBUG, "%s Marking inode %d as next free inode.\n",
+                fuse_log(FUSE_LOG_DEBUG, "%s Marking inode %ld as next free inode.\n",
                     ALLOCATE_INODE, altfs_superblock->s_first_ino);
                 return inum_to_allocate;
             }
@@ -96,7 +96,7 @@ ssize_t allocate_inode()
 
         if(!altfs_read_block(block_num, buffer))
         {
-            fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", ALLOCATE_INODE, block_num);
+            fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", ALLOCATE_INODE, block_num);
             break;
         }
         nodes_in_block = (struct inode*)buffer;
@@ -109,10 +109,10 @@ ssize_t allocate_inode()
 
 struct inode* get_inode(ssize_t inum)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to get inode %d\n", GET_INODE, inum);
+    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to get inode %ld\n", GET_INODE, inum);
 
     if(!is_valid_inode_number(inum)){
-        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for allocation:%d\n", GET_INODE, altfs_superblock->s_first_ino);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for allocation:%ld\n", GET_INODE, altfs_superblock->s_first_ino);
         return NULL;
     }
 
@@ -121,7 +121,7 @@ struct inode* get_inode(ssize_t inum)
 
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", GET_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", GET_INODE, block_num);
         return false;
     }
 
@@ -135,10 +135,10 @@ struct inode* get_inode(ssize_t inum)
 
 bool write_inode(ssize_t inum, struct inode* node)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to write to inode %d\n", WRITE_INODE, inum);
+    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to write to inode %ld\n", WRITE_INODE, inum);
 
     if(!is_valid_inode_number(inum)){
-        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for write:%d\n", WRITE_INODE, inum);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for write:%ld\n", WRITE_INODE, inum);
         return false;
     }
 
@@ -147,7 +147,7 @@ bool write_inode(ssize_t inum, struct inode* node)
 
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", WRITE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", WRITE_INODE, block_num);
         return false;
     }
 
@@ -156,11 +156,11 @@ bool write_inode(ssize_t inum, struct inode* node)
 
     memcpy(node_on_disc, node, sizeof(struct inode));
     if(!altfs_write_block(block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %d\n", WRITE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %ld\n", WRITE_INODE, block_num);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Written inode %d in block %d at offset %d\n", WRITE_INODE,
+    fuse_log(FUSE_LOG_DEBUG, "%s Written inode %ld in block %ld at offset %ld\n", WRITE_INODE,
         inum, block_num, offset);
     return true;
 }
@@ -173,7 +173,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
     // Read the data block to get the indirect data block numbers
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(i_block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", FREE_INODE, i_block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", FREE_INODE, i_block_num);
         return false;
     }
     ssize_t* data_blocks = (ssize_t*)buffer;
@@ -191,7 +191,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
             // Free the data block
             if(!free_data_block(block_num))
             {
-                fuse_log(FUSE_LOG_ERR, "%s Error freeing data block: %d\n", FREE_INODE, block_num);
+                fuse_log(FUSE_LOG_ERR, "%s Error freeing data block: %ld\n", FREE_INODE, block_num);
                 return false;
             }
         } else
@@ -199,7 +199,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
             // Recursively call the function with a lower indirection
             if(!free_indirect_blocks(block_num, indirection-1))
             {
-                fuse_log(FUSE_LOG_ERR, "%s Error freeing indirect data blocks at indirection %d.\n", FREE_INODE, indirection);
+                fuse_log(FUSE_LOG_ERR, "%s Error freeing indirect data blocks at indirection %ld.\n", FREE_INODE, indirection);
                 return false;
             }
         }
@@ -208,7 +208,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
     // Free the block containing the indirect addresses itself
     if(!free_data_block(i_block_num))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error freeing data block %d\n", FREE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error freeing data block %ld\n", FREE_INODE, i_block_num);
         return false;
     }
 
@@ -228,7 +228,7 @@ bool free_data_blocks_in_inode(struct inode* node)
         {
             if(!free_data_block(block_num))
             {
-                fuse_log(FUSE_LOG_ERR, "%s Error freeing direct data block %d\n", FREE_INODE, block_num);
+                fuse_log(FUSE_LOG_ERR, "%s Error freeing direct data block %ld\n", FREE_INODE, block_num);
                 return false;
             }
         } else
@@ -272,10 +272,10 @@ bool free_data_blocks_in_inode(struct inode* node)
 
 bool free_inode(ssize_t inum)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to free inode %d\n", FREE_INODE, inum);
+    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to free inode %ld\n", FREE_INODE, inum);
 
     if(!is_valid_inode_number(inum)){
-        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for free-ing:%d\n", FREE_INODE, inum);
+        fuse_log(FUSE_LOG_ERR, "%s Invalid inode number provided for free-ing:%ld\n", FREE_INODE, inum);
         return false;
     }
 
@@ -284,7 +284,7 @@ bool free_inode(ssize_t inum)
 
     char buffer[BLOCK_SIZE];
     if(!altfs_read_block(block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %d\n", FREE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", FREE_INODE, block_num);
         return false;
     }
 
@@ -293,17 +293,17 @@ bool free_inode(ssize_t inum)
 
     if(!free_data_blocks_in_inode(node))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error freeing data blocks for inode.%d\n", FREE_INODE);
+        fuse_log(FUSE_LOG_ERR, "%s Error freeing data blocks for inode.%ld\n", FREE_INODE);
         return false;
     }
 
     node->i_allocated = false;
     if(!altfs_write_block(block_num, buffer)){
-        fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %d\n", FREE_INODE, block_num);
+        fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %ld\n", FREE_INODE, block_num);
         return false;
     }
 
     altfs_superblock->s_first_ino = min(inum, altfs_superblock->s_first_ino);
-    fuse_log(FUSE_LOG_DEBUG, "%s Inode marked as next free: %d\n", FREE_INODE, altfs_superblock->s_first_ino);
+    fuse_log(FUSE_LOG_DEBUG, "%s Inode marked as next free: %ld\n", FREE_INODE, altfs_superblock->s_first_ino);
     return true;
 }
