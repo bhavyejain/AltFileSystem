@@ -9,48 +9,49 @@
 #include "superblock_layer.h"
 #include "data_block_ops.h"
 
+#define ALLOCATE_INODE "allocate_inode"
+#define GET_INODE "get_inode"
+#define WRITE_INODE "write_inode"
+#define FREE_INODE "free_inode"
+
 /*
 @func: Allocates a new inode.
 
-@return: inode number(index) or -1.
+@return: inode number or -1.
 */
 ssize_t allocate_inode();
 
 /*
-@func: Gets the inode at given index.
+@func: Gets the inode corresponding to the given number.
 
-@param index: The inode number.
+@param inum: The inode number.
 
 @return: inode or NULL
 */
-struct inode* get_inode(ssize_t index);
+struct inode* get_inode(ssize_t inum);
 
 /*
-@func: Read the inode referred to by inodenum.
+@func: Write the inode to the given number.
 
-@param inodenum: The number to be associated with the inode.
-
-@return: true or false.
-*/
-bool read_inode(ssize_t inodenum);
-
-/*
-@func: Write the inode to the index.
-
-@param index: The number to be associated with the inode.
+@param inum: The number to be associated with the inode.
 @param node: The inode to be written.
 
 @return: true or false.
 */
-bool write_inode(ssize_t index, struct inode* node);
+bool write_inode(ssize_t inum, struct inode* node);
 
 /*
 @func: Free the inode AND associated data blocks.
 
-@param index: The inode number.
+@param inum: The inode number.
 
 @return: true or false
 */
-bool free_inode(ssize_t index);
+bool free_inode(ssize_t inum);
+
+/*
+@func: Helper to check if an inode number is valid.
+*/
+bool is_valid_inode_number(ssize_t inum);
 
 #endif
