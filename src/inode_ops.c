@@ -293,7 +293,7 @@ bool free_inode(ssize_t inum)
 
     if(!free_data_blocks_in_inode(node))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error freeing data blocks for inode.%ld\n", FREE_INODE);
+        fuse_log(FUSE_LOG_ERR, "%s Error freeing data blocks for inode %ld.\n", FREE_INODE, inum);
         return false;
     }
 

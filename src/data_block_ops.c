@@ -94,17 +94,21 @@ bool free_data_block(ssize_t index) {
     memset(buffer, 0, BLOCK_SIZE);
     altfs_write_block(index, buffer);
 
+    // If all blocks were full, make the block being free'd the freelist head.
     if(altfs_superblock->s_freelist_head == 0)
     {
         altfs_superblock->s_freelist_head = index;
         if(!altfs_write_superblock())
         {
+            fuse_log(FUSE_LOG_ERR, "%s Error in writing superblock after freelist head update.\n", FREE_DATA_BLOCK);
             return false;
         }
+        fuse_log(FUSE_LOG_DEBUG, "%s Superblock freelist head was 0, updated to %ld.\n", FREE_DATA_BLOCK, altfs_superblock->s_freelist_head);
     }
 
     if(!altfs_read_block(altfs_superblock->s_freelist_head, buffer))
     {
+        fuse_log(FUSE_LOG_ERR, "%s Error in reading superblock block at freelist head.\n", FREE_DATA_BLOCK);
         return false;
     }
 
@@ -126,17 +130,20 @@ bool free_data_block(ssize_t index) {
         altfs_superblock->s_freelist_head = index;
 
         if(!altfs_write_superblock()) {
+            fuse_log(FUSE_LOG_ERR, "%s Error in writing superblock after freelist head update (2).\n", FREE_DATA_BLOCK);
             return false;
         }
         memset(buffer, 0, BLOCK_SIZE);
         memcpy(buffer, &temp, ADDRESS_SIZE);
         if(!altfs_write_block(index, buffer))
         {
+            fuse_log(FUSE_LOG_ERR, "%s Error in writing next free block number to the block that was freed.\n", FREE_DATA_BLOCK);
             return false;
         }
     } else
     {
         if(altfs_write_block(altfs_superblock->s_freelist_head, buffer)) {
+            fuse_log(FUSE_LOG_ERR, "%s Error in writing number of the block freed to the freelist head.\n", FREE_DATA_BLOCK);
             return false;
         }
     }
