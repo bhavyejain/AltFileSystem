@@ -28,6 +28,10 @@ $(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 
 tests: $(TESTS)
 
+$(TESTS): %: $(TEST)/%.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^
+
 test_disk_layer: test/test_disklayer.c 
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
@@ -36,9 +40,9 @@ test_superblock_layer: test/test_superblock_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-$(TESTS): %: $(TEST)/%.c
+test_data_block_layer: test/test_data_block_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
-	$(CC) -o $(TEST_BIN)/$@ $^
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 	
 clean:
 	rm -rf obj/*
