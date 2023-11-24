@@ -235,7 +235,7 @@ int main()
         buffer = read_data_block(allocated_blocks[ab_offset]);
         if(strcmp(buffer, empty_buffer) != 0)
         {
-            fprintf(stderr, "%s : Data block %ld not freed.\n", DATABLOCK_LAYER_TEST, allocated_blocks[ab_offset]);
+            fprintf(stderr, "%s : Data block %ld not freed, value stored: %s.\n", DATABLOCK_LAYER_TEST, allocated_blocks[ab_offset], buffer);
             return -1;
         }
         ab_offset++;
