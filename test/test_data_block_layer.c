@@ -20,7 +20,7 @@ void print_inode(struct inode** node)
     printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
     printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
     printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
-    printf("\n******************** INODE ********************\n");
+    printf("******************** INODE ********************\n\n");
 }
 
 int main()
