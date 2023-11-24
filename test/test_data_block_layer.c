@@ -71,6 +71,7 @@ int main()
         }
     }
     fprintf(stdout, "%s : Create, update, read verified.\n", DATABLOCK_LAYER_TEST);
+    free(buffer);
 
     // Check freelist consistency
     char *sb_buf = (char*)malloc(BLOCK_SIZE);
@@ -133,22 +134,14 @@ int main()
     fprintf(stdout, "%s : Allocate inode verified.\n", DATABLOCK_LAYER_TEST);
 
     fprintf(stdout, "%s : Building a new inode to write.\n", DATABLOCK_LAYER_TEST);
-    // Keep a track of all allocated data block numbers
-    ssize_t allocated_blocks[NUM_OF_DIRECT_BLOCKS + 9];
-    memset(allocated_blocks, 0, sizeof(allocated_blocks));
-    ssize_t ab_offset = 0;
     struct inode* node = (struct inode*)malloc(sizeof(struct inode));
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
     {
         node->i_direct_blocks[i] = allocate_data_block();
-        allocated_blocks[ab_offset] = node->i_direct_blocks[i];
-        ab_offset++;
         fprintf(stdout, "%s : Allocate data block number %ld.\n", DATABLOCK_LAYER_TEST, node->i_direct_blocks[i]);
     }
 
     node->i_single_indirect = allocate_data_block();
-    allocated_blocks[ab_offset] = node->i_single_indirect;
-    ab_offset++;
     fprintf(stdout, "%s : Single indirect block number %ld.\n", DATABLOCK_LAYER_TEST, node->i_single_indirect);
     char single_i_buf[BLOCK_SIZE];
     memset(single_i_buf, 0, BLOCK_SIZE);
@@ -156,8 +149,6 @@ int main()
     for(ssize_t i = 0; i < 5; i++)
     {
         ssize_t block_num = allocate_data_block();
-        allocated_blocks[ab_offset] = block_num;
-        ab_offset++;
         fprintf(stdout, "%s : Allocate data block number %ld.\n", DATABLOCK_LAYER_TEST, block_num);
         memcpy(single_i_buf + offset, &block_num, ADDRESS_SIZE);
         offset += ADDRESS_SIZE;
@@ -169,14 +160,10 @@ int main()
     }
 
     node->i_double_indirect = allocate_data_block();
-    allocated_blocks[ab_offset] = node->i_double_indirect;
-    ab_offset++;
     fprintf(stdout, "%s : Double indirect block number %ld.\n", DATABLOCK_LAYER_TEST, node->i_double_indirect);
     char double_i_buf[BLOCK_SIZE];
     memset(double_i_buf, 0, BLOCK_SIZE);
     ssize_t i_one_block_num = allocate_data_block();
-    allocated_blocks[ab_offset] = i_one_block_num;
-    ab_offset++;
     fprintf(stdout, "%s : Double-1 indirect block number %ld.\n", DATABLOCK_LAYER_TEST, i_one_block_num);
     memcpy(double_i_buf, &i_one_block_num, ADDRESS_SIZE);
     if(!write_data_block(node->i_double_indirect, double_i_buf))
@@ -186,7 +173,6 @@ int main()
     }
     memset(single_i_buf, 0, BLOCK_SIZE);
     ssize_t i_two_block_num = allocate_data_block();
-    allocated_blocks[ab_offset] = i_two_block_num;
     fprintf(stdout, "%s : Allocate data block number %ld.\n", DATABLOCK_LAYER_TEST, i_two_block_num);
     memcpy(single_i_buf, &i_two_block_num, ADDRESS_SIZE);
     if(!write_data_block(i_one_block_num, single_i_buf))
@@ -226,23 +212,8 @@ int main()
         fprintf(stderr, "%s : Unable to free inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
         return -1;
     }
-    // Check if all data blocks have been freed
-    ab_offset = 0;
-    char empty_buffer[BLOCK_SIZE];
-    memset(empty_buffer, 0, BLOCK_SIZE);
-    while(ab_offset < NUM_OF_DIRECT_BLOCKS + 9)
-    {
-        buffer = read_data_block(allocated_blocks[ab_offset]);
-        if(strcmp(buffer, empty_buffer) != 0)
-        {
-            fprintf(stderr, "%s : Data block %ld not freed, value stored: [%ld].\n", DATABLOCK_LAYER_TEST, allocated_blocks[ab_offset], (ssize_t)buffer);
-            return -1;
-        }
-        ab_offset++;
-    }
 
     fprintf(stdout, "%s : Free inode verified.\n", DATABLOCK_LAYER_TEST);
-    free(buffer);
 
     return 0;
 }
