@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "../src/disk_layer.c"
 #include "../src/superblock_layer.c"
 #include "../src/inode_ops.c"
 #include "../src/data_block_ops.c"
