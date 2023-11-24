@@ -110,6 +110,7 @@ int main()
         return -1;
     }
     fprintf(stdout, "%s : Freelist consistent!.\n", DATABLOCK_LAYER_TEST);
+    free(sb_buf);
 
     /*
     * Check inode ops.
@@ -202,6 +203,7 @@ int main()
         return -1;
     }
     fprintf(stdout, "%s : Write inode verified.\n", DATABLOCK_LAYER_TEST);
+    free(node);
 
     // Read the inode form disc
     fprintf(stdout, "%s : Reading the inode from disc.\n", DATABLOCK_LAYER_TEST);
@@ -236,6 +238,7 @@ int main()
     }
 
     fprintf(stdout, "%s : Free inode verified.\n", DATABLOCK_LAYER_TEST);
+    free(buffer);
 
     return 0;
 }
