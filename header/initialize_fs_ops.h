@@ -30,7 +30,15 @@
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
 
-// Get physical data block number for given logical block number
-ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num)
+/*
+Get the physical disk block number for a given file and logical block number in the file.
+
+@param node: Constant pointer to the file's inode
+@param logical_block_num: Logical block number in the file
+@param prev_indirect_block: Holds the number of the data block that contains the last level of indirect addresses for the previously fetched block number.
+
+@return The physical data block number.
+*/
+ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num, ssize_t* prev_indirect_block)
 
 #endif

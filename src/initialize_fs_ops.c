@@ -14,15 +14,7 @@
 
 static struct inode_cache inodeCache;
 
-/*
-Get the physical disk block number for a given file and logical block number in the file.
-
-@param node: Constant pointer to the file's inode
-@param logical_block_num: Logical block number in the file
-
-@return The physical data block number.
-*/
-ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t logical_block_num)
+ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t logical_block_num, ssize_t* prev_indirect_block)
 {
     ssize_t data_block_num = -1;
 
@@ -168,9 +160,10 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
 
     // If the directory inode has datablocks allocated, try to find space in them to add the entry.
     if(dir_inode->i_blocks_num > 0){
+        ssize_t prev_block = 0;
         for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
         {
-            ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num);
+            ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num, &prev_block);
 
             if(p_block_num <= 0)
             {
