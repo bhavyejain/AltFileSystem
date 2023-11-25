@@ -31,7 +31,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
     }
 
     // If file block num >= 12 and < 512 => single indirect block
-    else if(file_block_num < NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+    else if(file_block_num < DIRECT_PLUS_SINGLE_INDIRECT_ADDR)
     {
         if(file_inode->i_single_indirect == 0)
         {
@@ -48,7 +48,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
     }
     
     // If file block num >= 512 and < 512*512 => double indirect block
-    else if(file_block_num < NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+    else if(file_block_num < DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR)
     {
         if(file_inode->i_double_indirect == 0)
         {
@@ -57,7 +57,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
         }
 
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_double_indirect);
-        ssize_t offset = file_block_num - NUM_OF_DIRECT_BLOCKS - NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+        ssize_t offset = file_block_num - DIRECT_PLUS_SINGLE_INDIRECT_ADDR;
         data_block_num = double_indirect_block_arr[offset / NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
         altfs_free_memory(double_indirect_block_arr);
 
@@ -82,7 +82,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
         }
 
         ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_triple_indirect);
-        ssize_t offset = file_block_num - NUM_OF_DIRECT_BLOCKS - NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR - NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+        ssize_t offset = file_block_num - DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR;
         data_block_num = triple_indirect_block_arr[offset / NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR];
         altfs_free_memory(triple_indirect_block_arr);
 
@@ -93,7 +93,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
         }
         
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
-        data_block_num = double_indirect_block_arr[(offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
+        data_block_num = double_indirect_block_arr[(offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR) % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
         altfs_free_memory(double_indirect_block_arr);
         
         if(data_block_num<=0)
@@ -103,7 +103,7 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
         }
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
-        data_block_num = single_indirect_block_arr[offset%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
+        data_block_num = single_indirect_block_arr[offset % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
         altfs_free_memory(single_indirect_block_arr);
 
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from triple indirect block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
@@ -215,7 +215,7 @@ bool initialize_fs()
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : Successfully ran makefs\n", INITIALIZE_FS);
     
-    struct inode* root_dir = read_inode(ROOT_INODE_NUM);
+    struct inode* root_dir = get_inode(ROOT_INODE_NUM);
     if(root_dir == NULL){
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", INITIALIZE_FS);
         return false;

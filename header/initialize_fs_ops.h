@@ -23,6 +23,8 @@
 #define NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR ((ssize_t) (NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR*(BLOCK_SIZE / ADDRESS_SIZE))) // 512*512
 #define NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR ((ssize_t) (NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR*(BLOCK_SIZE / ADDRESS_SIZE))) // 512*512*512
 #define CACHE_CAPACITY ((ssize_t) 100000) // TODO: Check if increasing this improves performance
+#define DIRECT_PLUS_SINGLE_INDIRECT_ADDR ((ssize_t) (NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR))
+#define DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR ((ssize_t) (NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR))
 
 // Get data block number for given file block
 ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssize_t file_block_num)
