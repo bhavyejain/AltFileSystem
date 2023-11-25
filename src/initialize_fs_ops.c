@@ -10,6 +10,7 @@
 #include "../header/data_block_ops.h"
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_cache.h"
+#include "../header/inode_data_block_ops.h"
 
 static struct inode_cache inodeCache;
 
@@ -268,7 +269,7 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
         return false;
     }
     // TODO: Use the correct function when implemented
-    if(!add_dblock_to_inode(dir_inode, data_block_num)){
+    if(!add_datablock_to_inode(dir_inode, data_block_num)){
         printf("couldn't add dblock to inode\n");
         return false;
     }
