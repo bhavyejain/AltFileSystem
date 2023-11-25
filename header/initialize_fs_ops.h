@@ -11,7 +11,7 @@
 
 #define INITIALIZE_FS "initialize_fs"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"
-#define GET_DBLOCK_FROM_FBLOCK "get_data_block_from_file_block"
+#define GET_DBLOCK_FROM_IBLOCK "get_disk_block_from_inode_block"
 
 #define ROOT_INODE_NUM ((ssize_t) 2)
 #define DEFAULT_PERMISSIONS (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
@@ -29,6 +29,6 @@
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
 
 // Get data block number for given file block
-ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssize_t file_block_num)
+ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num)
 
 #endif
