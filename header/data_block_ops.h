@@ -14,37 +14,37 @@
 #define FREE_DATA_BLOCK "free_data_block"
 
 /*
-@func: Allocate a new data block
+Allocate a new data block
 
-@returns: dblocknum on success; -1 on failure
+@return Data block number on success or -1 on failure
 */
 ssize_t allocate_data_block();
 
 /*
-@func: Read information contained in a data block.
+Read information contained in a data block.
 
 @param index: The data block number.
 
-@return: Buffer with contents or NULL
+@return Buffer with contents or NULL
 */
 char* read_data_block(ssize_t index);
 
 /*
-@func: write information to a data block
+Write information to a data block
 
 @param index: The data block number.
 @param buf: the buffer which contains data to write
 
-@return: success or failure
+@return Success or failure
 */
 bool write_data_block(ssize_t index, char* buffer);
 
 /*
-@func: Free a data block.
+Free a data block.
 
 @param index: The data block number.
 
-@return: success or failure
+@return Success or failure
 */
 bool free_data_block(ssize_t index);
 

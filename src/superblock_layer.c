@@ -1,12 +1,13 @@
-#include<stdlib.h>
-#include<stdbool.h>
-#include<string.h>
-#include<stdio.h>
-#include<fuse.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include <fuse.h>
+
 #include "../header/superblock_layer.h"
 #include "../header/disk_layer.h"
 
-// shifted to heasder file
+// shifted to header file
 // static struct superblock* altfs_superblock = NULL;
 
 // Initializes superblock and writes to block 0
