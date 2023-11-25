@@ -184,26 +184,29 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
             while(curr_pos <= LAST_POSSIBLE_RECORD)
             {
                 unsigned short record_len = ((unsigned short*)(dblock + curr_pos))[0];
-                // A record exists at this point
-                if(record_len != 0)
+                bool allocated = ((bool*)(dblock + curr_pos + RECORD_LENGTH))[0];
+
+                // If the record is allocated, new record cannot be added here. Note: while reading records, check for record length first to know where to stop.
+                if(allocated)
                 {
-                    bool allocated = ((bool*)(dblock + curr_pos + RECORD_LENGTH))[0];
-                    // If already allocated, cannot use for this record
-                    if(allocated)
-                        add_record = false;
-                    else
+                    add_record = false;
+                } else
+                {
+                    // Indicates a record has never been allocated at (and from) this position
+                    if(record_len == 0)
                     {
+                        // Check if there is enough space left in the data block
+                        ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
+                        if(rem_block_space < file_name_len)
+                            add_record = false;
+                    } else
+                    {
+                        // Check for avaiable name length in the existing record (un-allcoated)
                         unsigned short avail_name_len = record_len - RECORD_FIXED_LEN;
                         // Available name length is smaller than required
                         if(avail_name_len < short_name_length)
                             add_record = false;
                     }
-                } else
-                {
-                    // Check if there is enough space left in the data block
-                    ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
-                    if(rem_block_space < file_name_len)
-                        add_record = false;
                 }
 
                 if(add_record)
@@ -218,6 +221,7 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
                     // Add child INUM
                     ((ssize_t*)(record + RECORD_LENGTH + RECORD_ALLOCATED))[0] = child_inum;
                     // Add file name
+                    // TODO: Make sure that when a file record is removed, the name is made all 0's
                     strncpy((char*)(record + RECORD_FIXED_LEN), file_name, file_name_len);
 
                     if(!write_data_block(p_block_num, dblock)){
