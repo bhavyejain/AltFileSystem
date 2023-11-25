@@ -31,9 +31,10 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
         return filepos;
     }
 
+    ssize_t prev_block = 0;
     for(ssize_t l_block_num = 0; l_block_num < parent_inode->i_blocks_num; l_block_num++)
     {
-        filepos.p_plock_num = get_disk_block_from_inode_block(parent_inode, l_block_num);
+        filepos.p_plock_num = get_disk_block_from_inode_block(parent_inode, l_block_num, &prev_block);
 
         if(filepos.p_block_num <= 0)
         {
