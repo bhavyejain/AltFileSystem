@@ -148,20 +148,6 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     return data_block_num;
 }
 
-/*
-A directory entry (record) in altfs looks like:
-| Total entry length (2) | Allocated (1) | INUM (8) | Name (variable len) |
-
-The allocated byte tells us if the entry is re-usable to store another file name.
-If the value is 111 (true), then an active file holds this entry.
-If the value is 000 (false), then it is reusable.
-
-@param dir_inode: Pointer to the directory (parent) inode.
-@param child_inum: Inode number of the file being added as an entry.
-@param file_name: Name of the file being added.
-
-@return true or false
-*/
 bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file_name)
 {
     // Check if dir_inode is actually a directory

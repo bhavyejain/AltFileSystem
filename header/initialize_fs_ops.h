@@ -41,4 +41,27 @@ Get the physical disk block number for a given file and logical block number in 
 */
 ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num, ssize_t* prev_indirect_block);
 
+/*
+A directory entry (record) in altfs looks like:
+| Total entry length (2) | Allocated (1) | INUM (8) | Name (variable len) |
+
+The allocated byte tells us if the entry is re-usable to store another file name.
+If the value is 111 (true), then an active file holds this entry.
+If the value is 000 (false), then it is reusable.
+
+@param dir_inode: Pointer to the directory (parent) inode.
+@param child_inum: Inode number of the file being added as an entry.
+@param file_name: Name of the file being added.
+
+@return true or false
+*/
+bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file_name);
+
+/*
+Initializes the file system.
+
+@return True if success, false if failure.
+*/
+bool initialize_fs();
+
 #endif
