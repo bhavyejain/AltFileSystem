@@ -1,13 +1,15 @@
 #ifndef __INITIALIZE_FS_OPS__
 #define __INITIALIZE_FS_OPS__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+
+#include "data_block_ops.h"
 #include "disk_layer.h"
 #include "superblock_layer.h"
-#include "data_block_ops.h"
 
 #define INITIALIZE_FS "initialize_fs"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"

@@ -1,10 +1,20 @@
 #ifndef __INTERFACE_LAYER__
 #define __INTERFACE_LAYER__
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
 #include <sys/types.h>
+
+#define MKDIR "altfs_mkdir"
+#define MKNOD "altfs_mknod"
+#define TRUNCATE "altfs_truncate"
+#define UNLINK "altfs_unlink"
+#define CLOSE "altfs_close"
+#define OPEN "altfs_open"
+#define READ "altfs_read"
+#define WRITE "altfs_write"
 
 /*
 Creates a new directory in the file system.

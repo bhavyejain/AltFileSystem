@@ -79,7 +79,6 @@ Get inum for given file path
 
 @return ssize_t Inode number corresponding to the given file path
 */
-
 ssize_t name_i(const char* const file_path);
 
 #endif
