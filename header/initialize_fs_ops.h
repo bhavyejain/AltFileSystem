@@ -35,10 +35,10 @@ Get the physical disk block number for a given file and logical block number in 
 
 @param node: Constant pointer to the file's inode
 @param logical_block_num: Logical block number in the file
-@param prev_indirect_block: Holds the number of the data block that contains the last level of indirect addresses for the previously fetched block number.
+@param prev_indirect_block: Holds the number of the data block that contains the last level of indirect addresses for the block number (logical_block_num - 1). Provide 0 for every out-of-order access.
 
 @return The physical data block number.
 */
-ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num, ssize_t* prev_indirect_block)
+ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num, ssize_t* prev_indirect_block);
 
 #endif
