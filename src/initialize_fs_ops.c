@@ -10,18 +10,11 @@
 #include "../header/data_block_ops.h"
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_cache.h"
+#include "../header/inode_data_block_ops.h"
 
 static struct inode_cache inodeCache;
 
-/*
-Get the physical disk block number for a given file and logical block number in the file.
-
-@param node: Constant pointer to the file's inode
-@param logical_block_num: Logical block number in the file
-
-@return The physical data block number.
-*/
-ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t logical_block_num)
+ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t logical_block_num, ssize_t* prev_indirect_block)
 {
     ssize_t data_block_num = -1;
 
@@ -74,6 +67,16 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         ssize_t double_i_idx = logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK;
         ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
 
+        if(inner_idx != 0 && *prev_indirect_block != 0)
+        {
+            ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
+            data_block_num = single_indirect_block_arr[inner_idx];
+            altfs_free_memory(single_indirect_block_arr);
+
+            fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+            return data_block_num
+        }
+
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(node->i_double_indirect);
         data_block_num = double_indirect_block_arr[double_i_idx];
         altfs_free_memory(double_indirect_block_arr);
@@ -82,6 +85,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
             fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0.\n", GET_DBLOCK_FROM_IBLOCK);
             return -1;
         }
+        *prev_indirect_block = data_block_num;
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
         data_block_num = single_indirect_block_arr[inner_idx];
@@ -105,6 +109,16 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     ssize_t double_i_idx = (logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK) % NUM_OF_ADDRESSES_PER_BLOCK;
     ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
 
+    if(inner_idx != 0 && *prev_indirect_block != 0)
+    {
+        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
+        data_block_num = single_indirect_block_arr[inner_idx];
+        altfs_free_memory(single_indirect_block_arr);
+
+        fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+        return data_block_num
+    }
+
     ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(node->i_triple_indirect);
     data_block_num = triple_indirect_block_arr[triple_i_idx];
     altfs_free_memory(triple_indirect_block_arr);
@@ -121,9 +135,10 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     
     if(data_block_num<=0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0. Exiting\n", GET_DBLOCK_FROM_IBLOCK);
+        fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num from triple <= 0.\n", GET_DBLOCK_FROM_IBLOCK);
         return -1;
     }
+    *prev_indirect_block = data_block_num;
 
     ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
     data_block_num = single_indirect_block_arr[inner_idx];
@@ -166,9 +181,11 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
     ssize_t new_entry_size = RECORD_FIXED_LEN + short_name_length;
 
     // If the directory inode has datablocks allocated, try to find space in them to add the entry.
-    for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
-    {
-        ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num);
+    if(dir_inode->i_blocks_num > 0){
+        ssize_t prev_block = 0;
+        for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
+        {
+            ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num, &prev_block);
 
         if(p_block_num <= 0)
         {
@@ -266,7 +283,7 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
         return false;
     }
     // TODO: Use the correct function when implemented
-    if(!add_dblock_to_inode(dir_inode, data_block_num)){
+    if(!add_datablock_to_inode(dir_inode, data_block_num)){
         printf("couldn't add dblock to inode\n");
         return false;
     }
