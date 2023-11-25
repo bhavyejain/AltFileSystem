@@ -36,86 +36,100 @@ ssize_t get_data_block_from_file_block(const struct inode* const file_inode, ssi
     {
         data_block_num = file_inode->i_direct_blocks[file_block_num];
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from direct block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
+        return data_block_num;
     }
 
-    // If file block num >= 12 and < 512 => single indirect block
-    else if(file_block_num < NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+    // Adjust logical block number for single indirect
+    file_block_num -= NUM_OF_DIRECT_BLOCKS;
+
+    // If file block num < 512 => single indirect block
+    if(file_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
     {
         if(file_inode->i_single_indirect == 0)
         {
-            fuse_log(FUSE_LOG_ERR,"%s : Single indirect block is set to 0 for inode. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
+            fuse_log(FUSE_LOG_ERR,"%s : Single indirect block is set to 0 for inode.\n", GET_DBLOCK_FROM_FBLOCK);
             return data_block_num;
         }
 
         // Read single indirect block and extract data block num from file block num
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_single_indirect);
-        data_block_num = single_indirect_block_arr[file_block_num - NUM_OF_DIRECT_BLOCKS];
+        data_block_num = single_indirect_block_arr[file_block_num];
         altfs_free_memory(single_indirect_block_arr);
 
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from single indirect block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
+        return data_block_num;
     }
+
+    // Adjust logical block number for double indirect
+    file_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
     
-    // If file block num >= 512 and < 512*512 => double indirect block
-    else if(file_block_num < NUM_OF_DIRECT_BLOCKS + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+    // If file block num < 512*512 => double indirect block
+    if(file_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
     {
         if(file_inode->i_double_indirect == 0)
         {
-            fuse_log(FUSE_LOG_ERR,"%s : Double indirect block is set to 0 for inode. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
+            fuse_log(FUSE_LOG_ERR,"%s : Double indirect block is set to 0 for inode.\n", GET_DBLOCK_FROM_FBLOCK);
             return data_block_num;
         }
+        ssize_t double_i_idx = file_block_num / NUM_OF_ADDRESSES_PER_BLOCK;
+        ssize_t inner_idx = file_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
 
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_double_indirect);
-        ssize_t offset = file_block_num - NUM_OF_DIRECT_BLOCKS - NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
-        data_block_num = double_indirect_block_arr[offset / NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
+        data_block_num = double_indirect_block_arr[double_i_idx];
         altfs_free_memory(double_indirect_block_arr);
 
         if(data_block_num <= 0){
-            fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
+            fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0.\n", GET_DBLOCK_FROM_FBLOCK);
             return -1;
         }
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
-        data_block_num = single_indirect_block_arr[offset % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
+        data_block_num = single_indirect_block_arr[inner_idx];
         altfs_free_memory(single_indirect_block_arr);
 
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
+        return data_block_num
     }
-    // If file block num >= 512*512 and < 512*512*512 => triple indirect block
-    else
+
+    // Adjust logical block number for double indirect
+    file_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+
+    // If file block num < 512*512*512 => triple indirect block
+    if(file_inode->i_triple_indirect == 0)
     {
-        if(file_inode->i_triple_indirect == 0)
-        {
-            fuse_log(FUSE_LOG_ERR,"%s : Triple indirect block is set to 0 for inode. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
-            return data_block_num;
-        }
-
-        ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_triple_indirect);
-        ssize_t offset = file_block_num - NUM_OF_DIRECT_BLOCKS - NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR - NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
-        data_block_num = triple_indirect_block_arr[offset / NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR];
-        altfs_free_memory(triple_indirect_block_arr);
-
-        if(data_block_num <= 0)
-        {
-            fuse_log(FUSE_LOG_ERR, "%s : Triple indirect block num <= 0. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
-            return -1;
-        }
-        
-        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
-        data_block_num = double_indirect_block_arr[(offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
-        altfs_free_memory(double_indirect_block_arr);
-        
-        if(data_block_num<=0)
-        {
-            fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
-            return -1;
-        }
-
-        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
-        data_block_num = single_indirect_block_arr[offset%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
-        altfs_free_memory(single_indirect_block_arr);
-
-        fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from triple indirect block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
+        fuse_log(FUSE_LOG_ERR,"%s : Triple indirect block is set to 0 for inode. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
+        return data_block_num;
     }
+
+    ssize_t triple_i_idx = file_block_num / NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+    ssize_t double_i_idx = (file_block_num / NUM_OF_ADDRESSES_PER_BLOCK) % NUM_OF_ADDRESSES_PER_BLOCK;
+    ssize_t inner_idx = file_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
+
+    ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(file_inode->i_triple_indirect);
+    data_block_num = triple_indirect_block_arr[triple_i_idx];
+    altfs_free_memory(triple_indirect_block_arr);
+
+    if(data_block_num <= 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Triple indirect block num <= 0.\n", GET_DBLOCK_FROM_FBLOCK);
+        return -1;
+    }
+    
+    ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
+    data_block_num = double_indirect_block_arr[double_i_idx];
+    altfs_free_memory(double_indirect_block_arr);
+    
+    if(data_block_num<=0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0. Exiting\n", GET_DBLOCK_FROM_FBLOCK);
+        return -1;
+    }
+
+    ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
+    data_block_num = single_indirect_block_arr[inner_idx];
+    altfs_free_memory(single_indirect_block_arr);
+
+    fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from triple indirect block\n", GET_DBLOCK_FROM_FBLOCK, data_block_num);
     return data_block_num;
 }
 
