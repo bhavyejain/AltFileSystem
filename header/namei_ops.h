@@ -1,5 +1,5 @@
-#ifndef __INODE_OPS__
-#define __INODE_OPS__
+#ifndef __NAMEI_OPS__
+#define __NAMEI_OPS__
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -8,11 +8,14 @@
 #include "disk_layer.h"
 #include "superblock_layer.h"
 #include "data_block_ops.h"
+#include "inode_ops.h"
+#include "initialize_fs_ops.h"
 
-#define ALLOCATE_INODE "allocate_inode"
-#define GET_INODE "get_inode"
-#define WRITE_INODE "write_inode"
-#define FREE_INODE "free_inode"
+#define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
+#define IS_DIR_EMPTY "is_dir_empty"
+#define COPY_PARENT_PATH "copy_parent_path"
+#define COPY_CHILD_FILE_NAME "copy_child_file_name"
+#define NAME_I "name_i"
 
 // Struct used to store information regarding a file's position in the directory
 struct fileposition {
