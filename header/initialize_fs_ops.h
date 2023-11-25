@@ -30,7 +30,7 @@
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
 
-// Get data block number for given file block
+// Get physical data block number for given logical block number
 ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ssize_t file_block_num)
 
 #endif

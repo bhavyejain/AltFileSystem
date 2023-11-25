@@ -10,6 +10,7 @@
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_data_block_ops.h"
 
+
 bool add_datablock_to_inode(struct inode* inodeObj, const ssize_t data_block_num)
 {
     // Add data block to inode after incrementing num of blocks in inode struct
@@ -242,6 +243,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t file_block_num
     return true;
 }
 
+// TODO: Finish this code and refactor entire file
 bool remove_datablocks_from_inode(struct inode* inodeObj, const ssize_t file_block_num)
 {
     if (file_block_num >= inodeObj->i_blocks_num)
