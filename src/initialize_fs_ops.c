@@ -166,80 +166,78 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
     ssize_t new_entry_size = RECORD_FIXED_LEN + short_name_length;
 
     // If the directory inode has datablocks allocated, try to find space in them to add the entry.
-    if(dir_inode->i_blocks_num > 0){
-        for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
+    for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
+    {
+        ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num);
+
+        if(p_block_num <= 0)
         {
-            ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to fetch physical data block number corresponfing to file's logical block number.\n", ADD_DIRECTORY_ENTRY);
+            return false;
+        }
 
-            if(p_block_num <= 0)
+        char* dblock = read_data_block(p_block_num);
+
+        ssize_t curr_pos = 0;
+        bool add_record = true;
+        while(curr_pos <= LAST_POSSIBLE_RECORD)
+        {
+            unsigned short record_len = ((unsigned short*)(dblock + curr_pos))[0];
+            bool allocated = ((bool*)(dblock + curr_pos + RECORD_LENGTH))[0];
+
+            // If the record is allocated, new record cannot be added here. Note: while reading records, check for record length first to know where to stop.
+            if(allocated)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to fetch physical data block number corresponfing to file's logical block number.\n", ADD_DIRECTORY_ENTRY);
-                return false;
-            }
-
-            char* dblock = read_data_block(p_block_num);
-
-            ssize_t curr_pos = 0;
-            bool add_record = true;
-            while(curr_pos <= LAST_POSSIBLE_RECORD)
+                add_record = false;
+            } else
             {
-                unsigned short record_len = ((unsigned short*)(dblock + curr_pos))[0];
-                bool allocated = ((bool*)(dblock + curr_pos + RECORD_LENGTH))[0];
-
-                // If the record is allocated, new record cannot be added here. Note: while reading records, check for record length first to know where to stop.
-                if(allocated)
+                // Indicates a record has never been allocated at (and from) this position
+                if(record_len == 0)
                 {
-                    add_record = false;
+                    // Check if there is enough space left in the data block
+                    ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
+                    if(rem_block_space < file_name_len)
+                        add_record = false;
                 } else
                 {
-                    // Indicates a record has never been allocated at (and from) this position
-                    if(record_len == 0)
-                    {
-                        // Check if there is enough space left in the data block
-                        ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
-                        if(rem_block_space < file_name_len)
-                            add_record = false;
-                    } else
-                    {
-                        // Check for avaiable name length in the existing record (un-allcoated)
-                        unsigned short avail_name_len = record_len - RECORD_FIXED_LEN;
-                        // Available name length is smaller than required
-                        if(avail_name_len < short_name_length)
-                            add_record = false;
-                    }
+                    // Check for avaiable name length in the existing record (un-allcoated)
+                    unsigned short avail_name_len = record_len - RECORD_FIXED_LEN;
+                    // Available name length is smaller than required
+                    if(avail_name_len < short_name_length)
+                        add_record = false;
                 }
-
-                if(add_record)
-                {
-                    fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
-                    unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
-                    char* record = dblock + curr_pos;
-                    // Add record length
-                    ((unsigned short*)record)[0] = record_length;
-                    // Add allocated byte
-                    ((bool*)(record + RECORD_LENGTH))[0] = true;
-                    // Add child INUM
-                    ((ssize_t*)(record + RECORD_LENGTH + RECORD_ALLOCATED))[0] = child_inum;
-                    // Add file name
-                    // TODO: Make sure that when a file record is removed, the name is made all 0's
-                    strncpy((char*)(record + RECORD_FIXED_LEN), file_name, file_name_len);
-
-                    if(!write_data_block(p_block_num, dblock)){
-                        fuse_log(FUSE_LOG_ERR, "%s : Error writing data block %ld to disk.\n", ADD_DIRECTORY_ENTRY, p_block_num);
-                        altfs_free_memory(dblock);
-                        return false;
-                    }
-
-                    altfs_free_memory(dblock);
-                    return true;
-                }
-
-                curr_pos += record_len;
-                add_record = true;
             }
 
-            altfs_free_memory(dblock);
+            if(add_record)
+            {
+                fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
+                unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
+                char* record = dblock + curr_pos;
+                // Add record length
+                ((unsigned short*)record)[0] = record_length;
+                // Add allocated byte
+                ((bool*)(record + RECORD_LENGTH))[0] = true;
+                // Add child INUM
+                ((ssize_t*)(record + RECORD_LENGTH + RECORD_ALLOCATED))[0] = child_inum;
+                // Add file name
+                // TODO: Make sure that when a file record is removed, the name is made all 0's
+                strncpy((char*)(record + RECORD_FIXED_LEN), file_name, file_name_len);
+
+                if(!write_data_block(p_block_num, dblock)){
+                    fuse_log(FUSE_LOG_ERR, "%s : Error writing data block %ld to disk.\n", ADD_DIRECTORY_ENTRY, p_block_num);
+                    altfs_free_memory(dblock);
+                    return false;
+                }
+
+                altfs_free_memory(dblock);
+                return true;
+            }
+
+            curr_pos += record_len;
+            add_record = true;
         }
+
+        altfs_free_memory(dblock);
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : No space found in existing data blocks for directory entry, allocating a new block.\n", ADD_DIRECTORY_ENTRY);
 

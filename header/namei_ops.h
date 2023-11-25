@@ -17,13 +17,13 @@
 #define COPY_CHILD_FILE_NAME "copy_child_file_name"
 #define NAME_I "name_i"
 
-// Struct used to store information regarding a file's position in the directory
+/*
+Struct used to store the position of a file's inode inside it's parent directory
+*/
 struct fileposition {
-    char *p_block;
-    ssize_t p_plock_num;
-    ssize_t l_block_num;
-    ssize_t start_pos;
-    ssize_t prev_entry;
+    char *p_block; // contents of physical data block
+    ssize_t p_plock_num; // physical data block number
+    ssize_t offset; // offset in the dir's physical data block where the file's inode is stored
 };
 
 /*
