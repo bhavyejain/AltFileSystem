@@ -84,9 +84,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
 
     time_t curr_time = time(NULL);
     parent_inode->i_mtime = curr_time;
-    parent_inode->i_status_change_time = curr_time;
-    // TODO: Check when is access time updated
-    parent_inode->i_atime = curr_time;
+    parent_inode->i_ctime = curr_time;
     if(!write_inode(parent_inode_num, parent_inode))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not write directory inode.\n", CREATE_NEW_FILE);
@@ -249,6 +247,7 @@ ssize_t altfs_close(ssize_t file_descriptor)
 ssize_t altfs_open(const char* path, ssize_t oflag)
 {
     ssize_t inum = name_i(path);
+    bool created = false;
 
     // Create new file if required
     if(inum <= -1 && (oflag & O_CREAT))
@@ -263,6 +262,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
         }
         write_inode(inum, node);
         altfs_free_memory(node);
+        created = true;
     }
     else if(inum <= -1)
     {
@@ -297,107 +297,138 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
             fuse_log(FUSE_LOG_ERR, "%s : Error truncating file %s.\n", OPEN, path);
             return -1;
         }
+        // If existing file, update times.
+        if(!created)
+        {
+            time_t curr_time = time(NULL);
+            node->i_ctime = curr_time;
+            node->i_mtime = curr_time;
+            write_inode(inum, node);
+        }
     }
+    altfs_free_memory(node);
     return inum;
 }
 
 ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
 {
-    memset(buff, 0, nbytes);
-    // fetch inum from path
-    ssize_t inum = name_i(path);
-    if (inum == -1) {
-        printf("ERROR: Inode file %s not found\n", path);
-        return -1;
-    }
-    struct iNode *inode= read_inode(inum);
-    if (inode->file_size == 0) {
+    if(nbytes == 0)
+    {
         return 0;
     }
-    if (offset > inode->file_size) {
-        printf("ERROR: Offset %zu for read is greater than size of the file %ld\n", offset, inode->file_size);
-        return -1;
+    if(offset < 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", READ, offset);
+        return -EINVAL;
     }
-    //update nbytes when read_len from offset exceeds file_size. 
-    if (offset + nbytes > inode->file_size){
-        nbytes = inode->file_size - offset;
+    memset(buff, 0, nbytes);
+
+    ssize_t inum = name_i(path);
+    if (inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", READ, path);
+        return -ENOENT;
     }
 
-    ssize_t start_block = offset / BLOCK_SIZE;
-    ssize_t start_block_top_ceil = offset % BLOCK_SIZE;
+    struct inode* node= get_inode(inum);
+    if (node->i_file_size == 0)
+    {
+        return 0;
+    }
+    if (offset > node->file_size)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Offset %ld is greater than file size %ld.\n", READ, offset, node->i_file_size);
+        return -EOVERFLOW;
+    }
+    // Update nbytes when read_len from offset exceeds file_size. 
+    if (offset + nbytes > node->i_file_size)
+    {
+        nbytes = node->i_file_size - offset;
+    }
 
-    ssize_t end_block = (offset + nbytes) / BLOCK_SIZE;
-    ssize_t end_block_bottom_floor = BLOCK_SIZE - (offset + nbytes) % BLOCK_SIZE;
+    ssize_t start_i_block = offset / BLOCK_SIZE; // First logical block to read from
+    ssize_t start_block_offset = offset % BLOCK_SIZE; // The starting offset in first block from where to read
+    ssize_t end_i_block = (offset + nbytes) / BLOCK_SIZE; // Last logical block to read from
+    ssize_t end_block_offset = BLOCK_SIZE - (offset + nbytes) % BLOCK_SIZE; // Ending offet in last block till where to read
 
-    ssize_t nblocks_read = end_block - start_block + 1;
-
-    // printf("start_block %ld, start_block_start %ld, end_block %ld, end_block_end %ld, blocks_to_read %ld\n",
-    //         start_block, start_block_top_ceil, end_block, BLOCK_SIZE-end_block_bottom_floor, nblocks_read);
-
-    DEBUG_PRINTF("Total number of blocks to read: %ld\n", nblocks_read);
+    ssize_t blocks_to_read = end_i_block - start_i_block + 1; // Number of blocks that need to be read
+    fuse_log(FUSE_LOG_DEBUG, "%s : Number of blocks to read from: %ld.\n", READ, blocks_to_read);
 
     size_t bytes_read = 0;
     ssize_t dblock_num;
-    char *buf_read = NULL;
+    char* buf_read = NULL;
 
-    if(nblocks_read==1){
-        //only 1 block to be read;
-        dblock_num=fblock_num_to_dblock_num(inode,start_block);
-        if(dblock_num<=0){
-            printf("Error fetching dblock_num %ld from fblock_num during the read. Max Blocks:%ld \n",start_block,inode->num_blocks);
+    ssize_t prev_block = 0;
+    if(blocks_to_read == 1)
+    {
+        // Only 1 block to be read
+        dblock_num = get_disk_block_from_inode_block(node, start_i_block, &prev_block);
+        if(dblock_num <= 0)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not get disk block number for inode block %ld.\n", READ, start_i_block);
+            altfs_free_memory(node);
             return -1;
         }
 
-        buf_read=read_dblock(dblock_num);
-        if(buf_read==NULL){
-            printf("Error fetching dblock_num %ld during the read operation for %s\n",dblock_num,path);
+        buf_read = read_data_block(dblock_num);
+        if(buf_read == NULL)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", READ, dblock_num);
+            altfs_free_memory(node);
             return -1;
         }
-        memcpy(buff, buf_read+start_block_top_ceil, nbytes);
-        bytes_read=nbytes;
+        memcpy(buff, buf_read + start_block_offset, nbytes);
+        bytes_read = nbytes;
     }
-    else{
+    else
+    {
         //when there are multiple blocks to read
-        for(ssize_t i=0; i<nblocks_read;i++){
-            dblock_num=fblock_num_to_dblock_num(inode, start_block+i);
-            if(dblock_num<=0){
-                printf("Error fetching dblock_num %ld from fblock_num during the read. Max Blocks:%ld \n",start_block+i,inode->num_blocks);
-                free_memory(inode);
+        for(ssize_t i = 0; i < blocks_to_read; i++)
+        {
+            dblock_num = get_disk_block_from_inode_block(node, start_i_block + i, &prev_block);
+            if(dblock_num <= 0)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Could not get disk block number for inode block %ld.\n", READ, start_i_block);
+                altfs_free_memory(node);
+                altfs_free_memory(buf_read);
                 return -1;
             }
 
-            buf_read=read_dblock(dblock_num);
-
-            if(buf_read == NULL){
-                printf("Error fetching dblock_num %ld during the read operation for %s\n",dblock_num,path);
-                free_memory(inode);
+            buf_read = read_data_block(dblock_num);
+            if(buf_read == NULL)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", READ, dblock_num);
+                free_memory(node);
                 return -1;
             }
-            // for the 1st block, read only the contents after the start ceil.
-            if(i==0){
-                memcpy(buff, buf_read+start_block_top_ceil, BLOCK_SIZE-start_block_top_ceil);
-                bytes_read+=BLOCK_SIZE-start_block_top_ceil;
+
+            if(i==0)
+            {
+                // For the 1st block, read only the contents after the start offset.
+                memcpy(buff, buf_read + start_block_offset, BLOCK_SIZE - start_block_offset);
+                bytes_read += BLOCK_SIZE - start_block_offset;
             }
-            else if(i== nblocks_read-1){
-                // for the last block, read contents only till the bottom floor.
-                memcpy(buff+bytes_read, buf_read, BLOCK_SIZE-end_block_bottom_floor);
-                bytes_read+=BLOCK_SIZE-end_block_bottom_floor;
+            else if(i == blocks_to_read - 1)
+            {
+                // For the last block, read contents only till the end offset.
+                memcpy(buff + bytes_read, buf_read, BLOCK_SIZE - end_block_offset);
+                bytes_read += BLOCK_SIZE - end_block_offset;
             }
-            else{
-                memcpy(buff+bytes_read, buf_read, BLOCK_SIZE);
-                bytes_read+=BLOCK_SIZE;
+            else
+            {
+                memcpy(buff + bytes_read, buf_read, BLOCK_SIZE);
+                bytes_read += BLOCK_SIZE;
             }
         }
     }
-    free_memory(buf_read);
-    // DEBUG_PRINTF("FILE_LAYER: Read Successful for the file %s\n Bytes read: %zu\n",path, bytes_read);
+    altfs_free_memory(buf_read);
     time_t curr_time = time(NULL);
-    inode->access_time = curr_time;
+    node->i_atime = curr_time;
 
-    if(!write_inode(inum, inode)){
-        printf("Error: INODE update during file read failed for file %s\n",path);
+    if(!write_inode(inum, node)){
+        fuse_log(FUSE_LOG_ERR, "%s : Could not write inode %ld.\n", READ, inum);
     }
-    free_memory(inode);
+    altfs_free_memory(node);
     return bytes_read;
 }
 
