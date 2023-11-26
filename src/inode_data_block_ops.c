@@ -14,15 +14,15 @@
 bool add_datablock_to_inode(struct inode* inodeObj, const ssize_t data_block_num)
 {
     // Add data block to inode after incrementing num of blocks in inode struct
-    ssize_t file_block_num = inodeObj->i_blocks_num;
+    ssize_t logical_block_num = inodeObj->i_blocks_num;
 
     // Follow same structure of translating to data blocks as in initialize_fs_ops
-    if(file_block_num < NUM_OF_DIRECT_BLOCKS){
-        inodeObj->i_direct_blocks[file_block_num] = data_block_num;
+    if(logical_block_num < NUM_OF_DIRECT_BLOCKS){
+        inodeObj->i_direct_blocks[logical_block_num] = data_block_num;
     }
     // TODO: This is repetitive code coming up in lot of places. See if this can be made modular
-    else if(file_block_num < DIRECT_PLUS_SINGLE_INDIRECT_ADDR){
-        if(file_block_num == NUM_OF_DIRECT_BLOCKS)
+    else if(logical_block_num < DIRECT_PLUS_SINGLE_INDIRECT_ADDR){
+        if(logical_block_num == NUM_OF_DIRECT_BLOCKS)
         {
             // If data block == 12 => new single indirect block needs to be added
             ssize_t single_indirect_block_num = allocate_data_block();
@@ -36,7 +36,7 @@ bool add_datablock_to_inode(struct inode* inodeObj, const ssize_t data_block_num
         }
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_single_indirect);
-        single_indirect_block_arr[file_block_num - NUM_OF_DIRECT_BLOCKS] = data_block_num;
+        single_indirect_block_arr[logical_block_num - NUM_OF_DIRECT_BLOCKS] = data_block_num;
         if(!write_data_block(inodeObj->i_single_indirect, (char*)single_indirect_block_arr))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to single indirect block\n", ADD_DATABLOCK_TO_INODE);
@@ -45,210 +45,559 @@ bool add_datablock_to_inode(struct inode* inodeObj, const ssize_t data_block_num
         fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block in single indirect block\n", ADD_DATABLOCK_TO_INODE);
         altfs_free_memory(single_indirect_block_arr);
     }
-    else if(file_block_num < DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR)
+    else if(logical_block_num < DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR)
     {
         // if file block num == 12 + 512 => need a new double indirect block
-        if(file_block_num == DIRECT_PLUS_SINGLE_INDIRECT_ADDR)
+        if(logical_block_num == DIRECT_PLUS_SINGLE_INDIRECT_ADDR)
         {
             ssize_t double_indirect_data_block_num = allocate_data_block();
             if(double_indirect_data_block_num == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for double indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for double indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
             inodeObj->i_double_indirect = double_indirect_data_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new double indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new double indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
         }
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_double_indirect);
-        ssize_t offset = file_block_num - DIRECT_PLUS_SINGLE_INDIRECT_ADDR;
+        ssize_t offset = logical_block_num - DIRECT_PLUS_SINGLE_INDIRECT_ADDR;
         // This is to create the first indirect block in the single indirect block
         if(offset % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR == 0){
             ssize_t single_indirect_block_num = allocate_data_block();
             if(single_indirect_block_num == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for single indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for single indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
             double_indirect_block_arr[offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = single_indirect_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block in single indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block in single indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             if(!write_data_block(inodeObj->i_double_indirect, (char*)double_indirect_block_arr))
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to double indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to double indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
         }
         ssize_t single_indirect_block_num = double_indirect_block_arr[offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
         if(single_indirect_block_num <= 0)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Invalid blocknum for single indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Invalid blocknum for single indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_indirect_block_num);
         single_indirect_block_arr[offset % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = data_block_num;
         if(!write_data_block(single_indirect_block_num, (char*)single_indirect_block_arr))
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to single indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to single indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
         altfs_free_memory(double_indirect_block_arr);
         altfs_free_memory(single_indirect_block_arr);
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added double indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added double indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
     }
     else
     {
-        if(file_block_num == DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR){
+        if(logical_block_num == DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR){
             ssize_t triple_data_block_num = allocate_data_block();
             if(triple_data_block_num == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for triple indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for triple indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
             inodeObj->i_triple_indirect = triple_data_block_num;
         }
         ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_triple_indirect);
-        ssize_t triple_file_block_num = file_block_num - DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR;
-        ssize_t triple_fblock_offset = triple_file_block_num/NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
-        if(triple_file_block_num % NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR == 0){
+        ssize_t triple_logical_block_num = logical_block_num - DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR;
+        ssize_t triple_fblock_offset = triple_logical_block_num/NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+        if(triple_logical_block_num % NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR == 0){
             ssize_t double_indirect_data_block_num = allocate_data_block();
             if(double_indirect_data_block_num == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for double indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate new data block for double indirect data block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
             triple_indirect_block_arr[triple_fblock_offset] = double_indirect_data_block_num;
             if(!write_data_block(inodeObj->i_triple_indirect, (char *)triple_indirect_block_arr))
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to triple indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to triple indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
         }
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(triple_indirect_block_arr[triple_fblock_offset]);
-        if(triple_file_block_num % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR == 0){
+        if(triple_logical_block_num % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR == 0){
             ssize_t single_indirect_block_num = allocate_data_block();
             if(single_indirect_block_num == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate block for single indirect block for file block number %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to allocate block for single indirect block for file block number %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
-            double_indirect_block_arr[(triple_file_block_num/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = single_indirect_block_num;
+            double_indirect_block_arr[(triple_logical_block_num/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = single_indirect_block_num;
             if(!write_data_block(triple_indirect_block_arr[triple_fblock_offset], (char*)double_indirect_block_arr))
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to double indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to write data to double indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
             }
         }
-        ssize_t double_fblock_offset = (triple_file_block_num/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+        ssize_t double_fblock_offset = (triple_logical_block_num/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
         ssize_t single_indirect_block_num = double_indirect_block_arr[double_fblock_offset];
         if(single_indirect_block_num <= 0)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Invalid block num for single indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Invalid block num for single indirect block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_indirect_block_num);
-        single_indirect_block_arr[triple_file_block_num % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = data_block_num;
+        single_indirect_block_arr[triple_logical_block_num % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = data_block_num;
         if(!write_data_block(single_indirect_block_num, (char*)single_indirect_block_arr))
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Failed to write to single indirect block for file bloxk num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to write to single indirect block for file bloxk num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
         altfs_free_memory(triple_indirect_block_arr);
         altfs_free_memory(double_indirect_block_arr);
         altfs_free_memory(single_indirect_block_arr);
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added triple indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, file_block_num);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added triple indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
     }
     inodeObj->i_blocks_num++;
     return true;
 }
 
-bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t file_block_num, ssize_t data_block_num)
+bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_num, ssize_t data_block_num, ssize_t *prev_indirect_block)
 {
-    if (file_block_num > inodeObj->i_blocks_num)
+    if (logical_block_num > inodeObj->i_blocks_num)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : file block num %zd is greater than number of blocks in inode\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
+        fuse_log(FUSE_LOG_ERR, "%s : file block num %zd is greater than number of blocks in inode\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
         return false;
     }
-    if(file_block_num < NUM_OF_DIRECT_BLOCKS){
-        inodeObj->i_direct_blocks[file_block_num] = data_block_num;
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote fileblock %zd with data block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num, data_block_num);
+
+    // If file block is within direct block count, return data block number directly
+    if(logical_block_num < NUM_OF_DIRECT_BLOCKS){
+        inodeObj->i_direct_blocks[logical_block_num] = data_block_num;
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num);
+        return true;
     }
-    else if(file_block_num < DIRECT_PLUS_SINGLE_INDIRECT_ADDR){
+
+    // Adjust logical block number for single indirect
+    logical_block_num -= NUM_OF_DIRECT_BLOCKS;
+
+     // If file block num < 512 => single indirect block
+    if(logical_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+    {
         if(inodeObj->i_single_indirect == 0)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Single indirect is set to 0 for inode for file block num %zd. Exiting\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Single indirect is set to 0 for inode for logical block num %zd.\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
+
+        // Read single indirect block and extract data block num from logical block num
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_single_indirect);
-        single_indirect_block_arr[file_block_num - NUM_OF_DIRECT_BLOCKS] = data_block_num;
+        single_indirect_block_arr[logical_block_num] = data_block_num;
 
         if (!write_data_block(inodeObj->i_single_indirect, (char*)single_indirect_block_arr))
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Writing to single indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Writing to single indirect block failed for logical block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
         altfs_free_memory(single_indirect_block_arr);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd from single indirect block\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num);
+        return true;
     }
-    else if(file_block_num < DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR){
+
+    // Adjust logical block number for double indirect
+    logical_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
+    // If file block num < 512*512 => double indirect block
+    if(logical_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+    {
         if(inodeObj->i_double_indirect == 0)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Double indirect is set to 0 for inode for file block num %zd. Exiting\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
+            fuse_log(FUSE_LOG_ERR, "%s : Double indirect is set to 0 for inode for logical block num %zd.\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
+
+        ssize_t double_i_idx = logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK;
+        ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
+
+        if(inner_idx != 0 && *prev_indirect_block != 0)
+        {
+            ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
+            single_indirect_block_arr[inner_idx] = data_block_num;
+
+            if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Writing to single double block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
+                return false;
+            }
+            altfs_free_memory(single_indirect_block_arr);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd from double indirect block using cached indirect block value %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num, *prev_indirect_block);
+            return true;
+        }
+
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inode->double_indirect);
-        ssize_t offset = file_block_num - DIRECT_PLUS_SINGLE_INDIRECT_ADDR;
-        ssize_t single_data_block_num = double_indirect_block_arr[offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
+        ssize_t single_data_block_num = double_indirect_block_arr[double_i_idx];
         altfs_free_memory(double_indirect_block_arr);
         
         if(single_data_block_num <= 0)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Single indirect < 0 for file block num %zd\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
-            return false;
-        }
-        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_data_block_num);
-        single_indirect_block_arr[offset % NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = data_block_num;
-
-        if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
-        {
-            fuse_log(FUSE_LOG_ERR, "%s : Writing to single indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, file_block_num);
-            return false;
-        }
-        altfs_free_memory(single_indirect_block_arr);
-    }
-    else{
-        if(inodeObj->i_triple_indirect == 0){
-            return false;
-        }
-        ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inode->triple_indirect);
-        ssize_t offset = file_block_num - DIRECT_PLUS_SINGLE_DOUBLE_INDIRECT_ADDR;
-        ssize_t double_data_block_num = triple_indirect_block_arr[offset/NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR];
-        altfs_free_memory(triple_indirect_block_arr);
-        
-        if(double_data_block_num <= 0){
+            fuse_log(FUSE_LOG_ERR, "%s : Single indirect < 0 for file block num %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
 
-        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(double_data_block_num);
-        ssize_t single_data_block_num = double_indirect_block_arr[(offset/NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR];
-        altfs_free_memory(double_indirect_block_arr);
-        if(single_data_block_num <= 0)
+        *prev_indirect_block = single_data_block_num;
+        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_data_block_num);
+        single_indirect_block_arr[inner_idx] = data_block_num;
+
+        if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
         {
+            fuse_log(FUSE_LOG_ERR, "%s : Writing to single indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
         }
-        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_data_block_num);
-        single_indirect_block_arr[offset%NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR] = data_block_num;
+        altfs_free_memory(single_indirect_block_arr);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd from double indirect.\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num);
+        return true;
+    }
+
+    // Adjust logical block number for triple indirect
+    logical_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+
+    // If file block num < 512*512*512 => triple indirect block
+    if(inodeObj->i_triple_indirect == 0)
+    {
+        fuse_log(FUSE_LOG_ERR,"%s : Triple indirect block is set to 0 for inode. Exiting\n", OVERWRITE_DATABLOCK_TO_INODE);
+        return false;
+    }
+
+    ssize_t triple_i_idx = logical_block_num / NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+    ssize_t double_i_idx = (logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK) % NUM_OF_ADDRESSES_PER_BLOCK;
+    ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
+
+    if(inner_idx != 0 && *prev_indirect_block != 0)
+    {
+        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
+        single_indirect_block_arr[inner_idx] = data_block_num;
         
         if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Writing to triple indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
+        }
         altfs_free_memory(single_indirect_block_arr);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd from triple indirect block using cached indirect block value %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num, *prev_indirect_block);
+        return true;
     }
+
+    ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inode->triple_indirect);
+    ssize_t double_data_block_num = triple_indirect_block_arr[triple_i_idx];
+    altfs_free_memory(triple_indirect_block_arr);
+    
+    if(double_data_block_num <= 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Triple indirect block num <= 0.\n", OVERWRITE_DATABLOCK_TO_INODE);
+        return false;
+    }
+
+    ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(double_data_block_num);
+    ssize_t single_data_block_num = double_indirect_block_arr[double_i_idx];
+    altfs_free_memory(double_indirect_block_arr);
+    
+    if(single_data_block_num <= 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0.\n", OVERWRITE_DATABLOCK_TO_INODE);
+        return false;
+    }
+
+    ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_data_block_num);
+    single_indirect_block_arr[inner_idx] = data_block_num;
+    
+    if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Writing to triple indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
+        return false;
+    }
+
+    altfs_free_memory(single_indirect_block_arr);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd from triple indirect.\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num);
     return true;
 }
 
-// TODO: Finish this code and refactor entire file
-bool remove_datablocks_from_inode(struct inode* inodeObj, const ssize_t file_block_num)
+bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssize_t indirectionlevel)
 {
-    if (file_block_num >= inodeObj->i_blocks_num)
+    if (p_block_num <= 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n",)
+        fuse_log(FUSE_LOG_ERR, "%s : Invalid data block number for removal with indirection level %d", REMOVE_DATABLOCKS_UTILITY, indirectionlevel);
+        return false;
     }
+
+    ssize_t *buffer = (ssize_t*) read_data_block(p_block_num);
+    for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+    {
+        // we have reached the end of the data in the block 
+        if (buffer[i] == 0)
+            break;
+        switch (indirectionlevel)
+        {
+            case 1:
+                free_data_block(buffer[i]);
+                break;
+            default: 
+                remove_datablocks_utility(inodeObj, buffer[i], indirectionlevel-1);
+                break;
+        }
+    }
+    free_data_block(p_block_num);
+    altfs_free_memory(buffer);
     return true;
+}
+
+bool remove_datablocks_from_inode(struct inode* inodeObj, const ssize_t logical_block_num)
+{
+    if (logical_block_num >= inodeObj->i_blocks_num)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n",);
+        return false;
+    }
+
+    ssize_t ending_block_num = inodeObj->i_blocks_num;
+    ssize_t starting_block_num = logical_block_num;
+    //TODO: set num of blocks to logical_block_num since we delete everything from logical_block_num till the end
+    if (logical_block_num <= NUM_OF_DIRECT_BLOCKS)
+    {
+        for (ssize_t i = logical_block_num; i < NUM_OF_DIRECT_BLOCKS && i < ending_block_num; i++)
+        {
+            if (!free_data_block(inodeObj->i_direct_blocks[i]))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to free direct block %zd starting deletion from logical block %zd\n", REMOVE_DATABLOCKS_FROM_INODE, i, logical_block_num);
+                return false;
+            }
+            inodeObj->i_direct_blocks[i] = 0;
+        }
+
+        if (ending_block_num <= NUM_OF_DIRECT_BLOCKS)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }
+
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_single_indirect, 1))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        inodeObj->i_single_indirect = 0;
+        // Adjusting for single indirect block
+        ending_block_num -= NUM_OF_DIRECT_BLOCKS;
+
+        if (ending_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }
+
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_double_indirect, 2))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free double indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        inodeObj->i_double_indirect = 0;
+        // Adjusting for double indirect block
+        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
+        if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }
+
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_triple_indirect, 3))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free triple indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+        inodeObj->i_triple_indirect = 0;
+        inodeObj->i_blocks_num = starting_block_num;
+        return true;
+    }
+
+    // Adjusting for single indirect blocks
+    logical_block_num -= NUM_OF_DIRECT_BLOCKS;
+    
+    if (logical_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+    {
+        ssize_t prev_block = 0;
+        ssize_t p_block_num = get_disk_block_from_inode_block(inodeObj, starting_block_num, &prev_block);
+
+        if (!remove_datablocks_utility(inodeObj, p_block_num, 1))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }   
+        inodeObj->i_single_indirect = 0;
+        // Adjusting for single indirect block
+        ending_block_num -= NUM_OF_DIRECT_BLOCKS;
+
+        if (ending_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }
+
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_double_indirect, 2))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free double indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        inodeObj->i_double_indirect = 0;
+        // Adjusting for double indirect block
+        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
+        if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }
+
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_triple_indirect, 3))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free triple indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+        inodeObj->i_triple_indirect = 0;
+        inodeObj->i_blocks_num = starting_block_num;
+        return true;
+    }
+
+    // Adjusting for single indirect blocks
+    logical_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
+    if (logical_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+    {
+        if(inodeObj->i_double_indirect == 0)
+        {
+            fuse_log(FUSE_LOG_ERR,"%s : Double indirect block is set to 0 for inode.\n", REMOVE_DATABLOCKS_FROM_INODE);
+            return false;
+        }
+
+        ssize_t double_i_idx = logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK;
+        ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
+
+        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_double_indirect);
+
+        for(ssize_t i = double_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+        {
+            ssize_t j = (i == double_i_idx) ? inner_idx : 0;
+
+            ssize_t data_block_num = double_indirect_block_arr[i];
+            if(data_block_num <= 0)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num <= 0.\n", REMOVE_DATABLOCKS_FROM_INODE);
+                return false;
+            }
+
+            ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
+
+            for(;j < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; j++)
+            {
+                if (!free_data_block(single_indirect_block_arr[j]))
+                {
+                    fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, single_indirect_block_arr[j]);
+                    return false;
+                }
+                single_indirect_block_arr[j] = 0; // TODO: Check if this is required or not
+            }
+            altfs_free_memory(single_indirect_block_arr);
+            if (!free_data_block(data_block_num))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, data_block_num);
+                return false;
+            }
+        }
+        altfs_free_memory(double_indirect_block_arr);
+        inodeObj->i_double_indirect = 0;
+
+        // Adjusting for double indirect block
+        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
+        if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            inodeObj->i_blocks_num = starting_block_num;
+            return true;
+        }        
+        
+        if (!remove_datablocks_utility(inodeObj, inodeObj->i_triple_indirect, 3))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to free triple indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+            return false;
+        }
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+        inodeObj->i_triple_indirect = 0;
+        inodeObj->i_blocks_num = starting_block_num;
+        return true;
+    }
+
+    logical_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+
+    if (logical_block_num <= NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR)
+    {
+        if(inodeObj->i_triple_indirect == 0)
+        {
+            fuse_log(FUSE_LOG_ERR,"%s : Triple indirect block is set to 0 for inode.\n", GET_DBLOCK_FROM_IBLOCK);
+            return false;
+        }
+
+        ssize_t triple_i_idx = logical_block_num / NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
+        ssize_t double_i_idx = (logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK) % NUM_OF_ADDRESSES_PER_BLOCK;
+        ssize_t inner_idx = logical_block_num % NUM_OF_ADDRESSES_PER_BLOCK;
+
+        ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_triple_indirect);
+
+        for(ssize_t i = triple_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+        {
+            ssize_t data_block_num = triple_indirect_block_arr[i];
+            if(data_block_num <= 0)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Triple indirect block num <= 0.\n", REMOVE_DATABLOCKS_FROM_INODE);
+                return false;
+            }
+
+            ssize_t j = (i == triple_i_idx) ? double_i_idx : 0;
+            ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
+
+            for(;j < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; j++)
+            {
+                ssize_t double_indirect_data_block_num = double_indirect_block_arr[j];
+                if(double_indirect_data_block_num <= 0)
+                {
+                    fuse_log(FUSE_LOG_ERR, "%s : Double indirect block num from triple <= 0.\n", REMOVE_DATABLOCKS_FROM_INODE);
+                    return false;
+                }
+                ssize_t k = (j == double_i_idx) ? inner_idx : 0;
+                for(; k < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; k++)
+                {
+                    ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(double_indirect_data_block_num);
+                    
+                    if (!free_data_block(single_indirect_block_arr[k]))
+                    {
+                        fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, single_indirect_block_arr[k]);
+                        return false;
+                    }
+                    single_indirect_block_arr[k] = 0; // TODO: Check if this is required or not
+                    altfs_free_memory(single_indirect_block_arr);
+                }
+            }
+            altfs_free_memory(double_indirect_block_arr);
+        }
+        altfs_free_memory(triple_indirect_block_arr);
+        
+        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
+        inodeObj->i_triple_indirect = 0;
+        inodeObj->i_blocks_num = starting_block_num;
+        return true;
+    }
+    return false;
 }

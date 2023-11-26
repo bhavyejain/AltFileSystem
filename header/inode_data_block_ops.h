@@ -11,7 +11,8 @@
 
 #define ADD_DATABLOCK_TO_INODE "add_datablock_to_inode"
 #define OVERWRITE_DATABLOCK_TO_INODE "overwrite_datablock_to_inode"
-#define REMOVE_DATABLOCK_FROM_INODE "remove_datablocks_from_inode"
+#define REMOVE_DATABLOCKS_FROM_INODE "remove_datablocks_from_inode"
+#define REMOVE_DATABLOCKS_UTILITY "remove_datablocks_utility"
 
 /*
 Adds a new data block to an existing inode
