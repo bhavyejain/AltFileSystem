@@ -26,9 +26,8 @@
 
 // Directory entry contants
 #define RECORD_LENGTH ((unsigned short) 2) // use unsigned short
-#define RECORD_ALLOCATED ((ssize_t) 1)  // use bool or char
 #define RECORD_INUM ((ssize_t) 8)   // TODO: Make sure search file, unlink (file layer), and altfs_readdir (fuse layer) use this and not INODE_SIZE while reading directory records
-#define RECORD_FIXED_LEN ((unsigned short)(RECORD_LENGTH + RECORD_ALLOCATED + RECORD_INUM))
+#define RECORD_FIXED_LEN ((unsigned short)(RECORD_LENGTH + RECORD_INUM))
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
 
@@ -45,19 +44,20 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const file_inode, ss
 
 /*
 A directory entry (record) in altfs looks like:
-| Total entry length (2) | Allocated (1) | INUM (8) | Name (variable len) |
+[ Total entry length (2) | INUM (8) | Name (variable len) ]
 
-The allocated byte tells us if the entry is re-usable to store another file name.
-If the value is 111 (true), then an active file holds this entry.
-If the value is 000 (false), then it is reusable.
+Total entry length is 2 + 8 + length of name in bytes.
+There are no holes in a single data block, so a total entry length of 0 means there are no records from that point on.
+INUM is the inode number of the file being pointed to.
+Name is the file name.
 
-@param dir_inode: Pointer to the directory (parent) inode.
+@param dir_inode: Double pointer to the directory (parent) inode.
 @param child_inum: Inode number of the file being added as an entry.
 @param file_name: Name of the file being added.
 
 @return true or false
 */
-bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file_name);
+bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* file_name);
 
 /*
 Initializes the file system.

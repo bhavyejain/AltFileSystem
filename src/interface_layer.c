@@ -75,7 +75,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
         altfs_free_memory(parent_inode);
         return -EDQUOT;
     }
-    if(!add_directory_entry(parent_inode, child_inode_num, child_name))
+    if(!add_directory_entry(&parent_inode, child_inode_num, child_name))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not add directory entry for file.\n", CREATE_NEW_FILE);
         free_inode(child_inode_num);
@@ -139,7 +139,7 @@ bool altfs_mkdir(const char* path, mode_t mode)
     fuse_log(FUSE_LOG_DEBUG, "%s : Alloted inode number %ld to directory.\n", MKDIR, dir_inode_num);
 
     char* name = ".";
-    if(!add_directory_entry(dir_inode, dir_inode_num, name))
+    if(!add_directory_entry(&dir_inode, dir_inode_num, name))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to add directory entry: %s.\n", MKDIR, name);
         altfs_free_memory(dir_inode);
@@ -147,7 +147,7 @@ bool altfs_mkdir(const char* path, mode_t mode)
     }
 
     name = "..";
-    if(!add_directory_entry(dir_inode, parent_inum, name))
+    if(!add_directory_entry(&dir_inode, parent_inum, name))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to add directory entry: %s.\n", MKDIR, name);
         altfs_free_memory(dir_inode);
