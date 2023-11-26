@@ -38,15 +38,6 @@ Return position of file in dir
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode);
 
 /*
-Checks if dir given by inum is empty
-
-@param inum: The inode number.
-
-@return True if dir is empty
-*/
-bool is_dir_empty();
-
-/*
 Copy the parent path to the given buffer given the path and path length
 
 @param buffer: the buffer to store parent path.

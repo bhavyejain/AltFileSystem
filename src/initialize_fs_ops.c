@@ -236,6 +236,7 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
                         return false;
                     }
 
+                    dir_inode->i_child_num++;
                     altfs_free_memory(dblock);
                     return true;
                 }
@@ -283,6 +284,7 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
     }
     
     dir_inode->i_file_size += BLOCK_SIZE;   // TODO: Should this be in the add datablock to inode function?
+    dir_inode->i_child_num++;
     return true;
 }
 
@@ -313,6 +315,7 @@ bool initialize_fs()
     root_dir->i_ctime = curr_time;
     root_dir->i_mtime = curr_time;
     root_dir->i_status_change_time = curr_time;
+    root_dir->i_child_num = 0;
 
     char* dir_name = ".";
     if(!add_directory_entry(root_dir, ROOT_INODE_NUM, dir_name)){
@@ -331,7 +334,8 @@ bool initialize_fs()
     fuse_log(FUSE_LOG_DEBUG, "%s Successfully added .. entry for root directory\n", INITIALIZE_FS);
 
     if(!write_inode(ROOT_INODE_NUM, root_dir)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode entry for root directory\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode for root directory\n", INITIALIZE_FS);
+        // TODO: remove directory entries?
         return false;
     }
     
