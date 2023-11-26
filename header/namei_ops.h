@@ -5,11 +5,12 @@
 #include<stdlib.h>
 #include<stdbool.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include "disk_layer.h"
 #include "superblock_layer.h"
 #include "data_block_ops.h"
 #include "inode_ops.h"
-#include "initialize_fs_ops.h"
+//#include "initialize_fs_ops.h"
 
 #define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
 #define IS_DIR_EMPTY "is_dir_empty"
@@ -37,6 +38,9 @@ Return position of file in dir
 */
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode);
 
+
+ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length);
+
 /*
 Copy the parent path to the given buffer given the path and path length
 
@@ -62,14 +66,5 @@ Copy the child fiel name to the given buffer given the path and path length
 @return True if the operation was successful
 */
 bool copy_child_file_name(char* const buffer, const char* const path, ssize_t path_len);
-
-/*
-Get inum for given file path
-
-@param file_path: File path whose inode number is required
-
-@return ssize_t Inode number corresponding to the given file path
-*/
-ssize_t name_i(const char* const file_path);
 
 #endif

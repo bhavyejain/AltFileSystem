@@ -8,8 +8,8 @@
 #include "../header/disk_layer.h"
 #include "../header/inode_ops.h"
 #include "../header/data_block_ops.h"
-#include "../header/initialize_fs_ops.h"
 #include "../header/namei_ops.h"
+#include "../header/inode_cache.h"
 
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
 {
@@ -53,6 +53,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             char *curr_file_name = ((char*)(filepos.p_block + curr_pos + RECORD_FIXED_LEN))[0];
             unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN));
 
+            // If the inode is allocated and the file name matches the input file name => we have found our file
             if (allocated && 
                 curr_file_name_len == strlen(file_name) && 
                 strncmp(curr_file_name, file_name, curr_file_name_len) == 0) {
@@ -67,3 +68,13 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
     
     return filepos;
 }
+
+ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length)
+{
+    
+}
+
+bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len)
+{
+    ssize_t pos = get
+} 

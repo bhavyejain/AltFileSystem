@@ -31,6 +31,7 @@
 #define RECORD_FIXED_LEN ((unsigned short)(RECORD_LENGTH + RECORD_ALLOCATED + RECORD_INUM))
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
+#define OFFSET_TO_INUM ((ssize_t) RECORD_LENGTH + RECORD_ALLOCATED)
 
 /*
 Get the physical disk block number for a given file and logical block number in the file.
@@ -65,5 +66,14 @@ Initializes the file system.
 @return True if success, false if failure.
 */
 bool initialize_fs();
+
+/*
+Get inum for given file path
+
+@param file_path: File path whose inode number is required
+
+@return ssize_t Inode number corresponding to the given file path
+*/
+ssize_t name_i(const char* const file_path);
 
 #endif

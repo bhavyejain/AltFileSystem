@@ -12,8 +12,56 @@
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
+#include "../header/namei_ops.h"
 
 static struct inode_cache inodeCache;
+
+ssize_t name_i(const char* const file_path)
+{
+    ssize_t file_path_len = strlen(file_path);
+
+    if (file_path_len == 1 && file_path[0] == '/')
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Path length is /. Returning root inum\n", NAME_I);
+        return ROOT_INODE_NUM;
+    }
+
+    // Check for presence in cache
+    ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
+    if (inum_from_cache > 0)
+        return inum_from_cache;
+
+    // Recursively get inum from parent
+    char parent_path[file_path_len+1];
+    if (!copy_parent_path(parent_path, file_path, file_path_len))
+        return -1;
+    
+    ssize_t parent_inum = name_i(parent_path);
+    if (parent_inum == -1)
+        return -1;
+
+    struct inode* inodeObj = get_inode(parent_inum);
+    char child_path[path_len+1];
+    if(!copy_child_file_name(child_path, file_path, file_path_len)){
+        free_memory(inodeObj);
+        return -1;
+    }
+
+    // find the position of the file in the dir
+    struct fileposition filepos = get_file_position_in_dir(child_path, inodeObj);
+    free_memory(inodeObj);
+    
+    if(filepos.p_plock_num == -1){
+        free_memory(inodeObj);
+        return -1;
+    }
+
+    ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + OFFSET_TO_INUM))[0];
+    
+    free_memory(filepos);
+    set_cache(&inodeCache, file_path, inum);
+    return inum;
+}
 
 ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t logical_block_num, ssize_t* prev_indirect_block)
 {
