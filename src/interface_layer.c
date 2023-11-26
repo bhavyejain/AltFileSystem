@@ -570,53 +570,51 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
 
     char *buf_read = NULL;
-    if(start_i_block < node->i_blocks_num)
+    // First write to the data blocks that are allocated to the inode already.
+    ssize_t prev_block = 0;
+    for(ssize_t i = start_i_block; i < node->i_blocks_num; i++)
     {
-        ssize_t prev_block = 0;
-        for(ssize_t i = start_i_block; i < node->i_blocks_num; i++)
+        ssize_t dblock_num = get_disk_block_from_inode_block(node, i, &prev_block);
+        if(dblock_num <= 0)
         {
-            ssize_t dblock_num = get_disk_block_from_inode_block(node, i, &prev_block);
-            if(dblock_num <= 0)
-            {
-                fuse_log(FUSE_LOG_ERR, "%s : Could not get disk block number for inode block %ld.\n", WRITE, i);
-                altfs_free_memory(node);
-                return (bytes_written == 0) ? -1 : bytes_written;
-            }
-            buf_read = read_data_block(dblock_num);
-            if(buf_read == NULL)
-            {
-                fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", WRITE, dblock_num);
-                altfs_free_memory(node);
-                return (bytes_written == 0) ? -1 : bytes_written;
-            }
-
-            if(i == start_i_block)
-            {
-                memcpy(buf_read + start_block_offset, buff, BLOCK_SIZE - start_block_offset);
-                bytes_written += BLOCK_SIZE - start_block_offset;
-            }
-            else if(i == end_i_block)
-            {
-                memcpy(buf_read, buff + bytes_written, BLOCK_SIZE - end_block_offset);
-                bytes_written += BLOCK_SIZE - end_block_offset;
-                break;
-            }
-            else
-            {
-                memcpy(buf_read, buff + bytes_written, BLOCK_SIZE);
-                bytes_written += BLOCK_SIZE;
-            }
-
-            if(!write_data_block(dblock_num, buf_read))
-            {
-                fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, dblock_num);
-                altfs_free_memory(buf_read);
-                altfs_free_memory(node);
-                return (bytes_written == 0) ? -1 : bytes_written;
-            }
-            altfs_free_memory(buf_read);
-            buf_read = NULL;
+            fuse_log(FUSE_LOG_ERR, "%s : Could not get disk block number for inode block %ld.\n", WRITE, i);
+            altfs_free_memory(node);
+            return (bytes_written == 0) ? -1 : bytes_written;
         }
+        buf_read = read_data_block(dblock_num);
+        if(buf_read == NULL)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", WRITE, dblock_num);
+            altfs_free_memory(node);
+            return (bytes_written == 0) ? -1 : bytes_written;
+        }
+
+        if(i == start_i_block)  // first block to be written
+        {
+            memcpy(buf_read + start_block_offset, buff, BLOCK_SIZE - start_block_offset);
+            bytes_written += BLOCK_SIZE - start_block_offset;
+        }
+        else if(i == end_i_block)   // last block to be written
+        {
+            memcpy(buf_read, buff + bytes_written, BLOCK_SIZE - end_block_offset);
+            bytes_written += BLOCK_SIZE - end_block_offset;
+            break;
+        }
+        else    // write these blocks whole
+        {
+            memcpy(buf_read, buff + bytes_written, BLOCK_SIZE);
+            bytes_written += BLOCK_SIZE;
+        }
+
+        if(!write_data_block(dblock_num, buf_read))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, dblock_num);
+            altfs_free_memory(buf_read);
+            altfs_free_memory(node);
+            return (bytes_written == 0) ? -1 : bytes_written;
+        }
+        altfs_free_memory(buf_read);
+        buf_read = NULL;
     }
 
     ssize_t new_block_num;
@@ -636,14 +634,14 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
             break;
         }
 
-        if(i == new_blocks_to_be_added)
+        if(i == new_blocks_to_be_added) // last block to be written
         {
             memset(buffer, 0, BLOCK_SIZE);
             memcpy(buffer, buff + bytes_written, BLOCK_SIZE - end_block_offset);
             ssize_t temp = BLOCK_SIZE - end_block_offset;
             bytes_written += temp;
         }
-        else
+        else    // write entire block
         {
             memcpy(buffer, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;
