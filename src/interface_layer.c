@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "../header/data_block_ops.h"
+#include "../header/disk_layer.h"
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_data_block_ops.h"
 #include "../header/inode_ops.h"
@@ -235,7 +236,115 @@ ssize_t altfs_truncate(const char* path, size_t offset)
 
 ssize_t altfs_unlink(const char* path)
 {
+    ssize_t path_len = strlen(path);
 
+    ssize_t inum = get_inode_num_from_path(path);
+    // printf("Inside custom_unlink()! inum val is %ld \n", inum);
+    if(inum==-1){
+        DEBUG_PRINTF("FILE LAYER UNLINK ERROR: Inode for %s not found\n", path);
+        return -EEXIST;
+    }
+    struct iNode *inode= read_inode(inum);
+    // if the path is a dir and it is not empty.
+    if(S_ISDIR(inode->mode) && !is_empty_dir(inode)){
+        DEBUG_PRINTF("FILE LAYER ERROR: Unlink failed as the dir %s is not empty\n", path);
+        printf("Dir %s is not empty\n",path);
+        free_memory(inode);
+        return -ENOTEMPTY;
+    }
+
+    char parent_path[path_len+1];
+
+    //should copy the parent path to buffer parent_path
+    if(!get_parent_path(parent_path, path, path_len)){
+        DEBUG_PRINTF("FILE LAYER ERROR: Failed to unlink %s\n",path);
+        printf("couldn't fetch parent path during unlink\n");
+        free_memory(inode);
+        return -EINVAL;
+    }
+
+    ssize_t parent_inode_num = get_inode_num_from_path(parent_path);
+
+    if(parent_inode_num == -1){
+        printf("parent inum -1\n");
+        return -1;
+    }
+
+    struct iNode *parent_inode = read_inode(parent_inode_num);
+
+    char child_name[path_len+1];
+    if(!get_child_name(child_name, path, path_len)){
+        return -1;
+    }
+
+    //find the location of the path file entry in the parent.
+    struct file_pos_in_dir file = find_file(child_name, parent_inode);
+
+    DEBUG_PRINTF("Path : %s, Parent Inode: %ld, Pos in Dir: %ld, DBlock: %ld, Block Count: %ld\n",
+           path, parent_inode_num, file.start_pos, file.dblock_num, parent_inode->num_blocks);
+
+    // Didnt find file in parent
+    if(file.start_pos == -1){
+        return -1;
+    }
+
+    ssize_t next_entry_offset_from_curr = ((ssize_t *)(file.dblock + file.start_pos + INODE_SZ))[0];
+    if(file.prev_entry!=-1){
+        // There is a preceeding record to the curr record entry
+        // Need to increment its pointer by this pointer
+        // so we dont traverse that record in the future.
+        // this means F1, F2, F3 and now we delete F3 and free it up or delete F2 and then point from F1 to F3
+        ((ssize_t *)(file.dblock + file.prev_entry + INODE_SZ))[0]+= next_entry_offset_from_curr;
+        write_dblock(file.dblock_num, file.dblock);
+    }  
+    else if(file.start_pos == 0 && next_entry_offset_from_curr != BLOCK_SIZE){
+        // this is the first entry in the directory and it is followed by other entries
+        // Move next entry to the start of block
+        // F1, F2, F3 and if you delete F1, F2 will be moved to F1 while also updating offset
+        unsigned short next_entry_name_len = ((unsigned short *)(file.dblock + next_entry_offset_from_curr + INODE_SZ + ADDRESS_PTR_SZ))[0];//next entry namestr len
+        ssize_t next_entry_len = INODE_SZ + ADDRESS_PTR_SZ + STRING_LENGTH_SZ + next_entry_name_len;
+        memcpy(file.dblock, file.dblock+ next_entry_offset_from_curr, next_entry_len); //2nd entry is copied to 1st entry
+        ((ssize_t *)(file.dblock + INODE_SZ))[0] += next_entry_offset_from_curr;//record size is updated to include both entries.
+        write_dblock(file.dblock_num, file.dblock);
+    }
+    else if(file.start_pos==0){
+        //Remove Datablock
+        ssize_t end_dblock_num = fblock_num_to_dblock_num(parent_inode, parent_inode->num_blocks-1);
+        ssize_t curr_dblock_num = fblock_num_to_dblock_num(parent_inode, file.fblock_num);
+        if(curr_dblock_num <=0){
+            return -1;
+        }
+        if(end_dblock_num <=0){
+            return -1;
+        }
+        free_dblock(curr_dblock_num);
+        // replace the removed block num with the end block
+        write_dblock_to_inode(parent_inode, file.fblock_num, end_dblock_num);
+        parent_inode->num_blocks--;
+    }
+    free_memory(file.dblock);
+
+    time_t curr_time = time(NULL);
+    parent_inode->access_time = curr_time;
+    parent_inode->modification_time = curr_time;
+    parent_inode->status_change_time = curr_time;
+
+    //decrementing the link count
+    inode->link_count--;
+    if(inode->link_count==0){
+        //if link_count is 0, the file has to be deleted.
+        pop_cache(&iname_cache, path);
+        free_inode(inum);
+    }
+    else{
+        inode->status_change_time = curr_time;
+        write_inode(inum, inode);
+    }
+    //updating parent inode
+    write_inode(parent_inode_num, parent_inode);
+    free_memory(parent_inode);
+    free_memory(inode);
+    return 0;
 }
 
 // Check if this even needs to be implemented.
@@ -398,7 +507,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
             if(buf_read == NULL)
             {
                 fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", READ, dblock_num);
-                free_memory(node);
+                altfs_free_memory(node);
                 return -1;
             }
 
@@ -434,127 +543,134 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
 
 ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
 {
-    ssize_t inum = get_inode_num_from_path(path);
-    if (inum == -1) {
-        printf("ERROR in FILE_LAYER: Unable to find Inode for file %s\n", path);
-        return -1;
+    if(nbytes == 0)
+    {
+        return 0;
+    }
+    if(offset < 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", WRITE, offset);
+        return -EINVAL;
     }
 
-    struct iNode *inode = read_inode(inum);
-    ssize_t bytes_to_add=0;
-
-    if(offset + nbytes > inode->file_size){
-        //add new blocks; 
-        bytes_to_add = (offset + nbytes) - inode->file_size;
-        ssize_t new_blocks_to_be_added = ((offset + nbytes) / BLOCK_SIZE) - inode->num_blocks + 1;
-        // printf("Creating %ld new blocks for writing %ld bytes with %ld offset to inode %ld\n",
-        //        new_blocks_to_be_added, nbytes, offset, inum);
-        // DEBUG_PRINTF("Total new blocks being added to the file is %ld\n", new_blocks_to_be_added);
-        ssize_t new_block_id;
-        for(ssize_t i=0; i<new_blocks_to_be_added; i++){
-            new_block_id = create_new_dblock();
-            if(new_block_id<=0){
-                printf("Failed to allocated new Data_Block for the write operation for the file %s\n", path);
-                free_memory(inode);
-                return -1;
-            }
-            if(!add_dblock_to_inode(inode, new_block_id)){
-                printf("New Data Block addition to inode failed for file %s\n", path);
-                free_memory(inode);
-                return -1;
-            }
-        }
+    ssize_t inum = name_i(path);
+    if (inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", READ, path);
+        return -ENOENT;
     }
 
-    ssize_t start_block = offset / BLOCK_SIZE;
-    ssize_t start_block_top_ceil = offset % BLOCK_SIZE;
-
-    ssize_t end_block = (offset + nbytes) / BLOCK_SIZE;
-    ssize_t end_block_bottom_floor = BLOCK_SIZE - (offset + nbytes)% BLOCK_SIZE;
-
-    ssize_t nblocks_write = end_block - start_block + 1;
-
-    // printf("start_block %ld, start_block_start %ld, end_block %ld, end_block_end %ld, blocks_to_write %ld\n",
-    //         start_block, start_block_top_ceil, end_block, BLOCK_SIZE-end_block_bottom_floor, nblocks_write);
-
-    DEBUG_PRINTF("writing %ld blocks to file\n", nblocks_write);
-
+    struct inode* node = get_inode(inum);
     size_t bytes_written=0;
+
+    ssize_t start_i_block = offset / BLOCK_SIZE;
+    ssize_t start_block_offset = offset % BLOCK_SIZE;
+    ssize_t end_i_block = (offset + nbytes) / BLOCK_SIZE;
+    ssize_t end_block_offset = BLOCK_SIZE - (offset + nbytes)% BLOCK_SIZE;
+    ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
+
     char *buf_read = NULL;
+    if(start_i_block < node->i_blocks_num)
+    {
+        ssize_t prev_block = 0;
+        for(ssize_t i = start_i_block; i < node->i_blocks_num; i++)
+        {
+            ssize_t dblock_num = get_disk_block_from_inode_block(node, i, &prev_block);
+            if(dblock_num <= 0)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Could not get disk block number for inode block %ld.\n", WRITE, i);
+                altfs_free_memory(node);
+                return (bytes_written == 0) ? -1 : bytes_written;
+            }
+            buf_read = read_data_block(dblock_num);
+            if(buf_read == NULL)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Could not read block for data block number %ld.\n", WRITE, dblock_num);
+                altfs_free_memory(node);
+                return (bytes_written == 0) ? -1 : bytes_written;
+            }
 
-    // if there is only 1 block to write
-    if(nblocks_write==1){
-        ssize_t dblock_num = fblock_num_to_dblock_num(inode, start_block);
-        if(dblock_num<=0){
-            printf("Error getting dblocknum from Fblock_num during %ld block write for %s\n",start_block, path);
-            free_memory(inode);
-            return -1;
-        }
-
-        buf_read = read_dblock(dblock_num);
-        if(buf_read == NULL){
-            printf("Error encountered reading dblocknum %ld during %s write\n", dblock_num, path);
-            free_memory(inode);
-            return -1;
-        }
-        memcpy(buf_read+start_block_top_ceil, buff, nbytes);
-        if(!write_dblock(dblock_num, buf_read)){
-            printf("Error writing to dblock_num %ld during %s write", dblock_num, path);
-            free_memory(buf_read);
-            free_memory(inode);
-            return -1;
-        }
-    }
-    else{
-        for(ssize_t i=0; i<nblocks_write; i++){
-            ssize_t dblock_num = fblock_num_to_dblock_num(inode, start_block+i);
-            if(dblock_num<=0){
-                printf("Error in fetching the dblock_num from fblock_num %ld for %s\n", start_block+i, path);
-                free_memory(inode);
-                return -1;
+            if(i == start_i_block)
+            {
+                memcpy(buf_read + start_block_offset, buff, BLOCK_SIZE - start_block_offset);
+                bytes_written += BLOCK_SIZE - start_block_offset;
             }
-            buf_read=read_dblock(dblock_num);
-            if(buf_read == NULL){
-                printf("Error reading dblock_num %ld during the write of file %s\n",dblock_num, path);
-                free_memory(inode);
-                return -1;
+            else if(i == end_i_block)
+            {
+                memcpy(buf_read, buff + bytes_written, BLOCK_SIZE - end_block_offset);
+                bytes_written += BLOCK_SIZE - end_block_offset;
+                break;
             }
-            // for the 1st block, start only after start_block_top_ceil
-            if(i==0){
-                memcpy(buf_read + start_block_top_ceil, buff, BLOCK_SIZE - (start_block_top_ceil));
-                // printf("Added - %s\n", buf_read+start_block_top_ceil);
-                bytes_written += BLOCK_SIZE-start_block_top_ceil;
-            }
-            else if(i==nblocks_write-1){
-                //last block to be written
-                memcpy(buf_read, buff + bytes_written, BLOCK_SIZE-end_block_bottom_floor);
-                // printf("Added - %s\n", buf_read);
-                bytes_written+= BLOCK_SIZE - end_block_bottom_floor;
-            }
-            else{
+            else
+            {
                 memcpy(buf_read, buff + bytes_written, BLOCK_SIZE);
-                // printf("Added - %s\n", buf_read);
                 bytes_written += BLOCK_SIZE;
             }
-            if(!write_dblock(dblock_num, buf_read)){
-                printf("Error in writing to %ld dblock_num during the write of %s\n", dblock_num, path);
-                free_memory(buf_read);
-                free_memory(inode);
-                return -1;
+
+            if(!write_data_block(dblock_num, buf_read))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, dblock_num);
+                altfs_free_memory(buf_read);
+                altfs_free_memory(node);
+                return (bytes_written == 0) ? -1 : bytes_written;
             }
-            // printf("Bytes written %ld, Dblock %ld, Fblock %ld\n", bytes_written, dblock_num, start_block+i);
+            altfs_free_memory(buf_read);
+            buf_read = NULL;
         }
     }
-    free_memory(buf_read);
-    inode->file_size += bytes_to_add;
-    time_t curr_time= time(NULL);
-    inode->access_time = curr_time;
-    inode->modification_time = curr_time;
-    inode->status_change_time = curr_time;
-    if(!write_inode(inum, inode)){
-        printf("Updating inode %ld for the file %s during the write operation failed\n",inum, path);
+
+    ssize_t new_block_num;
+    char buffer[BLOCK_SIZE];
+    memset(buffer, 0, BLOCK_SIZE);
+    for(ssize_t i = 1; i <= new_blocks_to_be_added; i++)
+    {
+        new_block_num = allocate_data_block();
+        if(new_block_num <= 0)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not allocate new data block. Bytes written %ld.\n", WRITE, bytes_written);
+            break;
+        }
+        if(!add_datablock_to_inode(node, new_block_num))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not add new data block to inode %ld.\n", WRITE, inum);
+            break;
+        }
+
+        if(i == new_blocks_to_be_added)
+        {
+            memset(buffer, 0, BLOCK_SIZE);
+            memcpy(buffer, buff + bytes_written, BLOCK_SIZE - end_block_offset);
+            ssize_t temp = BLOCK_SIZE - end_block_offset;
+            bytes_written += temp;
+        }
+        else
+        {
+            memcpy(buffer, buff + bytes_written, BLOCK_SIZE);
+            bytes_written += BLOCK_SIZE;
+        }
+
+        if(!write_data_block(new_block_num, buffer))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, new_block_num);
+            break;
+        }
+    }
+    altfs_free_memory(buffer);
+
+    ssize_t bytes_to_add = (offset + bytes_written) - node->i_file_size;
+    bytes_to_add = (bytes_to_add > 0) ? bytes_to_add : 0;
+    node->i_file_size += bytes_to_add;
+    if(bytes_written > 0)
+    {
+        time_t curr_time= time(NULL);
+        node->i_mtime = curr_time;
+        node->i_status_change_time = curr_time;
+    }
+    if(!write_inode(inum, node))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Could not write inode %ld.\n", WRITE, inum);
         return -1;
     }
-    free_memory(inode);
-    return nbytes;
+    altfs_free_memory(node);
+    return bytes_written;
 }
