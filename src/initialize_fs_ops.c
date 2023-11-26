@@ -197,10 +197,25 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     return data_block_num;
 }
 
-bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file_name)
+/*
+ALGORTIHM:
+
+If directory entry has allocated datablocks:
+    Iterate over logical data blocks serially [i]:
+        Read data block, and set curr_pos to 0
+        While curr_pos < (BLOCK_SIZE - RECORD_FIXED_SIZE):
+            Read the record_len bytes
+            If record_len == 0:  // means we are past existing records for the data block
+                Add new record here if enough space left, and return
+            Increment curr_pos by record_len
+Add new datablock to the inode
+Write the reord to the new block
+Return
+*/
+bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* file_name)
 {
     // Check if dir_inode is actually a directory
-    if(!S_ISDIR(dir_inode->i_mode))
+    if(!S_ISDIR((*dir_inode)->i_mode))
     {
         fuse_log(FUSE_LOG_ERR, "%s : The parent inode is not a directory.\n", ADD_DIRECTORY_ENTRY);
         return false;
@@ -215,16 +230,14 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
     }
 
     unsigned short short_name_length = file_name_len;
-    ssize_t new_entry_size = RECORD_FIXED_LEN + short_name_length;
 
     // If the directory inode has datablocks allocated, try to find space in them to add the entry.
-    if(dir_inode->i_blocks_num > 0)
+    if((*dir_inode)->i_blocks_num > 0)
     {
         ssize_t prev_block = 0;
-        for(ssize_t l_block_num = 0; l_block_num < dir_inode->i_blocks_num; l_block_num++)
+        for(ssize_t l_block_num = 0; l_block_num < (*dir_inode)->i_blocks_num; l_block_num++)
         {
-            ssize_t p_block_num = get_disk_block_from_inode_block(dir_inode, l_block_num, &prev_block);
-
+            ssize_t p_block_num = get_disk_block_from_inode_block((*dir_inode), l_block_num, &prev_block);
             if(p_block_num <= 0)
             {
                 fuse_log(FUSE_LOG_ERR, "%s : Failed to fetch physical data block number corresponfing to file's logical block number.\n", ADD_DIRECTORY_ENTRY);
@@ -232,65 +245,41 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
             }
 
             char* dblock = read_data_block(p_block_num);
-
             ssize_t curr_pos = 0;
-            bool add_record = true;
             while(curr_pos <= LAST_POSSIBLE_RECORD)
             {
                 unsigned short record_len = ((unsigned short*)(dblock + curr_pos))[0];
-                bool allocated = ((bool*)(dblock + curr_pos + RECORD_LENGTH))[0];
 
-                // If the record is allocated, new record cannot be added here. Note: while reading records, check for record length first to know where to stop.
-                if(allocated)
+                // Indicates a record has never been allocated at (and from) this position
+                if(record_len == 0)
                 {
-                    add_record = false;
-                } else
-                {
-                    // Indicates a record has never been allocated at (and from) this position
-                    if(record_len == 0)
+                    // Check if there is enough space left in the data block
+                    ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
+                    if(rem_block_space >= file_name_len)
                     {
-                        // Check if there is enough space left in the data block
-                        ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
-                        if(rem_block_space < file_name_len)
-                            add_record = false;
-                    } else
-                    {
-                        // Check for avaiable name length in the existing record (un-allcoated)
-                        unsigned short avail_name_len = record_len - RECORD_FIXED_LEN;
-                        // Available name length is smaller than required
-                        if(avail_name_len < short_name_length)
-                            add_record = false;
-                    }
-                }
+                        fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
+                        unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
+                        char* record = dblock + curr_pos;
+                        // Add record length
+                        ((unsigned short*)record)[0] = record_length;
+                        // Add child INUM
+                        ((ssize_t*)(record + RECORD_LENGTH))[0] = child_inum;
+                        // Add file name
+                        strncpy((char*)(record + RECORD_FIXED_LEN), file_name, file_name_len);
 
-                if(add_record)
-                {
-                    fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
-                    unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
-                    char* record = dblock + curr_pos;
-                    // Add record length
-                    ((unsigned short*)record)[0] = record_length;
-                    // Add allocated byte
-                    ((bool*)(record + RECORD_LENGTH))[0] = true;
-                    // Add child INUM
-                    ((ssize_t*)(record + RECORD_LENGTH + RECORD_ALLOCATED))[0] = child_inum;
-                    // Add file name
-                    // TODO: Make sure that when a file record is removed, the name is made all 0's
-                    strncpy((char*)(record + RECORD_FIXED_LEN), file_name, file_name_len);
+                        if(!write_data_block(p_block_num, dblock)){
+                            fuse_log(FUSE_LOG_ERR, "%s : Error writing data block %ld to disk.\n", ADD_DIRECTORY_ENTRY, p_block_num);
+                            altfs_free_memory(dblock);
+                            return false;
+                        }
 
-                    if(!write_data_block(p_block_num, dblock)){
-                        fuse_log(FUSE_LOG_ERR, "%s : Error writing data block %ld to disk.\n", ADD_DIRECTORY_ENTRY, p_block_num);
+                        (*dir_inode)->i_child_num++;
                         altfs_free_memory(dblock);
-                        return false;
+                        return true;
                     }
-
-                    dir_inode->i_child_num++;
-                    altfs_free_memory(dblock);
-                    return true;
                 }
 
                 curr_pos += record_len;
-                add_record = true;
             }
 
             altfs_free_memory(dblock);
@@ -312,10 +301,8 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
     unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
     // Add record length
     ((unsigned short*)data_block)[0] = record_length;
-    // Add allocated byte
-    ((bool*)(data_block + RECORD_LENGTH))[0] = true;
     // Add child INUM
-    ((ssize_t*)(data_block + RECORD_LENGTH + RECORD_ALLOCATED))[0] = child_inum;
+    ((ssize_t*)(data_block + RECORD_LENGTH))[0] = child_inum;
     // Add file name
     strncpy((char*)(data_block + RECORD_FIXED_LEN), file_name, file_name_len);
 
@@ -324,15 +311,16 @@ bool add_directory_entry(struct inode* dir_inode, ssize_t child_inum, char* file
         fuse_log(FUSE_LOG_ERR, "%s : Error writing data block %ld to disk.\n", ADD_DIRECTORY_ENTRY, data_block_num);
         return false;
     }
-    // TODO: Use the correct function when implemented
-    if(!add_datablock_to_inode(dir_inode, data_block_num))
+
+    if(!add_datablock_to_inode((*dir_inode), data_block_num))
     {
         printf("couldn't add dblock to inode\n");
         return false;
     }
     
-    dir_inode->i_file_size += BLOCK_SIZE;   // TODO: Should this be in the add datablock to inode function?
-    dir_inode->i_child_num++;
+    altfs_free_memory(data_block);
+    (*dir_inode)->i_file_size += BLOCK_SIZE;   // TODO: Should this be in the add datablock to inode function?
+    (*dir_inode)->i_child_num++;
     return true;
 }
 
@@ -366,7 +354,7 @@ bool initialize_fs()
     root_dir->i_child_num = 0;
 
     char* dir_name = ".";
-    if(!add_directory_entry(root_dir, ROOT_INODE_NUM, dir_name)){
+    if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
         fuse_log(FUSE_LOG_ERR, "%s Failed to add . entry for root directory\n", INITIALIZE_FS);
         return false;
     }
@@ -374,7 +362,7 @@ bool initialize_fs()
     fuse_log(FUSE_LOG_DEBUG, "%s Successfully added . entry for root directory\n", INITIALIZE_FS);
 
     dir_name = "..";
-    if(!add_directory_entry(root_dir, ROOT_INODE_NUM, dir_name)){
+    if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
         fuse_log(FUSE_LOG_ERR, "%s Failed to add .. entry for root directory\n", INITIALIZE_FS);
         return false;
     }
