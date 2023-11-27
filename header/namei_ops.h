@@ -16,7 +16,6 @@
 #define IS_DIR_EMPTY "is_dir_empty"
 #define COPY_PARENT_PATH "copy_parent_path"
 #define COPY_CHILD_FILE_NAME "copy_child_file_name"
-#define NAME_I "name_i"
 
 /*
 Struct used to store the position of a file's inode inside it's parent directory
@@ -38,6 +37,15 @@ Return position of file in dir
 */
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode);
 
+/*
+Return index of last char of parent path from given path
+
+@param path: File path
+
+@param path_length: Length of file path
+
+@return ssize_t index of last char of parent path
+*/
 
 ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length);
 
@@ -55,7 +63,7 @@ Copy the parent path to the given buffer given the path and path length
 bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len);
 
 /*
-Copy the child fiel name to the given buffer given the path and path length
+Copy the file name to the given buffer given the entire path and path length
 
 @param buffer: the buffer to store path.
 
@@ -65,6 +73,6 @@ Copy the child fiel name to the given buffer given the path and path length
 
 @return True if the operation was successful
 */
-bool copy_child_file_name(char* const buffer, const char* const path, ssize_t path_len);
+bool copy_file_name(char* const buffer, const char* const path, ssize_t path_len);
 
 #endif

@@ -14,6 +14,7 @@
 #define INITIALIZE_FS "initialize_fs"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"
 #define GET_DBLOCK_FROM_IBLOCK "get_disk_block_from_inode_block"
+#define NAME_I "name_i"
 
 #define ROOT_INODE_NUM ((ssize_t) 2)
 #define DEFAULT_PERMISSIONS (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
@@ -30,7 +31,6 @@
 #define RECORD_FIXED_LEN ((unsigned short)(RECORD_LENGTH + RECORD_INUM))
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
-#define OFFSET_TO_INUM ((ssize_t) RECORD_LENGTH + RECORD_ALLOCATED)
 
 /*
 Get the physical disk block number for a given file and logical block number in the file.

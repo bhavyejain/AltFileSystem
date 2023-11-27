@@ -49,13 +49,15 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
         while(curr_pos <= LAST_POSSIBLE_RECORD)
         {
             unsigned short record_len = ((unsigned short*)(filepos.p_block + curr_pos))[0];
-            bool allocated = ((bool*)(filepos.p_block + curr_pos + RECORD_LENGTH))[0];
             char *curr_file_name = ((char*)(filepos.p_block + curr_pos + RECORD_FIXED_LEN))[0];
             unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN));
 
-            // If the inode is allocated and the file name matches the input file name => we have found our file
-            if (allocated && 
-                curr_file_name_len == strlen(file_name) && 
+            // If record len = 0 => we are past existing records for the data block, we can move to the next data block
+            if (record_len == 0)
+                break;
+
+            // If the file name matches the input file name => we have found our file
+            if (curr_file_name_len == strlen(file_name) && 
                 strncmp(curr_file_name, file_name, curr_file_name_len) == 0) {
                 filepos.offset = curr_pos;
                 return filepos;
@@ -65,16 +67,48 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             }
         } 
     }
-    
     return filepos;
 }
 
 ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length)
 {
-    
+     // TODO: Ignore multiple /// in path
+    for(ssize_t i = path_length-1 ; i >= 0 ; i--)
+    {
+        if (path[i] == '/' && i != path_length-1)
+            return i;
+    }
+    return -1;
 }
 
-bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len)
+bool copy_parent_path(char* const buffer, const char* const parent_path, ssize_t path_len)
 {
-    ssize_t pos = get
+    ssize_t index = get_last_index_of_parent_path(parent_path, path_len);
+    if(index == -1){
+        return false;
+    }
+    memcpy(buffer, parent_path, index + 1);
+    // We add null char since buffer length will be > than path len
+    buffer[index + 1] = '\0';
+    return true;
 } 
+
+bool copy_file_name(char* const buffer, const char* const path, ssize_t path_len)
+{
+    ssize_t start_index = get_last_index_of_parent_path(path, path_len), end_index = path_len;;
+    
+    if(start_index == -1)
+    {
+        return false;
+    }
+
+    start_index++;
+    
+    // remove trailing /
+    if(path[end_index-1]=='/'){
+        end_index--;
+    }
+    memcpy(buffer, path+start_index, end_index-start_index);
+    buffer[end_index - start_index]='\0';
+    return true;
+}

@@ -42,7 +42,7 @@ ssize_t name_i(const char* const file_path)
 
     struct inode* inodeObj = get_inode(parent_inum);
     char child_path[path_len+1];
-    if(!copy_child_file_name(child_path, file_path, file_path_len)){
+    if(!copy_file_name(child_path, file_path, file_path_len)){
         free_memory(inodeObj);
         return -1;
     }
@@ -56,7 +56,7 @@ ssize_t name_i(const char* const file_path)
         return -1;
     }
 
-    ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + OFFSET_TO_INUM))[0];
+    ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
     
     free_memory(filepos);
     set_cache(&inodeCache, file_path, inum);
