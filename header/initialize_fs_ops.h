@@ -61,6 +61,15 @@ Name is the file name.
 bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* file_name);
 
 /*
+Helper to remove a path's entry from the inode cache.
+
+@param path: Full path of the entry to be removed.
+
+@return True is success, false if failure.
+*/
+bool remove_from_inode_cache(char* path);
+
+/*
 Initializes the file system.
 
 @return True if success, false if failure.

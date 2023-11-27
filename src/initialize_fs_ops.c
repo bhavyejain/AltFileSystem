@@ -317,10 +317,18 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
         printf("couldn't add dblock to inode\n");
         return false;
     }
-    
-    altfs_free_memory(data_block);
+
     (*dir_inode)->i_file_size += BLOCK_SIZE;   // TODO: Should this be in the add datablock to inode function?
     (*dir_inode)->i_child_num++;
+    return true;
+}
+
+bool remove_from_inode_cache(char* path)
+{
+    if(!remove_cache_entry(&inodeCache, path))
+    {
+        return false;
+    }
     return true;
 }
 
