@@ -1,40 +1,15 @@
-#include <stdlib.h>
-#include <stdbool.h>
+#include <fuse.h>
 #include <string.h>
 #include <stdio.h>
-#include <fuse.h>
 
-#include "../header/superblock_layer.h"
 #include "../header/disk_layer.h"
+#include "../header/superblock_layer.h"
 
-// shifted to header file
-// static struct superblock* altfs_superblock = NULL;
+/*
+Write the superblock (static) to the disk.
 
-// Initializes superblock and writes to block 0
-bool altfs_create_superblock()
-{
-    altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
-    // fd 0,1,2 = input, output, error => first ino will start from 3
-    altfs_superblock->s_first_ino = 3;
-    //altfs_superblock->s_inode_size = sizeof(struct inode);
-    altfs_superblock->s_num_of_inodes_per_block = (BLOCK_SIZE) / sizeof(struct inode);
-    altfs_superblock->s_inodes_count = INODE_BLOCK_COUNT*altfs_superblock->s_num_of_inodes_per_block;
-    // first data block will be the head of free list
-    altfs_superblock->s_freelist_head = INODE_BLOCK_COUNT+1;
-
-    char buff[BLOCK_SIZE];
-    memset(buff, 0, BLOCK_SIZE);
-    memcpy(buff, altfs_superblock, sizeof(struct superblock));
-    fuse_log(FUSE_LOG_DEBUG, "%s Writing superblock...\n",ALTFS_CREATE_SUPERBLOCK);
-    if (!altfs_write_block(0, buff))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s Error writing to superblock\n", ALTFS_CREATE_SUPERBLOCK);
-        return false;
-    }
-    fuse_log(FUSE_LOG_DEBUG, "%s Finished writing superblock...\n",ALTFS_CREATE_SUPERBLOCK);
-    return true;
-}
-
+@return true if success, false if failure.
+*/
 bool altfs_write_superblock()
 {
     char buffer[BLOCK_SIZE];
@@ -42,10 +17,27 @@ bool altfs_write_superblock()
     memcpy(buffer, altfs_superblock, sizeof(struct superblock));
     if(!altfs_write_block(0, buffer))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error writing superblock to memory.\n", "altfs_write_superblock");
+        fuse_log(FUSE_LOG_ERR, "%s Error writing superblock to memory.\n", ALTFS_SUPERBLOCK);
         return false;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s Superblock written!!!\n", ALTFS_SUPERBLOCK);
     return true;
+}
+
+// Initializes superblock and writes to physical block 0
+bool altfs_create_superblock()
+{
+    altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
+    // fd 0,1,2 = input, output, error => first ino will start from 3
+    altfs_superblock->s_first_ino = 3;
+    //altfs_superblock->s_inode_size = sizeof(struct inode);
+    altfs_superblock->s_num_of_inodes_per_block = (BLOCK_SIZE) / sizeof(struct inode);
+    altfs_superblock->s_inodes_count = INODE_BLOCK_COUNT * (altfs_superblock->s_num_of_inodes_per_block);
+    // first data block will be the head of free list
+    altfs_superblock->s_freelist_head = INODE_BLOCK_COUNT + 1;
+
+    fuse_log(FUSE_LOG_DEBUG, "%s Writing superblock for the first time...\n", ALTFS_SUPERBLOCK);
+    return altfs_write_superblock();
 }
 
 // Creates ilist by initializing inode struct for all inodes
@@ -55,29 +47,36 @@ bool altfs_create_ilist()
     // TODO: Verify all elements of struct are getting initialized correctly
     // Below line creates an array with just 1 element whose size = size of inode struct
     // The initialization initializes the first element of the array (the array just has 1 element)
-    struct inode inodeObj[sizeof(struct inode)];
+    struct inode node;
+    node.i_mode = 0;
+    node.i_uid = 0;
+    node.i_gid = 0;
+    node.i_status_change_time = 0;
+    node.i_atime = 0;
+    node.i_ctime = 0;
+    node.i_mtime = 0;
+    node.i_links_count = 0;
+    node.i_file_size = 0;
+    node.i_blocks_num = 0;
+    node.i_allocated = false;
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-        inodeObj->i_direct_blocks[i] = 0;
-    inodeObj->i_allocated = false;
-    inodeObj->i_single_indirect = 0;
-    inodeObj->i_double_indirect = 0;
-    inodeObj->i_triple_indirect = 0;
-    inodeObj->i_links_count = 0;
-    inodeObj->i_file_size = 0;
-    inodeObj->i_blocks_num = 0;
+        node.i_direct_blocks[i] = 0;
+    node.i_single_indirect = 0;
+    node.i_double_indirect = 0;
+    node.i_triple_indirect = 0;
+    node.i_child_num = 0;
     
     char buffer[BLOCK_SIZE];
-    ssize_t zeroval = 0;
     fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     for(ssize_t blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
     {
         ssize_t offset = 0;
-        memset(buffer, zeroval, BLOCK_SIZE);
+        memset(buffer, 0, BLOCK_SIZE);
         for(ssize_t inodenum = 0; inodenum < altfs_superblock->s_num_of_inodes_per_block; inodenum++)
         {
-            memcpy(buffer + offset, inodeObj, sizeof(struct inode));
+            memcpy(buffer + offset, &node, sizeof(struct inode));
             offset += sizeof(struct inode);
         }
         //fuse_log(FUSE_LOG_DEBUG, "%s Writing blocknum %ld and buffer %s\n",ALTFS_CREATE_ILIST, blocknum, *buffer);

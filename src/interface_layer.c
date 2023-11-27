@@ -301,6 +301,7 @@ ssize_t altfs_unlink(const char* path)
     time_t curr_time = time(NULL);
     parent->i_ctime = curr_time;
     parent->i_mtime = curr_time;
+    parent->i_child_num--;
 
     node->i_links_count--;
     if(node->i_links_count == 0)

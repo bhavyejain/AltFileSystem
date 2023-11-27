@@ -1,10 +1,10 @@
 #ifndef __SUPERBLOCK_LAYER__
 #define __SUPERBLOCK_LAYER__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
- #include <sys/types.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/types.h>
+
 #include "disk_layer.h"
 
 /*
@@ -14,7 +14,7 @@
 */
 
 #define ALTFS_MAKEFS "altfs_makefs"
-#define ALTFS_CREATE_SUPERBLOCK "altfs_create_superblock"
+#define ALTFS_SUPERBLOCK "altfs_create_superblock"
 #define ALTFS_CREATE_ILIST "altfs_create_ilist"
 #define ALTFS_CREATE_FREELIST "altfs_create_freelist"
 
@@ -27,8 +27,10 @@
 #define NUM_OF_FREE_LIST_BLOCKS ((ssize_t) (NUM_OF_DATA_BLOCKS / NUM_OF_ADDRESSES_PER_BLOCK + 1)) // Num of free list blocks = data required to store that many addresses
 
 
-// Data structure for inode
-// Follows a structure similar to ext4 - https://www.kernel.org/doc/html/latest/filesystems/ext4/inodes.html?highlight=inode
+/* 
+Follows a structure similar to ext4.
+(https://www.kernel.org/doc/html/latest/filesystems/ext4/inodes.html?highlight=inode)
+*/
 struct inode 
 {
     mode_t i_mode; // permission mode
@@ -52,22 +54,18 @@ struct inode
 
 struct superblock
 {
-    ssize_t s_inodes_count;
+    ssize_t s_inodes_count; // total number of inodes in the system
     //ssize_t s_free_blocks_count;
     ssize_t s_first_ino; // first non-reserved inode
-    ssize_t s_freelist_head;
+    ssize_t s_freelist_head;    // data block number of the first block in freelist
     //ssize_t s_inode_size; // ??? check if required or not
-    ssize_t s_num_of_inodes_per_block;
+    ssize_t s_num_of_inodes_per_block;  // number of inodes in a single datablock
 };
 
 bool altfs_write_superblock();
 
 // makefs - Calls disk layer to allocate memory, initializes superblock, i-list and free list
 bool altfs_makefs();
-
-ssize_t altfs_create_inode();
-
-//struct inode* altfs_read_inode(ssize_t )
 
 static struct superblock* altfs_superblock = NULL;
 
