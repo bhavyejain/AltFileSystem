@@ -1,11 +1,12 @@
+#ifndef FUSE_USE_VERSION
 #define FUSE_USE_VERSION 31
+#endif
 
-#include<stdlib.h>
-#include<stdio.h>
-#include<stdbool.h>
-#include<fuse.h>
-#include<stdarg.h>
-#include<string.h>
+#include <fuse.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "../header/disk_layer.h"
 
 // TODO: change this while moving to disk 
