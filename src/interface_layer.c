@@ -63,7 +63,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
     }
 
     char child_name[path_len+1];
-    if(!copy_child_file_name(child_name, path, path_len))
+    if(!copy_file_name(child_name, path, path_len))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Error getting child file name from path: %s.\n", CREATE_NEW_FILE, path);
         return -1;
@@ -240,7 +240,7 @@ ssize_t altfs_unlink(const char* path)
 {
     ssize_t path_len = strlen(path);
     char child_name[path_len + 1];
-    if(!copy_child_file_name(child_name, path, path_len))
+    if(!copy_file_name(child_name, path, path_len))
     {
         fuse_log(FUSE_LOG_ERR, "%s : No child found for path: %s.\n", UNLINK, path);
         return -1;
