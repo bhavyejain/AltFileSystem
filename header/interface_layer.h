@@ -39,12 +39,35 @@ Create a special file.
 */
 bool altfs_mknod(const char* path, mode_t mode, dev_t dev);
 
+/*
+Truncate a file after the given offset.
+
+@param path: A c-string that contains the full path.
+@param offset: The byte-offset in the file from where the file is supposed to be truncated.
+
+@return 0 if success, -1 if failure.
+*/
 ssize_t altfs_truncate(const char* path, size_t offset);
 
+/*
+Removes the link between the entity at path and its parent. If link count becomes 0, remove the file.
+
+@param path: A c-string that contains the full path.
+
+@return 0 if success, -errornum if failure.
+*/
 ssize_t altfs_unlink(const char* path);
 
 ssize_t altfs_close(ssize_t file_descriptor);
 
+/*
+Open a file.
+
+@param path: A c-string that contains the full path.
+@param oflag: O_FLAGS for the open call.
+
+@return Inode number if success, -errornum if failure.
+*/
 ssize_t altfs_open(const char* path, ssize_t oflag);
 
 /*
