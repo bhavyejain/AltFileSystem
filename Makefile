@@ -40,7 +40,7 @@ test_superblock_layer: test/test_superblock_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_data_block_layer: test/test_dblock_inode_layer.c
+test_dblock_inode_layer: test/test_dblock_inode_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 	
