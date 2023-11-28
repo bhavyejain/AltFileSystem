@@ -26,7 +26,7 @@ ssize_t name_i(const char* const file_path)
         return inum_from_cache;
 
     // Recursively get inum from parent
-    char parent_path[file_path_len+1];
+    char parent_path[file_path_len + 1];
     if (!copy_parent_path(parent_path, file_path, file_path_len))
         return -1;
     
@@ -35,25 +35,25 @@ ssize_t name_i(const char* const file_path)
         return -1;
 
     struct inode* inodeObj = get_inode(parent_inum);
-    char child_path[path_len+1];
+    char child_path[file_path_len + 1];
     if(!copy_file_name(child_path, file_path, file_path_len)){
-        free_memory(inodeObj);
+        altfs_free_memory(inodeObj);
         return -1;
     }
 
     // find the position of the file in the dir
     struct fileposition filepos = get_file_position_in_dir(child_path, inodeObj);
-    free_memory(inodeObj);
+    altfs_free_memory(inodeObj);
     
     if(filepos.p_plock_num == -1){
-        free_memory(inodeObj);
+        altfs_free_memory(inodeObj);
         return -1;
     }
 
     ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
     
-    free_memory(filepos);
-    set_cache(&inodeCache, file_path, inum);
+    altfs_free_memory(filepos);
+    set_cache_entry(&inodeCache, file_path, inum);
     return inum;
 }
 
@@ -238,7 +238,7 @@ bool initialize_fs()
         return false;
     }
     
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root->i_blocks_num);
+    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root_dir->i_blocks_num);
     
     // free memory on disk/ in memory for root since it has been written to disk/ memory
     if (root_dir != NULL)
