@@ -23,7 +23,7 @@ void inum_to_block_pos(ssize_t inum, ssize_t* block, ssize_t* offset)
 
 ssize_t allocate_inode()
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to allocate a new inode.\n", FREE_INODE);
+    fuse_log(FUSE_LOG_DEBUG, "%s Attempting to allocate a new inode.\n", ALLOCATE_INODE);
     // Get the next free inode number
     ssize_t inum_to_allocate = altfs_superblock->s_first_ino;
     if(inum_to_allocate == altfs_superblock->s_inodes_count)

@@ -63,7 +63,7 @@ bool test_add_directory_entry()
         altfs_free_memory(node);
         return false;
     }
-    if(node->i_allocated == 0)
+    if(node->i_blocks_num == 0)
     {
         fprintf(stderr, "%s : Block not added for directory entry: %s\n", FILESYSTEM_OPS_TEST, dir_name);
         altfs_free_memory(node);
@@ -83,7 +83,7 @@ bool test_add_directory_entry()
             return false;
         }
     }
-    if(node->i_allocated == 1)
+    if(node->i_blocks_num == 1)
     {
         fprintf(stderr, "%s : Block not added for directory entry: %s\n", FILESYSTEM_OPS_TEST, dir_name);
         altfs_free_memory(node);
