@@ -25,13 +25,6 @@ $(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 # ============= TESTING =============
 TEST=./test
 TEST_BIN=./test/bin
-TESTS = test_disk_layer test_superblock_layer test_dblock_inode_layer # add more tests here
-
-tests: $(TESTS)
-
-$(TESTS): %: $(TEST)/%.c
-	$(shell  mkdir -p $(TEST_BIN))
-	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
 test_disk_layer: test/test_disk_layer.c 
 	$(shell  mkdir -p $(TEST_BIN))
@@ -44,6 +37,8 @@ test_superblock_layer: test/test_superblock_layer.c
 test_dblock_inode_layer: test/test_dblock_inode_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+tests: test_disk_layer test_superblock_layer test_dblock_inode_layer
 
 # ============ CLEAN =============
 
