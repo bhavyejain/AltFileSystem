@@ -46,13 +46,12 @@ ssize_t name_i(const char* const file_path)
     altfs_free_memory(inodeObj);
     
     if(filepos.p_plock_num == -1){
-        altfs_free_memory(inodeObj);
         return -1;
     }
 
     ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
     
-    altfs_free_memory(filepos);
+    altfs_free_memory(filepos.p_block);
     set_cache_entry(&inodeCache, file_path, inum);
     return inum;
 }
