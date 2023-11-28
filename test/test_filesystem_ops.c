@@ -39,8 +39,8 @@ void print_dir_contents(struct inode** node, ssize_t iblock)
         {
             char ch = buff[i];
             if(ch == '\0')
-                printf("\n");
-            else
+                printf(" ");
+            else if((ch >= 'a' && ch <= 'z') || (ch == '_'))
                 printf("%c", ch);
         }
         iblock++;
