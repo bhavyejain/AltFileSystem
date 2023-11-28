@@ -150,8 +150,16 @@ int test_data_block_ops()
             fprintf(stderr, "%s : Error while free-ing data block %ld.\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
             return -1;
         }
+
+        if (!altfs_read_block(0, sb_buf))
+        {
+            fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
+            return -1;
+        }
+        sb = (struct superblock*)sb_buf;
+
         fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
-        fprintf(stdout, "%s : Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST,i, sb->s_freelist_head);
+        fprintf(stdout, "%s : Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST, sb->s_freelist_head);
         print_freelist(sb->s_freelist_head);
     }
     free(sb_buf);
