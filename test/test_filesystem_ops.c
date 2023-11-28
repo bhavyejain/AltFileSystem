@@ -14,27 +14,38 @@
 
 void print_dir_contents(struct inode** node, ssize_t iblock)
 {
+    printf("======= DIR CONTENTS ======\n");
     ssize_t prev = 0;
-    if(iblock == -1)
+    ssize_t end = (*node)->i_blocks_num - 1;
+    if (iblock == -1)
     {
-        while(iblock < (*node)->i_blocks_num)
+        iblock = 0;
+    } else
+    {
+        if(iblock > end)
         {
-            ssize_t dblock = get_disk_block_from_inode_block((*node), iblock, &prev);
-            char* buff = read_data_block(dblock);
-            printf("%s", buff);
-            iblock++;
+            printf("*** invalid iblock to print directory contents, max: %ld ***\n", (*node)->i_blocks_num);
+            return;
         }
-        printf("\n");
-    } else if(iblock < (*node)->i_blocks_num)
+        end = iblock;
+    }
+
+    while(iblock <= end)
     {
         ssize_t dblock = get_disk_block_from_inode_block((*node), iblock, &prev);
         char* buff = read_data_block(dblock);
-        printf("%s", buff);
-        printf("\n");
-    } else
-    {
-        printf("*** invalid iblock to print directory contents, max: %ld ***\n", (*node)->i_blocks_num);
+        for(ssize_t i = 0; i < BLOCK_SIZE; i++)
+        {
+            char ch = buff[i];
+            if(ch == '\0')
+                printf("\n");
+            else
+                printf("%c", ch);
+        }
+        iblock++;
     }
+
+    printf("\n==========================\n");
     printf("\n");
 }
 
