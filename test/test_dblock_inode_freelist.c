@@ -97,10 +97,10 @@ void test_data_block_ops()
     sb = (struct superblock*)sb_buf;
 
     fprintf(stdout, "%s : Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST, sb->s_freelist_head);
-    print_freelist();
+    print_freelist(sb->s_freelist_head);
     fprintf(stdout, "%s : Freelist consistency verified.\n", DBLOCK_INODE_FREELIST_TEST);
     free(buffer);
-    
+
     return;
 }
 
