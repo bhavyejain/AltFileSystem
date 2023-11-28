@@ -57,10 +57,6 @@ int test_data_block_ops()
     */
     fprintf(stdout, "\n******************* TESTING DATA BLOCK OPERATIONS *********************\n");
 
-    char* buffer = (char*)malloc(BLOCK_SIZE);
-    char* str = "I really hope my block layer works!";
-    memcpy(buffer, str, strlen(str));
-
     fprintf(stdout, "%s : Attemting to CRUD 10 data blocks and verify freelist.\n", DBLOCK_INODE_FREELIST_TEST);
 
     // read free list head
@@ -76,8 +72,8 @@ int test_data_block_ops()
             return -1;
         }
         sb = (struct superblock*)sb_buf;
-        free(buffer);
-        
+        free(sb_buf);
+
         fprintf(stdout, "%s : Iteration: %ld Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST,i, sb->s_freelist_head);
         print_freelist(sb->s_freelist_head);
         
