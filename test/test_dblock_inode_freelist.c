@@ -58,19 +58,20 @@ int test_data_block_ops()
     fprintf(stdout, "\n******************* TESTING DATA BLOCK OPERATIONS *********************\n");
 
     fprintf(stdout, "%s : Attemting to CRUD 10 data blocks and verify freelist.\n", DBLOCK_INODE_FREELIST_TEST);
-
-    // read free list head
-    for(ssize_t i = 0; i < 10; i++)
-    {
-        fprintf(stdout, "\n******************* START OF ITERATION *********************\n");
-
-        char *sb_buf = (char*)malloc(BLOCK_SIZE);
-        struct superblock* sb;
-        if (!altfs_read_block(0, sb_buf))
+    
+    char *sb_buf = (char*)malloc(BLOCK_SIZE);
+    struct superblock* sb;
+    if (!altfs_read_block(0, sb_buf))
         {
             fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
             return -1;
         }
+    // verify correct free list update
+    for(ssize_t i = 0; i < 10; i++)
+    {
+        fprintf(stdout, "\n******************* START OF ITERATION *********************\n");
+
+        
         sb = (struct superblock*)sb_buf;
         free(sb_buf);
 
