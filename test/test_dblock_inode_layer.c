@@ -134,11 +134,14 @@ int main()
     fprintf(stdout, "%s : Allocate inode verified.\n", DATABLOCK_LAYER_TEST);
 
     fprintf(stdout, "%s : Building a new inode to write.\n", DATABLOCK_LAYER_TEST);
+    ssize_t assigned_dblocks[4]; // hold what is being assigned to iblocks 3, 12, 15, 524
     struct inode* node = (struct inode*)malloc(sizeof(struct inode));
     for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
     {
         node->i_direct_blocks[i] = allocate_data_block();
         fprintf(stdout, "%s : Allocate data block number %ld.\n", DATABLOCK_LAYER_TEST, node->i_direct_blocks[i]);
+        if(i == 3)
+            assigned_dblocks[0] = node->i_direct_blocks[3];
     }
 
     node->i_single_indirect = allocate_data_block();
@@ -152,6 +155,10 @@ int main()
         fprintf(stdout, "%s : Allocate data block number %ld.\n", DATABLOCK_LAYER_TEST, block_num);
         memcpy(single_i_buf + offset, &block_num, ADDRESS_SIZE);
         offset += ADDRESS_SIZE;
+        if(i == 0)
+            assigned_dblocks[1] = block_num;
+        else if(i == 3)
+            assigned_dblocks[2] = block_num;
     }
     if(!write_data_block(node->i_single_indirect, single_i_buf))
     {
@@ -180,6 +187,7 @@ int main()
         fprintf(stderr, "%s : Failed to write double indirect block.\n", DATABLOCK_LAYER_TEST);
         return -1;
     }
+    assigned_dblocks[3] = i_two_block_num;
 
     // Print the constructed inode
     print_inode(&node);
@@ -204,6 +212,18 @@ int main()
     }
     print_inode(&read_inode);
     fprintf(stdout, "%s : Read inode verified.\n", DATABLOCK_LAYER_TEST);
+
+    // Check if the iblock num to dblock num mapping works fine
+    ssize_t iblock_nums[4] = {3, 12, 15, 524};
+    for(int i = 0; i < 4; i++){
+        ssize_t prev = 0;
+        ssize_t pblock_num = get_disk_block_from_inode_block(read_inode, iblock_nums[i], &prev);
+        if(pblock_num != assigned_dblocks[i])
+        {
+            fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
+        }
+    }
+    fprintf(stdout, "%s :Logical and physical mapping utility verified.\n", DATABLOCK_LAYER_TEST);
 
     // Free the inode
     fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
