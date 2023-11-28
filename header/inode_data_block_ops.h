@@ -31,9 +31,11 @@ Overwrites an existing data block in an inode
 
 @param data_block_num: Data block number of the block to be overwritten in the inode
 
+@param *prev_indirect_block: If single or double indirect, stores previous level block info to minimize reads
+
 @return bool: true if operation is successful
 */
-bool overwrite_datablock_to_inode(struct inode* inodeObj, ssize_t file_block_num, ssize_t data_block_num);
+bool overwrite_datablock_to_inode(struct inode* inodeObj, ssize_t file_block_num, ssize_t data_block_num, ssize_t *prev_indirect_block);
 
 /*
 Remove a data block to an existing inode

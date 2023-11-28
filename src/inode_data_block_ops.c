@@ -262,7 +262,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
             ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
             single_indirect_block_arr[inner_idx] = data_block_num;
 
-            if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
+            if (!write_data_block(data_block_num, (char*)single_indirect_block_arr))
             {
                 fuse_log(FUSE_LOG_ERR, "%s : Writing to single double block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
                 return false;
@@ -272,7 +272,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
             return true;
         }
 
-        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inode->double_indirect);
+        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->double_indirect);
         ssize_t single_data_block_num = double_indirect_block_arr[double_i_idx];
         altfs_free_memory(double_indirect_block_arr);
         
@@ -388,11 +388,12 @@ bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssiz
     return true;
 }
 
-bool remove_datablocks_from_inode(struct inode* inodeObj, const ssize_t logical_block_num)
+bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_num)
 {
+
     if (logical_block_num >= inodeObj->i_blocks_num)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n",);
+        fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n", REMOVE_DATABLOCKS_FROM_INODE);
         return false;
     }
 
