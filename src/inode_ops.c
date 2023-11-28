@@ -298,7 +298,24 @@ bool free_inode(ssize_t inum)
         return false;
     }
 
+    node->i_mode = 0;
+    node->i_uid = 0;
+    node->i_gid = 0;
+    node->i_status_change_time = 0;
+    node->i_atime = 0;
+    node->i_ctime = 0;
+    node->i_mtime = 0;
+    node->i_links_count = 0;
+    node->i_file_size = 0;
+    node->i_blocks_num = 0;
     node->i_allocated = false;
+    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
+        node->i_direct_blocks[i] = 0;
+    node->i_single_indirect = 0;
+    node->i_double_indirect = 0;
+    node->i_triple_indirect = 0;
+    node->i_child_num = 0;
+
     if(!altfs_write_block(block_num, buffer)){
         fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %ld\n", FREE_INODE, block_num);
         return false;
