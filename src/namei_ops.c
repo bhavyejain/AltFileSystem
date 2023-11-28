@@ -1,9 +1,3 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
-#include <fuse.h>
-
 #include "../header/superblock_layer.h"
 #include "../header/disk_layer.h"
 #include "../header/inode_ops.h"

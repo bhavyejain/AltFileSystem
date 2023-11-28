@@ -1,7 +1,5 @@
 #include <errno.h>
 #include <fcntl.h>
-#include <fuse.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include <time.h>
 

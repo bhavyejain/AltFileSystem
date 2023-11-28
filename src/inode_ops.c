@@ -1,8 +1,5 @@
-#include <string.h>
-#include <fuse.h>
-#include <stdlib.h>
-
 #include "../header/data_block_ops.h"
+#include "../header/disk_layer.h"
 #include "../header/inode_ops.h"
 
 #ifndef min

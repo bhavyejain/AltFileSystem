@@ -1,16 +1,11 @@
 #ifndef __NAMEI_OPS__
 #define __NAMEI_OPS__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "disk_layer.h"
+
+#include "common_includes.h"
 #include "superblock_layer.h"
-#include "data_block_ops.h"
-#include "inode_ops.h"
-//#include "initialize_fs_ops.h"
 
 #define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
 #define IS_DIR_EMPTY "is_dir_empty"

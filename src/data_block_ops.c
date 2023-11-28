@@ -1,9 +1,6 @@
-#include<stdlib.h>
-#include<stdbool.h>
-#include<string.h>
-#include<stdio.h>
-#include<fuse.h>
 #include "../header/data_block_ops.h"
+#include "../header/disk_layer.h"
+#include "../header/superblock_layer.h"
 
 ssize_t allocate_data_block()
 {

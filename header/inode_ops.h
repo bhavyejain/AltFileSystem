@@ -1,13 +1,10 @@
 #ifndef __INODE_OPS__
 #define __INODE_OPS__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
 #include <sys/types.h>
-#include "disk_layer.h"
+
+#include "common_includes.h"
 #include "superblock_layer.h"
-#include "data_block_ops.h"
 
 #define ALLOCATE_INODE "allocate_inode"
 #define GET_INODE "get_inode"

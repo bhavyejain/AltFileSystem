@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 #include "../header/inode_cache.h"
 
 // source - https://stackoverflow.com/questions/64699597/how-to-write-djb2-hashing-function-in-c

@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdio.h>
+#include "common_includes.h"
 
 struct cache_entry {
     struct cache_entry* prev;

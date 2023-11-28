@@ -1,11 +1,4 @@
-#ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 31
-#endif
-
-#include <fuse.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "../header/disk_layer.h"
 
@@ -79,10 +72,4 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
     ssize_t offset = BLOCK_SIZE*blockid;
     memcpy(mem_ptr+offset, buffer, BLOCK_SIZE);
     return true;
-}
-
-void altfs_free_memory(void *ptr)
-{
-    if (ptr != NULL)
-        free(ptr);
 }

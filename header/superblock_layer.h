@@ -1,11 +1,9 @@
 #ifndef __SUPERBLOCK_LAYER__
 #define __SUPERBLOCK_LAYER__
 
-#include <stdlib.h>
-#include <stdbool.h>
 #include <sys/types.h>
 
-#include "disk_layer.h"
+#include "common_includes.h"
 
 /*
  * This file creates the inode, superblock, freelist data structures

@@ -1,13 +1,10 @@
 #ifndef __INODE_DATA_BLOCKOPS__
 #define __INODE_DATA_BLOCKOPS__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
 #include <sys/types.h>
-#include "disk_layer.h"
+
+#include "common_includes.h"
 #include "superblock_layer.h"
-#include "data_block_ops.h"
 
 #define ADD_DATABLOCK_TO_INODE "add_datablock_to_inode"
 #define OVERWRITE_DATABLOCK_TO_INODE "overwrite_datablock_to_inode"

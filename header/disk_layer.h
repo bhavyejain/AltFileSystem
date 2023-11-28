@@ -1,8 +1,7 @@
 #ifndef __DISK_LAYER__
 #define __DISK_LAYER__
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include "common_includes.h"
 
 #define ALTFS_ALLOC_MEMORY "altfs_alloc_memory"
 #define ALTFS_DEALLOC_MEMORY "altfs_dealloc_memory"
@@ -21,7 +20,5 @@ bool altfs_dealloc_memory();
 bool altfs_write_block(ssize_t blockid, char *buffer);
 // read from the block to the buffer
 bool altfs_read_block(ssize_t blockid, char *buffer);
-// free memory pointed to by ptr
-void altfs_free_memory(void *ptr);
 
 #endif 

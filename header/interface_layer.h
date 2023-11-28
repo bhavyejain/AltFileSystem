@@ -1,11 +1,9 @@
 #ifndef __INTERFACE_LAYER__
 #define __INTERFACE_LAYER__
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+
+#include "common_includes.h"
 
 #define MKDIR "altfs_mkdir"
 #define MKNOD "altfs_mknod"

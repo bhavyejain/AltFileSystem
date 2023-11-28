@@ -1,7 +1,3 @@
-#include <fuse.h>
-#include <string.h>
-#include <stdio.h>
-
 #include "../header/disk_layer.h"
 #include "../header/superblock_layer.h"
 

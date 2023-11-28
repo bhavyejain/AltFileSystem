@@ -1,12 +1,9 @@
 #ifndef __DATA_BLOCK_OPS__
 #define __DATA_BLOCK_OPS__
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
 #include <sys/types.h>
-#include "disk_layer.h"
-#include "superblock_layer.h"
+
+#include "common_includes.h"
 
 #define ALLOCATE_DATA_BLOCK "allocate_data_block"
 #define READ_DATA_BLOCK "read_data_block"
