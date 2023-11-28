@@ -76,7 +76,7 @@ int test_data_block_ops()
         }
         sb = (struct superblock*)sb_buf;
 
-        fprintf(stdout, "%s : Iteration: %ld Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST, sb->s_freelist_head);
+        fprintf(stdout, "%s : Iteration: %ld Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST,i, sb->s_freelist_head);
         print_freelist(sb->s_freelist_head);
         
         // Allocate new data block - Starts allocating from INODE_BLOCK_COUNT + 1 + 1 onwards
