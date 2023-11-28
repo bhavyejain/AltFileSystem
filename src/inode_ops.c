@@ -369,7 +369,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
             altfs_free_memory(single_indirect_block_arr);
 
             fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
-            return data_block_num
+            return data_block_num;
         }
 
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(node->i_double_indirect);
@@ -387,7 +387,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         altfs_free_memory(single_indirect_block_arr);
 
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
-        return data_block_num
+        return data_block_num;
     }
 
     // Adjust logical block number for double indirect
@@ -411,7 +411,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         altfs_free_memory(single_indirect_block_arr);
 
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
-        return data_block_num
+        return data_block_num;
     }
 
     ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(node->i_triple_indirect);
