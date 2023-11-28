@@ -42,7 +42,7 @@ test_dblock_inode_freelist: test/test_dblock_inode_freelist.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_dblock_inode_freelist: test/test_inode_data_block_ops.c
+test_inode_data_block_ops: test/test_inode_data_block_ops.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
