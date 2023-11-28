@@ -4,7 +4,7 @@
 #include "../header/disk_layer.h"
 #include "../header/inode_ops.h"
 #include "../header/data_block_ops.h"
-#include "../header/initialize_fs_ops.h"
+#include "../header/filesystem_ops.h"
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
 #include "../header/path_helpers.h"

@@ -1,5 +1,5 @@
-#ifndef __INITIALIZE_FS_OPS__
-#define __INITIALIZE_FS_OPS__
+#ifndef __FILESYSTEM_OPS__
+#define __FILESYSTEM_OPS__
 
 #include <sys/stat.h>
 #include <sys/types.h>
