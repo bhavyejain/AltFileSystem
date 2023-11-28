@@ -109,24 +109,13 @@ int test_data_block_ops()
     char *sb_buf = (char*)malloc(BLOCK_SIZE);
     struct superblock* sb;
     
-    ssize_t blocks_to_free[5];
+    ssize_t blocks_to_free[10];
     int index = 0;
 
     // verify correct free list update
+    fprintf(stdout, "\n******************* START: VERIFY FREELIST AFTER ALLOCATING 10 BLOCKS *********************\n");
     for(ssize_t i = 0; i < 10; i++)
-    {
-        fprintf(stdout, "\n******************* START OF ITERATION *********************\n");
-
-        if (!altfs_read_block(0, sb_buf))
-        {
-            fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
-            return -1;
-        }
-        sb = (struct superblock*)sb_buf;
-
-        fprintf(stdout, "%s : Iteration: %ld Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST,i, sb->s_freelist_head);
-        print_freelist(sb->s_freelist_head);
-        
+    {      
         // Allocate new data block - Starts allocating from INODE_BLOCK_COUNT + 1 + 1 onwards
         ssize_t block_num = allocate_data_block();
         if(block_num < 0)
@@ -136,16 +125,22 @@ int test_data_block_ops()
         }
         fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
 
-        // store block num of 5 data blocks to free later
-        if (i > 2 && i < 8)
-        {
-            blocks_to_free[index] = block_num;
-            index += 1;
-        }
-
-        fprintf(stdout, "\n******************* END OF ITERATION *********************\n");
+        // store block nums to free later
+        blocks_to_free[index] = block_num;
     }
+    fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 10 BLOCKS *********************\n");
 
+    // print free list after allocating 10 blocks
+    if (!altfs_read_block(0, sb_buf))
+        {
+            fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
+            return -1;
+        }
+    sb = (struct superblock*)sb_buf;
+    print_freelist(sb->s_freelist_head);
+
+    // free first 5 data blocks allocated
+    fprintf(stdout, "\n******************* START: VERIFY FREELIST AFTER FREEING 5 BLOCKS *********************\n");
     for(ssize_t i = 0; i < 5; i++)
     {
         if(!free_data_block(blocks_to_free[i]))
@@ -153,18 +148,44 @@ int test_data_block_ops()
             fprintf(stderr, "%s : Error while free-ing data block %ld.\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
             return -1;
         }
+        fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
+    }
+    fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER FREEING 5 BLOCKS *********************\n");
 
-        if (!altfs_read_block(0, sb_buf))
+    // print free list after freeing 5 blocks
+    if (!altfs_read_block(0, sb_buf))
         {
             fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
             return -1;
         }
-        sb = (struct superblock*)sb_buf;
+    sb = (struct superblock*)sb_buf;
+    print_freelist(sb->s_freelist_head);
 
-        fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
-        fprintf(stdout, "%s : Free list head: %ld\n", DBLOCK_INODE_FREELIST_TEST, sb->s_freelist_head);
-        print_freelist(sb->s_freelist_head);
+    // allocate 5 more blocks
+    fprintf(stdout, "\n******************* START: VERIFY FREELIST AFTER ALLOCATING 5 MORE BLOCKS *********************\n");
+    for(int i = 0; i < 5; i++)
+    {
+        ssize_t block_num = allocate_data_block();
+        if(block_num < 0)
+        {
+            fprintf(stderr, "%s : Failed to create data block at i = %ld.\n", DBLOCK_INODE_FREELIST_TEST, i);
+            return -1;
+        }
+
+        fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
+        blocks_to_free[i] = block_num;
     }
+    fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 5 MORE BLOCKS *********************\n");
+
+    // print free list after freeing 10 blocks
+    if (!altfs_read_block(0, sb_buf))
+        {
+            fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
+            return -1;
+        }
+    sb = (struct superblock*)sb_buf;
+    print_freelist(sb->s_freelist_head);
+
     free(sb_buf);
     fprintf(stdout, "%s : Freelist consistency verified.\n", DBLOCK_INODE_FREELIST_TEST);
     return 0;
