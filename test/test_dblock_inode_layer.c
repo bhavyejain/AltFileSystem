@@ -211,6 +211,7 @@ int main()
     if(read_inode == NULL)
     {
         fprintf(stderr, "%s : Unable to read inode %ld from disc.\n", DATABLOCK_LAYER_TEST, inum);
+        altfs_free_memory(read_inode);
         return -1;
     }
     print_inode(&read_inode);
@@ -225,10 +226,12 @@ int main()
         if(pblock_num != assigned_dblocks[i])
         {
             fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.\n", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
+            altfs_free_memory(read_inode);
             return -1;
         }
     }
     fprintf(stdout, "%s :Logical and physical mapping utility verified.\n\n", DATABLOCK_LAYER_TEST);
+    altfs_free_memory(read_inode);
 
     // Free the inode
     fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
@@ -237,6 +240,21 @@ int main()
         fprintf(stderr, "%s : Unable to free inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
         return -1;
     }
+
+    struct inode* read_node = get_inode(inum);
+    if( read_node->i_allocated != 0 ||
+        read_node->i_blocks_num != 0 ||
+        read_node->i_child_num != 0 ||
+        read_node->i_file_size != 0 ||
+        read_node->i_links_count != 0 ||
+        read_node->i_mode != 0 )
+    {
+        fprintf(stderr, "%s : Inode %ld not freed. Details:\n", DATABLOCK_LAYER_TEST, inum);
+        print_inode(&read_node);
+        altfs_free_memory(read_node);
+        return -1;
+    }
+    altfs_free_memory(read_node);
 
     // Free a smaller value inode
     inum = 4;
