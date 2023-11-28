@@ -50,7 +50,7 @@ void print_inode(struct inode** node)
     printf("******************** INODE ********************\n\n");
 }
 
-void test_data_block_ops()
+int test_data_block_ops()
 {
     /*
     * Check data block ops.
@@ -100,8 +100,7 @@ void test_data_block_ops()
     print_freelist(sb->s_freelist_head);
     fprintf(stdout, "%s : Freelist consistency verified.\n", DBLOCK_INODE_FREELIST_TEST);
     free(buffer);
-
-    return;
+    return 0;
 }
 
 int main()
@@ -115,7 +114,8 @@ int main()
     }
 
     // Test 1 - Test data block ops
-    test_data_block_ops();
+    if (test_data_block_ops() == -1)
+    fprintf(stderr, "%s : Test1 - testing for data block ops failed\n", DBLOCK_INODE_FREELIST_TEST);
 
 
     return 0;
