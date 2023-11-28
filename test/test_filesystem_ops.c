@@ -55,6 +55,7 @@ bool test_add_directory_entry()
     printf("\n%s : Testing add directory entry...\n", FILESYSTEM_OPS_TEST);
     ssize_t inum1 = allocate_inode();
     struct inode* node = get_inode(inum1);
+    node->i_mode = S_IFDIR;
     char* dir_name = "directory1";
     if(!add_directory_entry(&node, 123, dir_name))
     {
