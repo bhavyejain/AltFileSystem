@@ -188,6 +188,8 @@ int main()
         return -1;
     }
     assigned_dblocks[3] = i_two_block_num;
+    node->i_allocated = true;
+    node->i_blocks_num = 524;
 
     // Print the constructed inode
     print_inode(&node);
@@ -220,7 +222,7 @@ int main()
         ssize_t pblock_num = get_disk_block_from_inode_block(read_inode, iblock_nums[i], &prev);
         if(pblock_num != assigned_dblocks[i])
         {
-            fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
+            fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.\n", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
         }
     }
     fprintf(stdout, "%s :Logical and physical mapping utility verified.\n", DATABLOCK_LAYER_TEST);
