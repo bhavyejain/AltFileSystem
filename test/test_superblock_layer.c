@@ -11,7 +11,6 @@ int print_freelist(ssize_t blocknum)
     printf("\n******************** FREELIST ********************\n");
     printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
     char *buff = (char*)malloc(BLOCK_SIZE);
-    ssize_t offset = 0;
 
     if (!altfs_read_block(blocknum, buff))
     {
@@ -30,15 +29,15 @@ int print_freelist(ssize_t blocknum)
         }
         printf("\n");
     }
-    printf("\n******************** FREELIST ********************\n");
+    printf("\n*************************************************\n");
     return buff_numptr[0];
 }
 
 void print_superblock(struct superblock *superblockObj)
 {
     printf("\n******************** SUPERBLOCK ********************\n");
-    printf("\nNUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n INODES PER BLOCK: %ld \n", superblockObj->s_inodes_count, superblockObj->s_first_ino, superblockObj->s_freelist_head, superblockObj->s_num_of_inodes_per_block);
-    printf("\n******************** SUPERBLOCK ********************\n");
+    printf("\n NUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n INODES PER BLOCK: %ld \n", superblockObj->s_inodes_count, superblockObj->s_first_ino, superblockObj->s_freelist_head, superblockObj->s_num_of_inodes_per_block);
+    printf("\n****************************************************\n");
     return;
 }
 
@@ -46,13 +45,14 @@ void print_constants()
 {
     printf("\n******************** CONSTANTS ********************\n");
     printf("\n BLOCK COUNT: %ld \n NUM_OF_DATA_BLOCKS: %ld \n NUM OF DIRECT BLOCKS: %ld \n BLOCK SIZE: %ld \n INODES PER BLOCK: %ld\n INODE BLOCK COUNT: %ld\n",BLOCK_COUNT, NUM_OF_DATA_BLOCKS, NUM_OF_DIRECT_BLOCKS, BLOCK_SIZE, (BLOCK_SIZE) / sizeof(struct inode), INODE_BLOCK_COUNT);
-    printf("\n******************** CONSTANTS ********************\n");
+    printf("\n***************************************************\n\n");
 }
 
 int main(int argc, char *argv[])
 {
     // Test1 : Call makefs
     print_constants();
+    printf("\n========== TESTING SUPERBLOCK LAYER ==========\n\n");
     bool makefs = altfs_makefs();
     if (!makefs)
     {
@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
     }
     fprintf(stdout, "%s Test4: %s Printed first 10 freelist block contents\n",SUPERBLOCK_LAYER_TEST, SUCCESS);
 
+    printf("\n========== RUNNING TESTS COMPLETE ==========\n\n");
     return 0;
-
-
 }
