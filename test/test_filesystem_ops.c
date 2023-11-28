@@ -81,6 +81,7 @@ bool test_add_directory_entry()
     print_dir_contents(&node, 1);
 
     printf("\n%s : Ran all tests for add directory entry!!!\n", FILESYSTEM_OPS_TEST);
+    return true;
 }
 
 bool test_initialize_fs()
