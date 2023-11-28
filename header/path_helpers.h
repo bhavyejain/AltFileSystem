@@ -41,7 +41,6 @@ Return index of last char of parent path from given path
 
 @return ssize_t index of last char of parent path
 */
-
 ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length);
 
 /*

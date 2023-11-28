@@ -192,14 +192,9 @@ bool remove_from_inode_cache(char* path)
     return true;
 }
 
+// Run makefs() before running initialize
 bool initialize_fs()
-{
-    if(!altfs_makefs()){
-        fuse_log(FUSE_LOG_ERR, "%s : Makefs failed\n", INITIALIZE_FS);
-        return false;
-    }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully ran makefs\n", INITIALIZE_FS);
-    
+{   
     struct inode* root_dir = get_inode(ROOT_INODE_NUM);
     if(root_dir == NULL){
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", INITIALIZE_FS);
