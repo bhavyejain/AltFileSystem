@@ -69,6 +69,8 @@ int test_data_block_ops()
 
     for(ssize_t i = 0; i < 10; i++)
     {
+        fprintf("\n************************* ITERATION %ld *************************\n",i);
+
         if (!altfs_read_block(0, sb_buf))
         {
             fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
@@ -87,6 +89,8 @@ int test_data_block_ops()
             return -1;
         }
         fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
+
+        fprintf("\n************************* END OF ITERATION %ld *************************\n",i);
     }
 
     if (!altfs_read_block(0, sb_buf))
