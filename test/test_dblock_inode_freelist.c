@@ -66,7 +66,7 @@ int test_data_block_ops()
     // read free list head
     for(ssize_t i = 0; i < 10; i++)
     {
-        fprintf(stdout, "\n************************* ITERATION %ld *************************\n",i);
+        fprintf(stdout, "\n******************* START OF ITERATION *********************\n");
 
         char *sb_buf = (char*)malloc(BLOCK_SIZE);
         struct superblock* sb;
@@ -89,7 +89,7 @@ int test_data_block_ops()
         }
         fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
 
-        fprintf(stdout,"\n************************* END OF ITERATION %ld *************************\n",i);
+        fprintf(stdout, "\n******************* END OF ITERATION *********************\n");
     }
 
     /*if (!altfs_read_block(0, sb_buf))
