@@ -87,6 +87,11 @@ int test_verify_freelist_allocation()
         }
         fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
 
+        if (i == NUM_OF_ADDRESSES_PER_BLOCK - 1 ||
+            i == NUM_OF_ADDRESSES_PER_BLOCK ||
+            i == NUM_OF_ADDRESSES_PER_BLOCK + 10 - 1)
+            print_freelist(sb->s_freelist_head);
+
         fprintf(stdout, "\n******************* END OF ITERATION *********************\n");
     }
 
@@ -179,8 +184,11 @@ int main()
 
     // Test 1 - Test data block ops
     if (test_data_block_ops() == -1)
-    fprintf(stderr, "%s : Test1 - testing for data block ops failed\n", DBLOCK_INODE_FREELIST_TEST);
+        fprintf(stderr, "%s : Test1 - testing for data block ops failed\n", DBLOCK_INODE_FREELIST_TEST);
     
+    // Test 2 - Test free list update after allocating > 512 blocks
+    if (test_verify_freelist_allocation() == -1)
+        fprintf(stderr, "%s : Test2 - testing for free list updation failed\n", DBLOCK_INODE_FREELIST_TEST);
 
     return 0;
 }
