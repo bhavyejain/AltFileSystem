@@ -225,6 +225,7 @@ int main()
         if(pblock_num != assigned_dblocks[i])
         {
             fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.\n", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
+            return -1;
         }
     }
     fprintf(stdout, "%s :Logical and physical mapping utility verified.\n\n", DATABLOCK_LAYER_TEST);
