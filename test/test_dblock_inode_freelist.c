@@ -130,14 +130,19 @@ int test_data_block_ops()
     * Check data block ops.
     */
     fprintf(stdout, "\n******************* TESTING DATA BLOCK OPERATIONS *********************\n");
-
-    fprintf(stdout, "%s : Attemting to CRUD 10 data blocks and verify freelist.\n", DBLOCK_INODE_FREELIST_TEST);
     
     char *sb_buf = (char*)malloc(BLOCK_SIZE);
     struct superblock* sb;
+
+    if (!altfs_read_block(0, sb_buf))
+        {
+            fprintf(stderr, "%s : Failed to read block 0 for superblock\n", DBLOCK_INODE_FREELIST_TEST);
+            return -1;
+        }
+    sb = (struct superblock*)sb_buf;
+    print_freelist(sb->s_freelist_head);
     
     ssize_t blocks_to_free[10];
-    int index = 0;
 
     // verify correct free list update
     fprintf(stdout, "\n******************* START: VERIFY FREELIST AFTER ALLOCATING 10 BLOCKS *********************\n");
@@ -153,7 +158,7 @@ int test_data_block_ops()
         fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
 
         // store block nums to free later
-        blocks_to_free[index] = block_num;
+        blocks_to_free[i] = block_num;
     }
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 10 BLOCKS *********************\n");
 
