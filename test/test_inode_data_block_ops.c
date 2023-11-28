@@ -46,8 +46,3 @@ int test_add_data_block_to_inode()
     return 0;
 }
 
-int main()
-{
-
-    return 0;
-}
