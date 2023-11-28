@@ -476,7 +476,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             return false;
         }   
-        inodeObj->i_single_indirect = 0;
+        //inodeObj->i_single_indirect = 0;
         // Adjusting for single indirect block
         ending_block_num -= NUM_OF_DIRECT_BLOCKS;
 
