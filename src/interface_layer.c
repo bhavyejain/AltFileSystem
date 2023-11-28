@@ -4,7 +4,6 @@
 #include <time.h>
 
 #include "../header/data_block_ops.h"
-#include "../header/disk_layer.h"
 #include "../header/filesystem_ops.h"
 #include "../header/inode_data_block_ops.h"
 #include "../header/inode_ops.h"
@@ -292,7 +291,7 @@ ssize_t altfs_unlink(const char* path)
     {
         memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
     }
-    altfs_write_block(file_pos.p_plock_num, buffer);
+    write_data_block(file_pos.p_plock_num, buffer);
     fuse_log(FUSE_LOG_DEBUG, "%s : Record data block contents after removal:\n%s\n" UNLINK, buffer);
     altfs_free_memory(file_pos.p_block);
 
