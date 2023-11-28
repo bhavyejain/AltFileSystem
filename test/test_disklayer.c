@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     fprintf(stderr, "%s Test2: %s Deallocated memory\n",DISK_LAYER_TEST,SUCCESS);*/
+    printf("\n=========== ALL TESTS PASSED! ===========\n\n");
 
     return 0;
 }
