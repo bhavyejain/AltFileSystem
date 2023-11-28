@@ -86,7 +86,7 @@ int test_add_data_block_to_inode()
     ssize_t n = sizeof(blocks_to_remove)/sizeof(blocks_to_remove[0]);
     for(int i = n-1; i >= 0; i--)
     {
-        if (!remove_datablocks_from_inode(inode, blocks_to_remove[i]))
+        if (!remove_datablocks_from_inode(node, blocks_to_remove[i]))
         {
             fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
             return -1;
