@@ -272,7 +272,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
             return true;
         }
 
-        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->double_indirect);
+        ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_double_indirect);
         ssize_t single_data_block_num = double_indirect_block_arr[double_i_idx];
         altfs_free_memory(double_indirect_block_arr);
         
@@ -315,7 +315,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(*prev_indirect_block);
         single_indirect_block_arr[inner_idx] = data_block_num;
         
-        if (!write_data_block(single_data_block_num, (char*)single_indirect_block_arr))
+        if (!write_data_block(data_block_num, (char*)single_indirect_block_arr))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Writing to triple indirect block failed for file block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num);
             return false;
@@ -325,7 +325,7 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
         return true;
     }
 
-    ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inode->triple_indirect);
+    ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_triple_indirect);
     ssize_t double_data_block_num = triple_indirect_block_arr[triple_i_idx];
     altfs_free_memory(triple_indirect_block_arr);
     

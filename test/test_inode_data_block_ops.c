@@ -56,7 +56,9 @@ int main()
     }
 
     if (test_add_data_block_to_inode() == -1)
-        fprintf(stderr, "%s : Test1 testing inode data block ops failed\n", INODE_DATA_BLOCK_OPS);
+    {
+        fprintf(stderr, "%s : Test1 testing inode data block ops failed\n", INODE_DATA_BLOCK_OPS);   
+    }
     
     return 0;
 }
