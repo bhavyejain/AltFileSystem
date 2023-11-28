@@ -25,6 +25,7 @@ void print_inode(struct inode** node)
 
 int main()
 {
+    printf("=============== TESTING DATA BLOCK & INODE OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
     if(!altfs_makefs())
     {
@@ -201,7 +202,7 @@ int main()
         fprintf(stderr, "%s : Failed to write inode %ld to disc.\n", DATABLOCK_LAYER_TEST, inum);
         return -1;
     }
-    fprintf(stdout, "%s : Write inode verified.\n", DATABLOCK_LAYER_TEST);
+    fprintf(stdout, "%s : Write inode verified.\n\n", DATABLOCK_LAYER_TEST);
     free(node);
 
     // Read the inode form disc
@@ -213,9 +214,10 @@ int main()
         return -1;
     }
     print_inode(&read_inode);
-    fprintf(stdout, "%s : Read inode verified.\n", DATABLOCK_LAYER_TEST);
+    fprintf(stdout, "%s : Read inode verified.\n\n", DATABLOCK_LAYER_TEST);
 
     // Check if the iblock num to dblock num mapping works fine
+    fprintf(stdout, "%s : Fetching physical block numbers for logical block numbers from inode.\n", DATABLOCK_LAYER_TEST);
     ssize_t iblock_nums[4] = {3, 12, 15, 524};
     for(int i = 0; i < 4; i++){
         ssize_t prev = 0;
@@ -225,7 +227,7 @@ int main()
             fprintf(stderr, "%s : logical and physical mapping utility mismatch. Logical block %ld should be physical %ld but got %ld.\n", DATABLOCK_LAYER_TEST, iblock_nums[i], assigned_dblocks[i], pblock_num);
         }
     }
-    fprintf(stdout, "%s :Logical and physical mapping utility verified.\n", DATABLOCK_LAYER_TEST);
+    fprintf(stdout, "%s :Logical and physical mapping utility verified.\n\n", DATABLOCK_LAYER_TEST);
 
     // Free the inode
     fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
@@ -244,7 +246,8 @@ int main()
         return -1;
     }
 
-    fprintf(stdout, "%s : Free inode verified.\n", DATABLOCK_LAYER_TEST);
+    fprintf(stdout, "%s : Free inode verified.\n\n", DATABLOCK_LAYER_TEST);
 
+    printf("=============== ALL TESTS RUN ================\n\n");
     return 0;
 }
