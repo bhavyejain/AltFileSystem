@@ -22,7 +22,7 @@ int test_add_data_block_to_inode()
     inum = allocate_inode();
     if(!is_valid_inode_number(inum))
     {
-        fprintf(stderr, "%s : Failed to create inode.\n", INODE_DATA_BLOCK_OPS, i);
+        fprintf(stderr, "%s : Failed to create inode.\n", INODE_DATA_BLOCK_OPS);
         return -1;
     }
     fprintf(stdout, "%s : Allocated inode with number %ld\n", INODE_DATA_BLOCK_OPS, inum);
