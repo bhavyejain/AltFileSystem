@@ -1,7 +1,7 @@
 #include "../header/superblock_layer.h"
 #include "../header/inode_ops.h"
 #include "../header/data_block_ops.h"
-#include "../header/namei_ops.h"
+#include "../header/path_helpers.h"
 
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
 {

@@ -7,7 +7,7 @@
 #include "../header/initialize_fs_ops.h"
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
-#include "../header/namei_ops.h"
+#include "../header/path_helpers.h"
 
 static struct inode_cache inodeCache;
 

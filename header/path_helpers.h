@@ -1,5 +1,5 @@
-#ifndef __NAMEI_OPS__
-#define __NAMEI_OPS__
+#ifndef __PATH_HELPERS__
+#define __PATH_HELPERS__
 
 #include <sys/types.h>
 #include <sys/stat.h>
