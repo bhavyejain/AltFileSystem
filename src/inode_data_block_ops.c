@@ -211,11 +211,12 @@ bool overwrite_datablock_to_inode(struct inode *inodeObj, ssize_t logical_block_
     }
 
     // If file block is within direct block count, return data block number directly
-    if(logical_block_num < NUM_OF_DIRECT_BLOCKS){
+    if(logical_block_num < NUM_OF_DIRECT_BLOCKS)
+    {
         inodeObj->i_direct_blocks[logical_block_num] = data_block_num;
         fuse_log(FUSE_LOG_DEBUG, "%s : Successfully overwrote logical block %zd with data block %zd\n", OVERWRITE_DATABLOCK_TO_INODE, logical_block_num, data_block_num);
         return true;
-
+    }
     // Adjust logical block number for single indirect
     logical_block_num -= NUM_OF_DIRECT_BLOCKS;
 
