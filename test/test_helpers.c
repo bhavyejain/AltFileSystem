@@ -69,6 +69,11 @@ void print_inode(struct inode** node)
 #ifdef __DATA_BLOCK_OPS__
 #ifdef __INODE_OPS__
 
+/*
+Print records in a directory.
+
+@param iblock: If -1, print all records in all allocated datablocks. Otherwise, print records from logical datablock iblock.
+*/
 void print_dir_contents(struct inode** node, ssize_t iblock)
 {
     printf("======= DIR CONTENTS ======\n");
