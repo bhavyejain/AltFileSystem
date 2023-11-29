@@ -185,7 +185,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
 
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
 {
-    fuse_log(FUSE_LOG_ERR, "%s : Looking for file: %s.\n", GET_FILE_POS_IN_DIR, file_name);
+    // fuse_log(FUSE_LOG_ERR, "%s : Looking for file: %s.\n", GET_FILE_POS_IN_DIR, file_name);
     struct fileposition filepos;
     filepos.offset = -1;
     filepos.p_block = NULL;
@@ -224,7 +224,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             unsigned short record_len = ((unsigned short*)(filepos.p_block + curr_pos))[0];
             char* curr_file_name = filepos.p_block + curr_pos + RECORD_FIXED_LEN;
             unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN - 1));  // adjust for \0
-            fuse_log(FUSE_LOG_ERR, "%s : Current record => file name: %s, rec_len: %d.\n", GET_FILE_POS_IN_DIR, curr_file_name, record_len);
+            // fuse_log(FUSE_LOG_ERR, "%s : Current record => file name: %s, rec_len: %d.\n", GET_FILE_POS_IN_DIR, curr_file_name, record_len);
 
             // If record len = 0 => we are past existing records for the data block, we can move to the next data block
             if (record_len == 0)
@@ -233,7 +233,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             // If the file name matches the input file name => we have found our file
             if (curr_file_name_len == strlen(file_name) && 
                 strncmp(curr_file_name, file_name, curr_file_name_len) == 0) {
-                fuse_log(FUSE_LOG_ERR, "%s : Match for file name: %s in physical block %ld.\n", GET_FILE_POS_IN_DIR, curr_file_name, filepos.p_plock_num);
+                // fuse_log(FUSE_LOG_ERR, "%s : Match for file name: %s in physical block %ld.\n", GET_FILE_POS_IN_DIR, curr_file_name, filepos.p_plock_num);
                 filepos.offset = curr_pos;
                 return filepos;
             }
@@ -280,7 +280,7 @@ ssize_t name_i(const char* const file_path)
     struct fileposition filepos = get_file_position_in_dir(child_path, inodeObj);
     altfs_free_memory(inodeObj);
     
-    if(filepos.p_plock_num == -1){
+    if(filepos.offset == -1){
         return -1;
     }
 
