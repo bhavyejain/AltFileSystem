@@ -82,7 +82,7 @@ int test_add_data_block_to_inode()
     struct inode* node = get_inode(inum);
     int num_of_blocks_to_allocate = 20;
     // Allocate 20 data blocks to inode
-    /*for(int i = 0; i < num_of_blocks_to_allocate; i++)
+    for(int i = 0; i < num_of_blocks_to_allocate; i++)
     {
         ssize_t data_block_num = allocate_data_block();
         if (!data_block_num)
@@ -99,12 +99,12 @@ int test_add_data_block_to_inode()
         }
         fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
 
-    }*/
-    if (!allocate_datablocks_util(node, num_of_blocks_to_allocate, inum))
+    }
+    /*if (!allocate_datablocks_util(node, num_of_blocks_to_allocate, inum))
     {
         fprintf(stderr, "Failed to allocate %d blocks to inode %zd\n", num_of_blocks_to_allocate, inum);
         return -1;
-    }
+    }*/
 
     fprintf(stdout, "%s: Allocated %ld data blocks to inode\n", INODE_DATA_BLOCK_OPS, num_of_blocks_to_allocate);
     print_inode_data_blocks(node, inum);
