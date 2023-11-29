@@ -186,6 +186,31 @@ bool test_initialize_fs()
         return false;
     }
     printf("%s : Filesystem initialized successfully!\n", FILESYSTEM_OPS_TEST);
+
+    struct inode* root_dir = get_inode(ROOT_INODE_NUM);
+    if(root_dir->i_blocks_num == 0)
+    {
+        fprintf(stderr, "%s : Initialization failed, no blocks allocated to root directory!\n", FILESYSTEM_OPS_TEST);
+        altfs_free_memory(root_dir);
+        return false;
+    }
+    struct fileposition fp1 = get_file_position_in_dir(".", root_dir);
+    if(fp1.offset == -1)
+    {
+        fprintf(stderr, "%s : Initialization failed, entry for . not found in root directory!\n", FILESYSTEM_OPS_TEST);
+        altfs_free_memory(root_dir);
+        return false;
+    }
+    struct fileposition fp2 = get_file_position_in_dir("..", root_dir);
+    if(fp2.offset == -1)
+    {
+        fprintf(stderr, "%s : Initialization failed, entry for .. not found in root directory!\n", FILESYSTEM_OPS_TEST);
+        altfs_free_memory(root_dir);
+        return false;
+    }
+
+    printf("\n%s : Ran all tests for filesystem initialization!!!\n", FILESYSTEM_OPS_TEST);
+    altfs_free_memory(root_dir);
     return true;
 }
 
@@ -209,6 +234,12 @@ int main()
     if(!test_get_file_position())
     {
         printf("%s : Testing get file position failed!\n", FILESYSTEM_OPS_TEST);
+        return -1;
+    }
+
+    if(!test_initialize_fs())
+    {
+        printf("%s : Testing filesystem initialization failed!\n", FILESYSTEM_OPS_TEST);
         return -1;
     }
 
