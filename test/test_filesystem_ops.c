@@ -249,9 +249,9 @@ bool test_name_i()
     printf("---- root contents ----\n");
     print_dir_contents(&root_dir, 0);
     printf("---- dir1 contents ----\n");
-    print_dir_contents(&dir1, 0);
+    print_dir_contents(&dir1, -1);
     printf("---- dir2 contents ----\n");
-    print_dir_contents(&dir2, 0);
+    print_dir_contents(&dir2, -1);
 
     altfs_free_memory(root_dir);
     altfs_free_memory(dir1);
