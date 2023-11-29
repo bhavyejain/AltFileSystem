@@ -206,5 +206,12 @@ int main()
         return -1;
     }
 
+    if(!test_get_file_position())
+    {
+        printf("%s : Testing get file position failed!\n", FILESYSTEM_OPS_TEST);
+        return -1;
+    }
+
+    printf("=============== ALL TESTS RUN =============\n\n");
     return 0;
 }
