@@ -9,7 +9,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
     // Add data block to inode after incrementing num of blocks in inode struct
     ssize_t logical_block_num = inodeObj->i_blocks_num;
 
-    // Follow same structure of translating to data blocks as in filesystem_ops
+    // Follow same structure of translating to data blocks as in directory_ops
     if(logical_block_num < NUM_OF_DIRECT_BLOCKS){
         inodeObj->i_direct_blocks[logical_block_num] = data_block_num;
         fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block to direct block\n", ADD_DATABLOCK_TO_INODE);

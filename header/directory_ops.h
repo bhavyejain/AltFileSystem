@@ -1,5 +1,5 @@
-#ifndef __FILESYSTEM_OPS__
-#define __FILESYSTEM_OPS__
+#ifndef __DIRECTORY_OPS__
+#define __DIRECTORY_OPS__
 
 #include <sys/stat.h>
 #include <sys/types.h>

@@ -46,11 +46,11 @@ test_inode_data_block_ops: test/test_inode_data_block_ops.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_filesystem_ops: test/test_filesystem_ops.c
+test_directory_ops: test/test_directory_ops.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_dblock_inode_freelist test_inode_data_block_ops test_filesystem_ops
+tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_dblock_inode_freelist test_inode_data_block_ops test_directory_ops
 
 # ============ CLEAN =============
 
