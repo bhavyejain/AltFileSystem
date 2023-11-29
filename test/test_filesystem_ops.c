@@ -89,6 +89,7 @@ bool test_add_directory_entry()
         altfs_free_memory(node);
         return false;
     }
+    printf("%s : Total inode blocks after adding entries: %ld\n", FILESYSTEM_OPS_TEST, node->i_blocks_num);
     printf("\n----- First directory entry block -----\n");
     print_dir_contents(&node, 0);
     printf("\n----- Second directory entry block -----\n");
@@ -111,7 +112,25 @@ bool test_add_directory_entry()
     printf("\n----- First directory entry block -----\n");
     print_dir_contents(&node, 0);
 
+    // try adding another entry
+    char* dir_name = "directory_hahaha";
+    if(!add_directory_entry(&node, 123, dir_name))
+    {
+        fprintf(stderr, "%s : Failed to add directory entry: %s\n", FILESYSTEM_OPS_TEST, dir_name);
+        altfs_free_memory(node);
+        return false;
+    }
+    if(node->i_blocks_num != 2)
+    {
+        fprintf(stderr, "%s : Entry added at wring place: %s\n", FILESYSTEM_OPS_TEST, dir_name);
+        altfs_free_memory(node);
+        return false;
+    }
+    printf("\n----- First directory entry block -----\n");
+    print_dir_contents(&node, 0);
+
     printf("\n%s : Ran all tests for add directory entry!!!\n", FILESYSTEM_OPS_TEST);
+    altfs_free_memory(node);
     return true;
 }
 
