@@ -231,23 +231,31 @@ bool test_name_i()
     ssize_t inum1 = allocate_inode();
     add_directory_entry(&root_dir, inum1, "dir1");
     write_inode(ROOT_INODE_NUM, root_dir);
-    altfs_free_memory(root_dir);
 
-    struct inode* node1 = get_inode(inum1);
-    node1->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
+    struct inode* dir1 = get_inode(inum1);
+    dir1->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
     ssize_t inum2 = allocate_inode();
-    add_directory_entry(&node1, inum2, "dir2");
+    add_directory_entry(&dir1, inum2, "dir2");
     ssize_t inum3 = allocate_inode();
-    add_directory_entry(&node1, inum3, "file1");
-    write_inode(inum1, node1);
-    altfs_free_memory(node1);
+    add_directory_entry(&dir1, inum3, "file1");
+    write_inode(inum1, dir1);
 
-    struct inode* node2 = get_inode(inum2);
-    node2->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
+    struct inode* dir2 = get_inode(inum2);
+    dir2->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
     ssize_t inum4 = allocate_inode();
-    add_directory_entry(&node2, inum4, "file2");
-    write_inode(inum2, node2);
-    altfs_free_memory(node2);
+    add_directory_entry(&dir2, inum4, "file2");
+    write_inode(inum2, dir2);
+
+    printf("---- root contents ----\n");
+    print_dir_contents(&root_dir, 0);
+    printf("---- dir1 contents ----\n");
+    print_dir_contents(&dir1, 0);
+    printf("---- dir2 contents ----\n");
+    print_dir_contents(&dir2, 0);
+
+    altfs_free_memory(root_dir);
+    altfs_free_memory(dir1);
+    altfs_free_memory(dir2);
 
     char* path = "/";
     if(name_i(path) != ROOT_INODE_NUM)
