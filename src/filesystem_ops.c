@@ -202,7 +202,6 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
         fuse_log(FUSE_LOG_ERR, "%s : File name is > 255 bytes.\n", GET_FILE_POS_IN_DIR);
         return filepos;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Received name => name: %s, name_len: %d\n", GET_FILE_POS_IN_DIR, file_name, file_name_len);
 
     ssize_t prev_block = 0;
     for(ssize_t l_block_num = 0; l_block_num < parent_inode->i_blocks_num; l_block_num++)
@@ -224,7 +223,6 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             unsigned short record_len = ((unsigned short*)(filepos.p_block + curr_pos))[0];
             char* curr_file_name = filepos.p_block + curr_pos + RECORD_FIXED_LEN;
             unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN - 1));  // adjust for \0
-            fuse_log(FUSE_LOG_DEBUG, "%s : Current record => record_len: %d, name: %s, name_len: %d\n", GET_FILE_POS_IN_DIR, record_len, curr_file_name, curr_file_name_len);
 
             // If record len = 0 => we are past existing records for the data block, we can move to the next data block
             if (record_len == 0)
