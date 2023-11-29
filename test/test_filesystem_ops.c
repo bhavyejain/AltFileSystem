@@ -179,7 +179,7 @@ bool test_get_file_position()
 
 bool test_initialize_fs()
 {
-    printf("%s : Testing filesystem initialization...\n", FILESYSTEM_OPS_TEST);
+    printf("\n%s : Testing filesystem initialization...\n", FILESYSTEM_OPS_TEST);
     if(!initialize_fs())
     {
         fprintf(stderr, "%s : Filesystem initialization failed!\n", FILESYSTEM_OPS_TEST);
@@ -214,6 +214,87 @@ bool test_initialize_fs()
     return true;
 }
 
+bool test_name_i()
+{
+    printf("\n%s : Testing namei...\n", FILESYSTEM_OPS_TEST);
+
+    /*
+    Make a file tree:
+
+    root
+      |_ dir1
+          |_ file1
+          |_ dir2
+              |_ file2
+    */
+    struct inode* root_dir = get_inode(ROOT_INODE_NUM);
+    ssize_t inum1 = allocate_inode();
+    add_directory_entry(&root_dir, inum1, "dir1");
+    write_inode(ROOT_INODE_NUM, root_dir);
+    altfs_free_memory(root_dir);
+
+    struct inode* node1 = get_inode(inum1);
+    node1->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
+    ssize_t inum2 = allocate_inode();
+    add_directory_entry(&node1, inum2, "dir2");
+    ssize_t inum3 = allocate_inode();
+    add_directory_entry(&node1, inum3, "file1");
+    write_inode(inum1, node1);
+    altfs_free_memory(node1);
+
+    struct inode* node2 = get_inode(inum2);
+    node2->i_mode = S_IFDIR | DEFAULT_PERMISSIONS;
+    ssize_t inum4 = allocate_inode();
+    add_directory_entry(&node2, inum4, "file2");
+    write_inode(inum2, node2);
+    altfs_free_memory(node2);
+
+    char* path = "/";
+    if(name_i(path) != ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    path = "/dir1";
+    if(name_i(path) != inum1)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    path = "/dir1/file1";
+    if(name_i(path) != inum3)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    path = "/dir1/dir2";
+    if(name_i(path) != inum2)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    path = "/dir1/dir2/file2";
+    if(name_i(path) != inum4)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    path = "/dir1/dir3/file2";
+    if(name_i(path) != -1)
+    {
+        fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
+        return false;
+    }
+
+    printf("\n%s : Ran all tests for namei!!!\n", FILESYSTEM_OPS_TEST);
+    return true;
+}
+
 int main()
 {
     printf("=============== TESTING DIRECTORY & INIT FS OPERATIONS =============\n\n");
@@ -240,6 +321,12 @@ int main()
     if(!test_initialize_fs())
     {
         printf("%s : Testing filesystem initialization failed!\n", FILESYSTEM_OPS_TEST);
+        return -1;
+    }
+
+    if(!test_name_i())
+    {
+        printf("%s : Testing namei failed!\n", FILESYSTEM_OPS_TEST);
         return -1;
     }
 
