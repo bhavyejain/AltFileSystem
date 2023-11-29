@@ -223,6 +223,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
             unsigned short record_len = ((unsigned short*)(filepos.p_block + curr_pos))[0];
             char* curr_file_name = filepos.p_block + curr_pos + RECORD_FIXED_LEN;
             unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN));
+            fuse_log(FUSE_LOG_DEBUG, "%s : Current record => record_len: %d, name: %s, name_len: %d\n", GET_FILE_POS_IN_DIR, record_len, curr_file_name, curr_file_name_len);
 
             // If record len = 0 => we are past existing records for the data block, we can move to the next data block
             if (record_len == 0)
