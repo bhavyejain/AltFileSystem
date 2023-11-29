@@ -1,13 +1,14 @@
 #ifndef __COMMON_INCLUDES__
 #define __COMMON_INCLUDES__
 
+#define BLOCK_SIZE ((ssize_t) 4096)
+#define FUSE_USE_VERSION 31
+
 #include <fuse.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define BLOCK_SIZE ((ssize_t) 4096)
 
 void altfs_free_memory(void *ptr)
 {
@@ -18,7 +19,4 @@ void altfs_free_memory(void *ptr)
     }
 }
 
-#ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 31
-#endif
 #endif
