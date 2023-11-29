@@ -193,6 +193,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
     if (!S_ISDIR(parent_inode->i_mode))
     {
         fuse_log(FUSE_LOG_ERR, "%s : The parent inode is not a directory.\n", GET_FILE_POS_IN_DIR);
+        fuse_log(FUSE_LOG_ERR, "%s : While looking for file: %s.\n", GET_FILE_POS_IN_DIR, file_name);
         return filepos;
     }
 
