@@ -202,6 +202,7 @@ struct fileposition get_file_position_in_dir(const char* const file_name, const 
         fuse_log(FUSE_LOG_ERR, "%s : File name is > 255 bytes.\n", GET_FILE_POS_IN_DIR);
         return filepos;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s : Received name => name: %s, name_len: %d\n", GET_FILE_POS_IN_DIR, file_name, file_name_len);
 
     ssize_t prev_block = 0;
     for(ssize_t l_block_num = 0; l_block_num < parent_inode->i_blocks_num; l_block_num++)
