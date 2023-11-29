@@ -158,7 +158,7 @@ bool test_get_file_position()
     }
     if(fp.offset != 20)
     {
-        fprintf(stderr, "%s : Incorrect offset for file: %s\n", FILESYSTEM_OPS_TEST, "directory2");
+        fprintf(stderr, "%s : Incorrect offset for file %s: %;d\n", FILESYSTEM_OPS_TEST, "directory2", fp.offset);
         altfs_free_memory(fp.p_block);
         altfs_free_memory(node);
         return false;
