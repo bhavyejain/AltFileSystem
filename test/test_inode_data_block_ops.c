@@ -93,7 +93,7 @@ int test_add_data_block_to_inode()
             return -1;
         }
         fprintf(stdout, "%s : Removed data blocks from %ld onwards from inode %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
-        //node = get_inode(inum);
+        node = get_inode(inum);
         print_inode_data_blocks(node, inum);
     }
     
