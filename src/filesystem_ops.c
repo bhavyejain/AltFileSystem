@@ -133,6 +133,9 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
                         (*dir_inode)->i_child_num++;
                         altfs_free_memory(dblock);
                         return true;
+                    } else
+                    {
+                        break;
                     }
                 }
 
