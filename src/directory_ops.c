@@ -293,34 +293,32 @@ ssize_t name_i(const char* const file_path)
 }
 
 // Run makefs() before running initialize
-bool initialize_fs()
+bool setup_filesystem()
 {
     if(!load_superblock())
     {
-        fuse_log(FUSE_LOG_ERR, "%s : No superblock found for altfs, aborting initialization!\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s : No superblock found for altfs, aborting initialization!\n", SETUP_FILESYSTEM);
         return false;
     }
 
     // Create a cache that can be used to implement namei
     create_inode_cache(&inodeCache, CACHE_CAPACITY);
-    fuse_log(FUSE_LOG_DEBUG, "%s : Created inode cache to retrieve inode data faster.\n", INITIALIZE_FS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Created inode cache to retrieve inode data faster.\n", SETUP_FILESYSTEM);
 
     // Check for root directory
     struct inode* root_dir = get_inode(ROOT_INODE_NUM);
     if(root_dir == NULL){
-        fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", SETUP_FILESYSTEM);
         return false;
     }
 
     if(root_dir->i_allocated && root_dir->i_child_num >= 2)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.", SETUP_FILESYSTEM);
         return true;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", INITIALIZE_FS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", SETUP_FILESYSTEM);
 
-    // TODO: If root node is already created and we are remounting the FS, 
-    // new entries need not be created again and just verify it using allocated = true
     time_t curr_time = time(NULL);
 
     root_dir->i_allocated = true;
@@ -336,27 +334,27 @@ bool initialize_fs()
 
     char* dir_name = ".";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add . entry for root directory\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added . entry for root directory\n", INITIALIZE_FS);
+    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added . entry for root directory\n", SETUP_FILESYSTEM);
 
     dir_name = "..";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add .. entry for root directory\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added .. entry for root directory\n", INITIALIZE_FS);
+    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added .. entry for root directory\n", SETUP_FILESYSTEM);
 
     if(!write_inode(ROOT_INODE_NUM, root_dir)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode for root directory\n", INITIALIZE_FS);
+        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode for root directory\n", SETUP_FILESYSTEM);
         // TODO: remove directory entries?
         return false;
     }
     
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root_dir->i_blocks_num);
+    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", SETUP_FILESYSTEM, root_dir->i_blocks_num);
     altfs_free_memory(root_dir);
 
     return true;

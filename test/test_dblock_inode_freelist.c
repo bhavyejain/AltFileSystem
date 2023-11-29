@@ -3,52 +3,13 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "../src/data_block_ops.c"
 #include "../src/disk_layer.c"
 #include "../src/superblock_layer.c"
-#include "../src/inode_ops.c"
-#include "../src/data_block_ops.c"
+
+#include "test_helpers.c"
 
 #define DBLOCK_INODE_FREELIST_TEST "altfs_dblock_inode_freelist_test"
-
-int print_freelist(ssize_t blocknum)
-{   
-    printf("\n******************** FREELIST ********************\n");
-    printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
-    char *buff = (char*)malloc(BLOCK_SIZE);
-
-    if (!altfs_read_block(blocknum, buff))
-    {
-        printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
-        return -1;
-    }
-    ssize_t *buff_numptr = (ssize_t *)buff;
-    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
-    {
-        for (size_t j = 0; j < 8; j++)
-        {
-            if (i == 0 && j == 0)
-                printf("Next free block: %ld\n", buff_numptr[0]);
-            else
-            printf("%ld ", buff_numptr[i * 8 + j]);
-        }
-        printf("\n");
-    }
-    printf("\n*************************************************\n");
-    return buff_numptr[0];
-}
-
-void print_inode(struct inode** node)
-{
-    printf("\n******************** INODE ********************\n");
-    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-    {
-        printf("Direct block %ld: %ld\n", i, (*node)->i_direct_blocks[i]);
-    }
-    printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
-    printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
-    printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
-    printf("******************** INODE ********************\n\n");
-}
 
 // verify free list state after allocating more than 512 blocks
 // Freelist head should update new freelist block after 512 blocks are allocated
@@ -102,10 +63,10 @@ int test_verify_freelist_allocation()
     {
         if(!free_data_block(blocks_to_free[i]))
         {
-            fprintf(stderr, "%s : Error while free-ing data block %ld.\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
+            fprintf(stderr, "%s : Error while free-ing data block %d.\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
             return -1;
         }
-        fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
+        fprintf(stdout, "%s : Freed block num %d\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
     }
 
     // print free list after freeing 512+10 blocks
@@ -200,11 +161,11 @@ int test_data_block_ops()
         ssize_t block_num = allocate_data_block();
         if(block_num < 0)
         {
-            fprintf(stderr, "%s : Failed to create data block at i = %ld.\n", DBLOCK_INODE_FREELIST_TEST, i);
+            fprintf(stderr, "%s : Failed to create data block at i = %d.\n", DBLOCK_INODE_FREELIST_TEST, i);
             return -1;
         }
 
-        fprintf(stdout, "%s : Iteration: %ld Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
+        fprintf(stdout, "%s : Iteration: %d Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
         blocks_to_free[i] = block_num;
     }
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 5 MORE BLOCKS *********************\n");

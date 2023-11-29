@@ -16,6 +16,11 @@
 #define ACCESS "altfs_access"
 #define CHMOD "altfs_chmod"
 #define GETATTR "altfs_getattr"
+#define READDIR "altfs_readdir"
+#define RENAME "altfs_rename"
+
+// Wrapper over setup_filesystem()
+bool altfs_init();
 
 /*
 Creates a new directory in the file system.
@@ -123,5 +128,26 @@ Get attributes for the file at path.
 @return 0 if successful, -errno otherwise.
 */
 ssize_t altfs_getattr(const char* path, struct stat** st);
+
+/*
+Read contents of a directory.
+
+@param path: A c-string that contains the full path.
+@param buff: The buffer to fill with the info.
+@param filler: Helper function to fill the buffer with data.
+
+@return 0 if successful, -errno otherwise.
+*/
+ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler);
+
+/*
+Rename a file.
+
+@param from: A c-string that contains the full existing path.
+@param to: A c-string that contains the full final path.
+
+@return 0 if successful, -errno otherwise.
+*/
+ssize_t altfs_rename(const char *from, const char *to);
 
 #endif

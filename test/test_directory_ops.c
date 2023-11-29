@@ -189,10 +189,10 @@ bool test_get_file_position()
     return true;
 }
 
-bool test_initialize_fs()
+bool test_setup_filesystem()
 {
     printf("\n%s : Testing filesystem initialization...\n", FILESYSTEM_OPS_TEST);
-    if(!initialize_fs())
+    if(!setup_filesystem())
     {
         fprintf(stderr, "%s : Filesystem initialization failed!\n", FILESYSTEM_OPS_TEST);
         return false;
@@ -338,7 +338,7 @@ int main()
         return -1;
     }
 
-    if(!test_initialize_fs())
+    if(!test_setup_filesystem())
     {
         printf("%s : Testing filesystem initialization failed!\n", FILESYSTEM_OPS_TEST);
         return -1;
