@@ -75,6 +75,7 @@ int test_add_data_block_to_inode()
             return -1;
         }
         fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
+
     }
 
     fprintf(stdout, "%s: Allocated %ld data blocks to inode\n", INODE_DATA_BLOCK_OPS, num_of_blocks_to_allocate);
