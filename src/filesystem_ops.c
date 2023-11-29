@@ -281,6 +281,7 @@ ssize_t name_i(const char* const file_path)
     altfs_free_memory(inodeObj);
     
     if(filepos.offset == -1){
+        altfs_free_memory(filepos.p_block);
         return -1;
     }
 

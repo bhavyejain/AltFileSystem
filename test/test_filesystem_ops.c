@@ -246,16 +246,16 @@ bool test_name_i()
     add_directory_entry(&dir2, inum4, "file2");
     write_inode(inum2, dir2);
 
-    printf("---- root contents ----\n");
-    print_dir_contents(&root_dir, 0);
-    printf("---- dir1 contents ----\n");
-    print_dir_contents(&dir1, -1);
-    printf("---- dir2 contents ----\n");
-    print_dir_contents(&dir2, -1);
+    // printf("---- root contents ----\n");
+    // print_dir_contents(&root_dir, 0);
+    // printf("---- dir1 contents ----\n");
+    // print_dir_contents(&dir1, -1);
+    // printf("---- dir2 contents ----\n");
+    // print_dir_contents(&dir2, -1);
 
-    // altfs_free_memory(root_dir);
-    // altfs_free_memory(dir1);
-    // altfs_free_memory(dir2);
+    altfs_free_memory(root_dir);
+    altfs_free_memory(dir1);
+    altfs_free_memory(dir2);
 
     char* path = "/";
     if(name_i(path) != ROOT_INODE_NUM)
@@ -291,10 +291,6 @@ bool test_name_i()
         fprintf(stderr, "%s : Wrong inum reported for path: %s\n", FILESYSTEM_OPS_TEST, path);
         return false;
     }
-
-    path = "/dir1/dir3";
-    ssize_t temp = name_i(path);
-    printf("%s : inum for dir3: %ld\n", FILESYSTEM_OPS_TEST, temp);
 
     path = "/dir1/dir3/file2";
     if(name_i(path) != -1)
