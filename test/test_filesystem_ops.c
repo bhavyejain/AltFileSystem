@@ -90,10 +90,10 @@ bool test_add_directory_entry()
         return false;
     }
     printf("%s : Total inode blocks after adding entries: %ld\n", FILESYSTEM_OPS_TEST, node->i_blocks_num);
-    printf("\n----- First directory entry block -----\n");
-    print_dir_contents(&node, 0);
-    printf("\n----- Second directory entry block -----\n");
-    print_dir_contents(&node, 1);
+    // printf("\n----- First directory entry block -----\n");
+    // print_dir_contents(&node, 0);
+    // printf("\n----- Second directory entry block -----\n");
+    // print_dir_contents(&node, 1);
     
     write_inode(inum1, node);
     
@@ -109,8 +109,8 @@ bool test_add_directory_entry()
     memset(new_buff, 0, BLOCK_SIZE);
     memcpy(new_buff, buff + offset, (BLOCK_SIZE - offset));
     write_data_block(node->i_direct_blocks[0], new_buff);
-    printf("\n----- First directory entry block -----\n");
-    print_dir_contents(&node, 0);
+    // printf("\n----- First directory entry block -----\n");
+    // print_dir_contents(&node, 0);
 
     // try adding another entry
     dir_name = "directory_hahaha";
@@ -126,10 +126,53 @@ bool test_add_directory_entry()
         altfs_free_memory(node);
         return false;
     }
-    printf("\n----- First directory entry block -----\n");
-    print_dir_contents(&node, 0);
-
+    // printf("\n----- First directory entry block -----\n");
+    // print_dir_contents(&node, 0);
+    
     printf("\n%s : Ran all tests for add directory entry!!!\n", FILESYSTEM_OPS_TEST);
+    free_inode(inum1);
+    altfs_free_memory(node);
+    return true;
+}
+
+bool test_get_file_position()
+{
+    printf("\n%s : Testing get file position...\n", FILESYSTEM_OPS_TEST);
+    ssize_t inum1 = allocate_inode();
+    struct inode* node = get_inode(inum1);
+    node->i_mode = S_IFDIR;
+    char* dir_name = "directory1";
+    add_directory_entry(&node, 111, dir_name);
+    dir_name = "directory2";
+    add_directory_entry(&node, 222, dir_name);
+    dir_name = "directory3";
+    add_directory_entry(&node, 333, dir_name);
+    write_inode(inum1, node);
+
+    struct fileposition fp = get_file_position_in_dir("directory2", node);
+    if(fp.p_block == NULL)
+    {
+        fprintf(stderr, "%s : Could not fetch data block containing entry for file: %s\n", FILESYSTEM_OPS_TEST, "directory2");
+        altfs_free_memory(node);
+        return false;
+    }
+    if(fp.offset != 21)
+    {
+        fprintf(stderr, "%s : Incorrect offset for file: %s\n", FILESYSTEM_OPS_TEST, "directory2");
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(node);
+        return false;
+    }
+    if(fp.p_plock_num != node->i_direct_blocks[0])
+    {
+        fprintf(stderr, "%s : Incorrect disk block number for block containing file: %s\n", FILESYSTEM_OPS_TEST, "directory2");
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(node);
+        return false;
+    }
+
+    printf("\n%s : Ran all tests for get file position!!!\n", FILESYSTEM_OPS_TEST);
+    free_inode(inum1);
     altfs_free_memory(node);
     return true;
 }
