@@ -9,7 +9,7 @@
 #include "../src/data_block_ops.c"
 #include "../src/inode_data_block_ops.c"
 #include "../src/inode_cache.c"
-#include "../src/filesystem_ops.c"
+#include "../src/directory_ops.c"
 
 #define FILESYSTEM_OPS_TEST "filesystem_ops_test"
 

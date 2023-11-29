@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include "../header/data_block_ops.h"
-#include "../header/filesystem_ops.h"
+#include "../header/directory_ops.h"
 #include "../header/inode_data_block_ops.h"
 #include "../header/inode_ops.h"
 #include "../header/interface_layer.h"
