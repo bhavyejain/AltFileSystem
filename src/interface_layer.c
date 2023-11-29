@@ -14,7 +14,7 @@
 
 bool altfs_init()
 {
-    return initialize_fs();
+    return setup_filesystem();
 }
 
 /*

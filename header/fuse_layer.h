@@ -20,7 +20,6 @@ static const struct fuse_operations fuse_ops;
 // TODO 
 // opendir
 // symlink
-// init - not reqd as init_file_layer launched
 
 static int fuse_access(const char* path, int mode);
 

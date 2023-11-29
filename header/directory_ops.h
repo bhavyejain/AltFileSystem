@@ -7,7 +7,7 @@
 #include "common_includes.h"
 #include "superblock_layer.h"
 
-#define INITIALIZE_FS "initialize_fs"
+#define SETUP_FILESYSTEM "setup_filesystem"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"
 #define NAME_I "name_i"
 #define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
@@ -97,11 +97,11 @@ Return position of file in dir
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode);
 
 /*
-Initializes the file system.
+Sets up the file system.
 
 @return True if success, false if failure.
 */
-bool initialize_fs();
+bool setup_filesystem();
 
 /*
 Get inum for given file path
