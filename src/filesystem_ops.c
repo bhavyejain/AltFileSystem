@@ -6,55 +6,50 @@
 #include "../header/filesystem_ops.h"
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
-#include "../header/path_helpers.h"
 
 static struct inode_cache inodeCache;
 
-ssize_t name_i(const char* const file_path)
+ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length)
 {
-    ssize_t file_path_len = strlen(file_path);
-
-    if (file_path_len == 1 && file_path[0] == '/')
+     // TODO: Ignore multiple /// in path
+    for(ssize_t i = path_length-1 ; i >= 0 ; i--)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Path length is /. Returning root inum\n", NAME_I);
-        return ROOT_INODE_NUM;
+        if (path[i] == '/' && i != path_length-1)
+            return i;
+    }
+    return -1;
+}
+
+bool copy_parent_path(char* const buffer, const char* const parent_path, ssize_t path_len)
+{
+    ssize_t index = get_last_index_of_parent_path(parent_path, path_len);
+    if(index == -1){
+        return false;
+    }
+    memcpy(buffer, parent_path, index + 1);
+    // We add null char since buffer length will be > than path len
+    buffer[index + 1] = '\0';
+    return true;
+} 
+
+bool copy_file_name(char* const buffer, const char* const path, ssize_t path_len)
+{
+    ssize_t start_index = get_last_index_of_parent_path(path, path_len), end_index = path_len;;
+    
+    if(start_index == -1)
+    {
+        return false;
     }
 
-    // Check for presence in cache
-    ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
-    if (inum_from_cache > 0)
-        return inum_from_cache;
-
-    // Recursively get inum from parent
-    char parent_path[file_path_len+1];
-    if (!copy_parent_path(parent_path, file_path, file_path_len))
-        return -1;
+    start_index++;
     
-    ssize_t parent_inum = name_i(parent_path);
-    if (parent_inum == -1)
-        return -1;
-
-    struct inode* inodeObj = get_inode(parent_inum);
-    char child_path[path_len+1];
-    if(!copy_file_name(child_path, file_path, file_path_len)){
-        free_memory(inodeObj);
-        return -1;
+    // remove trailing /
+    if(path[end_index-1]=='/'){
+        end_index--;
     }
-
-    // find the position of the file in the dir
-    struct fileposition filepos = get_file_position_in_dir(child_path, inodeObj);
-    free_memory(inodeObj);
-    
-    if(filepos.p_plock_num == -1){
-        free_memory(inodeObj);
-        return -1;
-    }
-
-    ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
-    
-    free_memory(filepos);
-    set_cache(&inodeCache, file_path, inum);
-    return inum;
+    memcpy(buffer, path+start_index, end_index-start_index);
+    buffer[end_index - start_index]='\0';
+    return true;
 }
 
 /*
@@ -88,6 +83,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
         fuse_log(FUSE_LOG_ERR, "%s : File name is > 255 bytes.\n", ADD_DIRECTORY_ENTRY);
         return false;
     }
+    file_name_len++; // add \0
 
     unsigned short short_name_length = file_name_len;
 
@@ -117,7 +113,8 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
                     ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
                     if(rem_block_space >= file_name_len)
                     {
-                        fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
+                        // UNCOMMENT
+                        // fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
                         unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
                         char* record = dblock + curr_pos;
                         // Add record length
@@ -136,6 +133,9 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
                         (*dir_inode)->i_child_num++;
                         altfs_free_memory(dblock);
                         return true;
+                    } else
+                    {
+                        break;
                     }
                 }
 
@@ -183,23 +183,114 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
     return true;
 }
 
-bool remove_from_inode_cache(char* path)
+struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
 {
-    if(!remove_cache_entry(&inodeCache, path))
+    struct fileposition filepos;
+    filepos.offset = -1;
+    filepos.p_block = NULL;
+    filepos.p_plock_num = -1;
+
+    if (!S_ISDIR(parent_inode->i_mode))
     {
-        return false;
+        fuse_log(FUSE_LOG_ERR, "%s : The parent inode is not a directory.\n", GET_FILE_POS_IN_DIR);
+        return filepos;
     }
-    return true;
+
+    // Check for maximum lenth of file name
+    ssize_t file_name_len = strlen(file_name);
+    if(file_name_len > MAX_FILE_NAME_LENGTH){
+        fuse_log(FUSE_LOG_ERR, "%s : File name is > 255 bytes.\n", GET_FILE_POS_IN_DIR);
+        return filepos;
+    }
+
+    ssize_t prev_block = 0;
+    for(ssize_t l_block_num = 0; l_block_num < parent_inode->i_blocks_num; l_block_num++)
+    {
+        filepos.p_plock_num = get_disk_block_from_inode_block(parent_inode, l_block_num, &prev_block);
+
+        if(filepos.p_plock_num <= 0)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to fetch physical data block number corresponfing to file's logical block number.\n", GET_FILE_POS_IN_DIR);
+            return filepos;
+        }
+
+        filepos.p_block = read_data_block(filepos.p_plock_num);
+
+        // traverse the data block to find an inode entry with the given file name
+        ssize_t curr_pos = 0;
+        while(curr_pos <= LAST_POSSIBLE_RECORD)
+        {
+            unsigned short record_len = ((unsigned short*)(filepos.p_block + curr_pos))[0];
+            char* curr_file_name = filepos.p_block + curr_pos + RECORD_FIXED_LEN;
+            unsigned short curr_file_name_len = ((unsigned short)(record_len - RECORD_FIXED_LEN));
+
+            // If record len = 0 => we are past existing records for the data block, we can move to the next data block
+            if (record_len == 0)
+                break;
+
+            // If the file name matches the input file name => we have found our file
+            if (curr_file_name_len == strlen(file_name) && 
+                strncmp(curr_file_name, file_name, curr_file_name_len) == 0) {
+                filepos.offset = curr_pos;
+                return filepos;
+            }
+            else {
+                curr_pos += record_len;
+            }
+        } 
+    }
+    return filepos;
 }
 
-bool initialize_fs()
+ssize_t name_i(const char* const file_path)
 {
-    if(!altfs_makefs()){
-        fuse_log(FUSE_LOG_ERR, "%s : Makefs failed\n", INITIALIZE_FS);
-        return false;
+    ssize_t file_path_len = strlen(file_path);
+
+    if (file_path_len == 1 && file_path[0] == '/')
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Path length is /. Returning root inum\n", NAME_I);
+        return ROOT_INODE_NUM;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully ran makefs\n", INITIALIZE_FS);
+
+    // Check for presence in cache
+    ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
+    if (inum_from_cache > 0)
+        return inum_from_cache;
+
+    // Recursively get inum from parent
+    char parent_path[file_path_len + 1];
+    if (!copy_parent_path(parent_path, file_path, file_path_len))
+        return -1;
     
+    ssize_t parent_inum = name_i(parent_path);
+    if (parent_inum == -1)
+        return -1;
+
+    struct inode* inodeObj = get_inode(parent_inum);
+    char child_path[file_path_len + 1];
+    if(!copy_file_name(child_path, file_path, file_path_len)){
+        altfs_free_memory(inodeObj);
+        return -1;
+    }
+
+    // find the position of the file in the dir
+    struct fileposition filepos = get_file_position_in_dir(child_path, inodeObj);
+    altfs_free_memory(inodeObj);
+    
+    if(filepos.p_plock_num == -1){
+        return -1;
+    }
+
+    ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
+    
+    altfs_free_memory(filepos.p_block);
+    set_cache_entry(&inodeCache, file_path, inum);
+    return inum;
+}
+
+// Run makefs() before running initialize
+bool initialize_fs()
+{   
     struct inode* root_dir = get_inode(ROOT_INODE_NUM);
     if(root_dir == NULL){
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", INITIALIZE_FS);
@@ -243,7 +334,7 @@ bool initialize_fs()
         return false;
     }
     
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root->i_blocks_num);
+    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root_dir->i_blocks_num);
     
     // free memory on disk/ in memory for root since it has been written to disk/ memory
     if (root_dir != NULL)
@@ -255,5 +346,14 @@ bool initialize_fs()
     create_inode_cache(&inodeCache, CACHE_CAPACITY);
     
     fuse_log(FUSE_LOG_DEBUG, "%s Successfully created inode cache to retrieve inode data faster\n", INITIALIZE_FS);
+    return true;
+}
+
+bool remove_from_inode_cache(char* path)
+{
+    if(!remove_cache_entry(&inodeCache, path))
+    {
+        return false;
+    }
     return true;
 }

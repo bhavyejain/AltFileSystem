@@ -10,13 +10,63 @@
 #define INITIALIZE_FS "initialize_fs"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"
 #define NAME_I "name_i"
+#define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
+#define IS_DIR_EMPTY "is_dir_empty"
+#define COPY_PARENT_PATH "copy_parent_path"
+#define COPY_CHILD_FILE_NAME "copy_child_file_name"
 
 // Directory entry contants
+#define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define RECORD_LENGTH ((unsigned short) 2) // use unsigned short
 #define RECORD_INUM ((ssize_t) 8)   // TODO: Make sure search file, unlink (file layer), and altfs_readdir (fuse layer) use this and not INODE_SIZE while reading directory records
 #define RECORD_FIXED_LEN ((unsigned short)(RECORD_LENGTH + RECORD_INUM))
-#define MAX_FILE_NAME_LENGTH ((ssize_t) 255)
 #define LAST_POSSIBLE_RECORD ((ssize_t)(BLOCK_SIZE - RECORD_FIXED_LEN))
+
+/*
+Struct used to store the position of a file's inode inside it's parent directory
+*/
+struct fileposition {
+    char *p_block; // contents of physical data block
+    ssize_t p_plock_num; // physical data block number
+    ssize_t offset; // offset in the dir's physical data block where the file's inode is stored
+};
+
+/*
+Return index of last char of parent path from given path
+
+@param path: File path
+
+@param path_length: Length of file path
+
+@return ssize_t index of last char of parent path
+*/
+ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length);
+
+/*
+Copy the parent path to the given buffer given the path and path length
+
+@param buffer: the buffer to store parent path.
+
+@param path: file path
+
+@param path_len: length of file path
+
+@return True if the operation was successful
+*/
+bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len);
+
+/*
+Copy the file name to the given buffer given the entire path and path length
+
+@param buffer: the buffer to store path.
+
+@param path: file path
+
+@param path_len: length of file path
+
+@return True if the operation was successful
+*/
+bool copy_file_name(char* const buffer, const char* const path, ssize_t path_len);
 
 /*
 A directory entry (record) in altfs looks like:
@@ -36,13 +86,15 @@ Name is the file name.
 bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* file_name);
 
 /*
-Helper to remove a path's entry from the inode cache.
+Return position of file in dir
 
-@param path: Full path of the entry to be removed.
+@param file_name: File name to search.
 
-@return True is success, false if failure.
+@param parent_inode: Parent inode 
+
+@return struct file_pos denoting the position of the file in directory
 */
-bool remove_from_inode_cache(char* path);
+struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode);
 
 /*
 Initializes the file system.
@@ -59,5 +111,14 @@ Get inum for given file path
 @return ssize_t Inode number corresponding to the given file path
 */
 ssize_t name_i(const char* const file_path);
+
+/*
+Helper to remove a path's entry from the inode cache.
+
+@param path: Full path of the entry to be removed.
+
+@return True is success, false if failure.
+*/
+bool remove_from_inode_cache(char* path);
 
 #endif

@@ -8,7 +8,6 @@
 #include "../header/inode_data_block_ops.h"
 #include "../header/inode_ops.h"
 #include "../header/interface_layer.h"
-#include "../header/path_helpers.h"
 #include "../header/superblock_layer.h"
 
 #define CREATE_NEW_FILE "create_new_file"
