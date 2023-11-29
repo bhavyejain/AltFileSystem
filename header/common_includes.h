@@ -18,8 +18,7 @@ void altfs_free_memory(void *ptr)
     }
 }
 
-#endif
-
 #ifndef FUSE_USE_VERSION
 #define FUSE_USE_VERSION 31
+#endif
 #endif
