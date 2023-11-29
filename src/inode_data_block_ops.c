@@ -475,7 +475,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         if(inodeObj->i_single_indirect == 0)
         {
             fuse_log(FUSE_LOG_ERR,"%s : Single indirect block is set to 0 for inode.\n", REMOVE_DATABLOCKS_FROM_INODE);
-            return data_block_num;
+            return false;
         }
 
         // remove all nodes starting from the given logical num
