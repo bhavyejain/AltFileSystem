@@ -1,6 +1,3 @@
-#ifndef __TEST_HELPERS__
-#define __TEST_HELPERS__
-
 #include "../header/superblock_layer.h"
 #include "../header/disk_layer.h"
 
@@ -49,5 +46,3 @@ int print_freelist(ssize_t blocknum)
     printf("\n*************************************************\n");
     return buff_numptr[0];
 }
-
-#endif

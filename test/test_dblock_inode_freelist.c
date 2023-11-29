@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "test_helpers.h"
+#include "test_helpers.c"
 #include "../header/disk_layer.h"
 #include "../header/inode_ops.h"
 #include "../header/data_block_ops.h"
