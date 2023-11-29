@@ -75,7 +75,7 @@ bool test_add_directory_entry()
     char name[50];
     for(int i = 0; i < 140; i++)
     {
-        printf("%s : Adding directory %d\n", i);
+        printf("%s : Adding directory %d\n", FILESYSTEM_OPS_TEST, i);
         snprintf(name, sizeof(name), "this_is_an_excruciatingly_long_directory_%d", i);
         if(!add_directory_entry(&node, i, name))
         {
