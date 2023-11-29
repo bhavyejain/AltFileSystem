@@ -52,7 +52,6 @@ bool load_superblock()
         altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
     }
     memcpy(altfs_superblock, sb, sizeof(struct superblock));
-    altfs_free_memory(sb);
     fuse_log(FUSE_LOG_DEBUG, "load_superblock : Superblock loaded!\n");
     return true;
 }
