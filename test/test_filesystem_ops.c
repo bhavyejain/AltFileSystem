@@ -284,6 +284,10 @@ bool test_name_i()
         return false;
     }
 
+    path = "/dir1/dir3";
+    ssize_t temp = name_i(path);
+    printf("%s : inum for dir3: %ld\n", FILESYSTEM_OPS_TEST, temp);
+
     path = "/dir1/dir3/file2";
     if(name_i(path) != -1)
     {
