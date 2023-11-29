@@ -369,7 +369,6 @@ bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssiz
     }
 
     ssize_t *buffer = (ssize_t*) read_data_block(p_block_num);
-    fuse_log(SUDE_DEBUG, "%s : Read data block %zd into buffer with indirection level %zd and first elemen of buffer %zd")
     for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
     {
         // we have reached the end of the data in the block 
