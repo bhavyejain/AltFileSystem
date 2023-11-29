@@ -62,6 +62,8 @@ struct superblock
 
 bool altfs_write_superblock();
 
+bool load_superblock();
+
 // makefs - Calls disk layer to allocate memory, initializes superblock, i-list and free list
 bool altfs_makefs();
 
