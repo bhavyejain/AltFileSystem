@@ -113,7 +113,7 @@ bool test_add_directory_entry()
     print_dir_contents(&node, 0);
 
     // try adding another entry
-    char* dir_name = "directory_hahaha";
+    dir_name = "directory_hahaha";
     if(!add_directory_entry(&node, 123, dir_name))
     {
         fprintf(stderr, "%s : Failed to add directory entry: %s\n", FILESYSTEM_OPS_TEST, dir_name);
