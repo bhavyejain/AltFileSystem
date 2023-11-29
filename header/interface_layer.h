@@ -13,6 +13,9 @@
 #define OPEN "altfs_open"
 #define READ "altfs_read"
 #define WRITE "altfs_write"
+#define ACCESS "altfs_access"
+#define CHMOD "altfs_chmod"
+#define GETATTR "altfs_getattr"
 
 /*
 Creates a new directory in the file system.
@@ -88,8 +91,37 @@ Write bytes to a file.
 @param n_bytes: The number of bytes that are to be written.
 @param offset: The byte-offset in the file from where the data is supposed to be written.
 
-@return n_bytes if data written, -1 if not written.
+@return Actual number of bytes written if data written, -1 if not written.
 */
 ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset);
+
+/*
+Check if path is accessible and has permissions.
+
+@param path: A c-string that contains the full path.
+
+@return 0 if can access, -errno otherwise.
+*/
+ssize_t altfs_access(const char* path);
+
+/*
+Change the permission bits of the inode corresponding to the path.
+
+@param path: A c-string that contains the full path.
+@param mode: Permission bits for the file.
+
+@return 0 if success, -errno otherwise.
+*/
+ssize_t altfs_chmod(const char* path, mode_t mode);
+
+/*
+Get attributes for the file at path.
+
+@param path: A c-string that contains the full path.
+@param st: Double pointer to the stat object to be filled.
+
+@return 0 if successful, -errno otherwise.
+*/
+ssize_t altfs_getattr(const char* path, struct stat** st);
 
 #endif

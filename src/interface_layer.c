@@ -13,6 +13,34 @@
 #define CREATE_NEW_FILE "create_new_file"
 
 /*
+struct stat {
+    dev_t     st_dev;         ID of device containing file
+    ino_t     st_ino;         Inode number
+    mode_t    st_mode;        File type and mode
+    nlink_t   st_nlink;       Number of hard links
+    uid_t     st_uid;         User ID of owner
+    gid_t     st_gid;         Group ID of owner
+    dev_t     st_rdev;        Device ID (if special file)
+    off_t     st_size;        Total size, in bytes
+    blksize_t st_blksize;     Block size for filesystem I/O
+    blkcnt_t  st_blocks;      Number of 512B blocks allocated
+}
+*/
+static void inode_to_stat(struct inode** node, struct stat** st){
+    (*st)->st_mode = (*node)->i_mode;
+    (*st)->st_nlink = (*node)->i_links_count;
+    (*st)->st_uid = 0; // only one user for now
+    (*st)->st_gid = 0; // only one group
+    (*st)->st_rdev = 0;
+    (*st)->st_size = (*node)->i_file_size;
+    (*st)->st_blksize = BLOCK_SIZE;
+    (*st)->st_blocks = (*node)->i_blocks_num;
+    (*st)->st_atime = (*node)->i_atime;
+    (*st)->st_ctime = (*node)->i_ctime;
+    (*st)->st_mtime = (*node)->i_mtime;
+}
+
+/*
 Allocates a new inode for a file and fills the inode with default values.
 */
 ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode, ssize_t* parent_inum)
@@ -645,4 +673,58 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
     }
     altfs_free_memory(node);
     return bytes_written;
+}
+
+ssize_t altfs_access(const char* path)
+{
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", ACCESS, path);
+        return -ENOENT;
+    }
+    // TODO: Check Permissions
+    return 0;
+}
+
+ssize_t altfs_chmod(const char* path, mode_t mode)
+{
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", CHMOD, path);
+        return -ENOENT;
+    }
+
+    struct inode* node = get_inode(inum);
+    if(node == NULL)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode read returned null.\n", CHMOD);
+        return -1;
+    }
+
+    node->i_mode = mode;
+    if(!write_inode(inum, node))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode write unsuccessful.\n", CHMOD);
+        return -1;
+    }
+    return 0;
+}
+
+ssize_t altfs_getattr(const char* path, struct stat** st)
+{
+    memset(st, 0, sizeof(struct stat));
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
+        return -ENOENT;
+    }
+
+    struct inode* node = get_inode(inum);
+    inode_to_stat(&node, st);
+    (*st)->st_ino = inum;
+    altfs_free_memory(node);
+    return 0;
 }
