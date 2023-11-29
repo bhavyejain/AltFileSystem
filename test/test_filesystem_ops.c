@@ -106,7 +106,7 @@ bool test_add_directory_entry()
     }
     char new_buff[BLOCK_SIZE];
     memset(new_buff, 0, BLOCK_SIZE);
-    memccpy(new_buff, buff + offset, (BLOCK_SIZE - offset));
+    memcpy(new_buff, buff + offset, (BLOCK_SIZE - offset));
     write_data_block(node->i_direct_blocks[0], new_buff);
     printf("\n----- First directory entry block -----\n");
     print_dir_contents(&node, 0);
