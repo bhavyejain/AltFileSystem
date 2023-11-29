@@ -11,44 +11,9 @@
 #include "../src/inode_cache.c"
 #include "../src/directory_ops.c"
 
+#include "test_helpers.c"
+
 #define FILESYSTEM_OPS_TEST "filesystem_ops_test"
-
-void print_dir_contents(struct inode** node, ssize_t iblock)
-{
-    printf("======= DIR CONTENTS ======\n");
-    ssize_t prev = 0;
-    ssize_t end = (*node)->i_blocks_num - 1;
-    if (iblock == -1)
-    {
-        iblock = 0;
-    } else
-    {
-        if(iblock > end)
-        {
-            printf("*** invalid iblock to print directory contents, max: %ld ***\n", (*node)->i_blocks_num);
-            return;
-        }
-        end = iblock;
-    }
-
-    while(iblock <= end)
-    {
-        ssize_t dblock = get_disk_block_from_inode_block((*node), iblock, &prev);
-        char* buff = read_data_block(dblock);
-        for(ssize_t i = 0; i < BLOCK_SIZE; i++)
-        {
-            char ch = buff[i];
-            if(ch == '\0')
-                printf(" ");
-            else if((ch >= 'a' && ch <= 'z') || (ch == '_') || (ch >= '0' && ch <= '9'))
-                printf("%c", ch);
-        }
-        iblock++;
-    }
-
-    printf("\n==========================\n");
-    printf("\n");
-}
 
 bool test_add_directory_entry()
 {
