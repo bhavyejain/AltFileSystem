@@ -369,6 +369,7 @@ bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssiz
     }
 
     ssize_t *buffer = (ssize_t*) read_data_block(p_block_num);
+    fuse_log(SUDE_DEBUG, "%s : Read data block %zd into buffer with indirection level %zd and first elemen of buffer %zd")
     for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
     {
         // we have reached the end of the data in the block 
@@ -391,7 +392,6 @@ bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssiz
 
 bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_num)
 {
-
     if (logical_block_num >= inodeObj->i_blocks_num)
     {
         fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n", REMOVE_DATABLOCKS_FROM_INODE);
@@ -429,7 +429,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         // Adjusting for single indirect block
         ending_block_num -= NUM_OF_DIRECT_BLOCKS;
 
-        if (ending_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+        if (ending_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             inodeObj->i_blocks_num = starting_block_num;
@@ -445,7 +445,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         // Adjusting for double indirect block
         ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
 
-        if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+        if (ending_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             inodeObj->i_blocks_num = starting_block_num;
@@ -480,7 +480,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         // Adjusting for single indirect block
         ending_block_num -= NUM_OF_DIRECT_BLOCKS;
 
-        if (ending_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+        if (ending_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             inodeObj->i_blocks_num = starting_block_num;
@@ -565,7 +565,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         // Adjusting for double indirect block
         ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
 
-        if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+        if (ending_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             inodeObj->i_blocks_num = starting_block_num;
