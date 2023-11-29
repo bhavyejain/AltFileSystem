@@ -75,7 +75,6 @@ bool test_add_directory_entry()
     char name[50];
     for(int i = 0; i < 140; i++)
     {
-        printf("%s : Adding directory %d\n", FILESYSTEM_OPS_TEST, i);
         snprintf(name, sizeof(name), "this_is_an_excruciatingly_long_directory_%d", i);
         if(!add_directory_entry(&node, i, name))
         {
@@ -94,6 +93,23 @@ bool test_add_directory_entry()
     print_dir_contents(&node, 0);
     printf("\n----- Second directory entry block -----\n");
     print_dir_contents(&node, 1);
+    
+    write_inode(inum1, node);
+    
+    // delete some entries from the first block
+    char* buff = read_data_block(node->i_direct_blocks[0]);
+    ssize_t offset = 0;
+    for(int i = 0; i < 5; i++)
+    {
+        unsigned short rec_len = ((unsigned short *)(buff + offset))[0];
+        offset += rec_len;
+    }
+    char new_buff[BLOCK_SIZE];
+    memset(new_buff, 0, BLOCK_SIZE);
+    memccpy(new_buff, buff + offset, (BLOCK_SIZE - offset));
+    write_data_block(node->i_direct_blocks[0], new_buff);
+    printf("\n----- First directory entry block -----\n");
+    print_dir_contents(&node, 0);
 
     printf("\n%s : Ran all tests for add directory entry!!!\n", FILESYSTEM_OPS_TEST);
     return true;
