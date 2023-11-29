@@ -253,9 +253,9 @@ bool test_name_i()
     printf("---- dir2 contents ----\n");
     print_dir_contents(&dir2, -1);
 
-    altfs_free_memory(root_dir);
-    altfs_free_memory(dir1);
-    altfs_free_memory(dir2);
+    // altfs_free_memory(root_dir);
+    // altfs_free_memory(dir1);
+    // altfs_free_memory(dir2);
 
     char* path = "/";
     if(name_i(path) != ROOT_INODE_NUM)
