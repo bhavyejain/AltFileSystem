@@ -3,10 +3,11 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "../header/data_block_ops.h"
-#include "../header/disk_layer.h"
-#include "../header/superblock_layer.h"
-#include "test_helpers.h"
+#include "../src/data_block_ops.c"
+#include "../src/disk_layer.c"
+#include "../src/superblock_layer.c"
+
+#include "test_helpers.c"
 
 #define DBLOCK_INODE_FREELIST_TEST "altfs_dblock_inode_freelist_test"
 

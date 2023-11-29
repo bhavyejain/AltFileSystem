@@ -1,24 +1,7 @@
 #ifndef __TEST_HELPERS__
 #define __TEST_HELPERS__
 
-#include "../header/superblock_layer.h"
-#include "../header/disk_layer.h"
-
-/*
-Print the inode.
-*/
-void print_inode(struct inode** node)
-{
-    printf("\n******************** INODE ********************\n");
-    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-    {
-        printf("Direct block %ld: %ld\n", i, (*node)->i_direct_blocks[i]);
-    }
-    printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
-    printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
-    printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
-    printf("******************** INODE ********************\n\n");
-}
+#ifdef __DISK_LAYER__
 
 /*
 Print the freelist starting brom block blocknum.
@@ -50,4 +33,24 @@ int print_freelist(ssize_t blocknum)
     return buff_numptr[0];
 }
 
+#ifdef __SUPERBLOCK_LAYER__
+
+/*
+Print the inode.
+*/
+void print_inode(struct inode** node)
+{
+    printf("\n******************** INODE ********************\n");
+    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
+    {
+        printf("Direct block %ld: %ld\n", i, (*node)->i_direct_blocks[i]);
+    }
+    printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
+    printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
+    printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
+    printf("******************** INODE ********************\n\n");
+}
+
+#endif // __SUPERBLOCK_LAYER__
+#endif // __DISK_LAYER__
 #endif

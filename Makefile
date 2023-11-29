@@ -38,7 +38,7 @@ test_dblock_inode_layer: test/test_dblock_inode_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_dblock_inode_freelist: test/test_dblock_inode_freelist.c src/disk_layer.c src/superblock_layer.c src/data_block_ops.c
+test_dblock_inode_freelist: test/test_dblock_inode_freelist.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
