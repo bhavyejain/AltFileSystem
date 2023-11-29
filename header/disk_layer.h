@@ -8,7 +8,6 @@
 #define ALTFS_READ_BLOCK "altfs_read_block"
 #define ALTFS_WRITE_BLOCK "altfs_write_block"
 
-#define BLOCK_SIZE ((ssize_t) 4096)
 #define BLOCK_COUNT ((ssize_t) (FS_SIZE/BLOCK_SIZE))
 #define FS_SIZE ((ssize_t) 104857600) // TODO: put this under if condition once disk implementation is done
 

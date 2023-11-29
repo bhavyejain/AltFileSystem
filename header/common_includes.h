@@ -11,10 +11,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BLOCK_SIZE ((ssize_t) 4096)
+
 void altfs_free_memory(void *ptr)
 {
     if(ptr != NULL)
+    {
         free(ptr);
+        ptr = NULL;
+    }
 }
 
 #endif

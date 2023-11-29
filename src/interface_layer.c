@@ -12,6 +12,11 @@
 
 #define CREATE_NEW_FILE "create_new_file"
 
+bool altfs_init()
+{
+    return initialize_fs();
+}
+
 /*
 struct stat {
     dev_t     st_dev;         ID of device containing file
@@ -440,7 +445,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
     {
         return 0;
     }
-    if (offset > node->file_size)
+    if (offset >= node->file_size)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Offset %ld is greater than file size %ld.\n", READ, offset, node->i_file_size);
         return -EOVERFLOW;
@@ -726,5 +731,112 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     inode_to_stat(&node, st);
     (*st)->st_ino = inum;
     altfs_free_memory(node);
+    return 0;
+}
+
+ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
+{
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", READDIR, path);
+        return -ENOENT;
+    }
+
+    struct inode* node = get_inode(inum);
+    if(!S_ISDIR(node->i_mode))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s is not a directory.\n", READDIR, path);
+        return -ENOTDIR;
+    }
+
+    ssize_t num_blocks = node->i_blocks_num;
+    ssize_t prev = 0;
+    for(ssize_t i_block_num = 0; i_block_num < num_blocks; i_block_num++)
+    {
+        ssize_t dblock_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
+        char* dblock = read_data_block(dblock_num);
+        
+        ssize_t offset = 0;
+        ssize_t next_entry_loc = 0;
+        while(offset < LAST_POSSIBLE_RECORD)
+        {
+            char* record = dblock + offset;
+            unsigned short rec_len = ((unsigned short*)record)[0];
+            ssize_t file_inum = ((ssize_t*)(record + RECORD_LENGTH))[0];
+            unsigned short name_len = rec_len - RECORD_FIXED_LEN;
+
+            char file_name[name_len];
+            memcpy(file_name, record + RECORD_FIXED_LEN, name_len);
+
+            struct inode* file_inode = get_inode(file_inum);
+            struct stat stbuff_data;
+            memset(&stbuff_data, 0, sizeof(struct stat));
+            struct stat *stbuff = &stbuff_data;
+            inode_to_stat(&file_inode, &stbuff);
+            stbuff->st_ino = file_inum;
+            filler(buff, file_name, stbuff, 0);
+            altfs_free_memory(file_inode);
+
+            record = NULL;
+            offset += rec_len;
+        }
+        altfs_free_memory(dblock);
+    }
+    altfs_free_memory(node);
+
+    return 0;
+}
+
+ssize_t altfs_rename(const char *from, const char *to)
+{
+    // Hacky approach - copy file to the new location and remove the old one
+    // check if from exists
+    struct fuse_file_info to_fi;
+    memset(&to_fi, 0, sizeof(to_fi));
+
+    if(altfs_access(from)!=0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", RENAME, from);
+        return -ENOENT;
+    }
+    // check if to doesn't exist
+    if(altfs_access(to) == 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s already exists.\n", RENAME, to);
+        return -EEXIST;
+    }
+
+    // create to
+    ssize_t oflag = O_WRONLY | O_CREAT | O_TRUNC;
+    ssize_t status = altfs_open(to, oflag);
+    if(status < 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error creating file %s.\n", RENAME, to);
+        return status;
+    }
+
+    // copy data from -> to
+    size_t offset = 0;
+    char buffer[BLOCK_SIZE];
+    memset(buffer, 0, BLOCK_SIZE);
+    size_t bytes_read, bytes_written;
+    while((bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset)) > 0)
+    {
+        bytes_written = altfs_write(to, (void*)buffer, bytes_read, offset);
+        if(bytes_read != bytes_written){
+            fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
+            return -1;
+        }
+        offset += bytes_read;
+    }
+    // delete from
+    status = altfs_unlink(from);
+    if(status != 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error removing path %s.\n", RENAME, from);
+        return status;
+    }
+
     return 0;
 }

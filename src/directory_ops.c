@@ -319,8 +319,6 @@ bool initialize_fs()
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", INITIALIZE_FS);
 
-    // TODO: If root node is already created and we are remounting the FS, 
-    // new entries need not be created again and just verify it using allocated = true
     time_t curr_time = time(NULL);
 
     root_dir->i_allocated = true;
