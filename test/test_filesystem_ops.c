@@ -170,6 +170,18 @@ bool test_get_file_position()
         altfs_free_memory(node);
         return false;
     }
+    altfs_free_memory(fp.p_block);
+
+    // Negative test
+    struct fileposition fp2 = get_file_position_in_dir("directory4", node);
+    if(fp2.offset != -1)
+    {
+        fprintf(stderr, "%s : Incorrect offset for file %s: %ld\n", FILESYSTEM_OPS_TEST, "directory2", fp2.offset);
+        altfs_free_memory(fp2.p_block);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(fp2.p_block);
 
     printf("\n%s : Ran all tests for get file position!!!\n", FILESYSTEM_OPS_TEST);
     free_inode(inum1);
