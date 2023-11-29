@@ -400,7 +400,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
     ssize_t ending_block_num = inodeObj->i_blocks_num;
     ssize_t starting_block_num = logical_block_num;
     
-    if (logical_block_num < NUM_OF_DIRECT_BLOCKS)
+    if (logical_block_num <= NUM_OF_DIRECT_BLOCKS)
     {
         for (ssize_t i = logical_block_num; i < NUM_OF_DIRECT_BLOCKS && i < ending_block_num; i++)
         {
@@ -412,7 +412,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             inodeObj->i_direct_blocks[i] = 0;
         }
 
-        if (ending_block_num <= NUM_OF_DIRECT_BLOCKS)
+        if (ending_block_num < NUM_OF_DIRECT_BLOCKS)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             inodeObj->i_blocks_num = starting_block_num;
@@ -465,17 +465,40 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
     // Adjusting for single indirect blocks
     logical_block_num -= NUM_OF_DIRECT_BLOCKS;
     
-    if (logical_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
+    if (logical_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
     {
+        // TODO: This logic is wrong - This will get the data block in the second layer itself. 
+        // What you need is manually remove single indirect blocks and call utility for double and triple
+        // TODO: Add <= sign while comparing in if since that takes care of cases when deleting 13 / (12+512+1)th blocks onwards
         ssize_t prev_block = 0;
-        ssize_t p_block_num = get_disk_block_from_inode_block(inodeObj, starting_block_num, &prev_block);
+
+        if(inodeObj->i_single_indirect == 0)
+        {
+            fuse_log(FUSE_LOG_ERR,"%s : Single indirect block is set to 0 for inode.\n", REMOVE_DATABLOCKS_FROM_INODE);
+            return data_block_num;
+        }
+
+        // remove all nodes starting from the given logical num
+        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_single_indirect);
+        for(ssize_t i = logical_block_num; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+        {
+            if (!free_data_block(single_indirect_block_arr[i]))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect block %zd starting deletion from logical block %zd\n", REMOVE_DATABLOCKS_FROM_INODE, i, logical_block_num);
+                return false;
+            }
+            single_indirect_block_arr[i] = 0; //TODO: Check if this is needed
+        }
+
+        /*ssize_t p_block_num = get_disk_block_from_inode_block(inodeObj, starting_block_num, &prev_block);
 
         if (!remove_datablocks_utility(inodeObj, p_block_num, 1))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect blocks from block %zd to %zd\n", REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
             return false;
-        }   
-        inodeObj->i_single_indirect = 0;
+        } 
+        inodeObj->i_single_indirect = 0;*/
+
         // Adjusting for single indirect block
         ending_block_num -= NUM_OF_DIRECT_BLOCKS;
 
@@ -513,10 +536,10 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         return true;
     }
 
-    // Adjusting for single indirect blocks
+    // Adjusting for double indirect blocks
     logical_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
 
-    if (logical_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
+    if (logical_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
     {
         if(inodeObj->i_double_indirect == 0)
         {
@@ -584,7 +607,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
     logical_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
 
-    if (logical_block_num < NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR)
+    if (logical_block_num <= NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR)
     {
         if(inodeObj->i_triple_indirect == 0)
         {
