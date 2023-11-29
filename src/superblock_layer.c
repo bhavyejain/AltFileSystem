@@ -34,7 +34,7 @@ bool load_superblock()
     memset(empty_buffer, 0, BLOCK_SIZE);
     if(memcmp(sb_buffer, empty_buffer, BLOCK_SIZE) == 0)    // need to run mkfs
     {
-        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock empty!!!\n",);
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock empty!!!\n");
         return false;
     }
 
@@ -43,7 +43,7 @@ bool load_superblock()
     ssize_t t2 = INODE_BLOCK_COUNT * t1;
     if(sb->s_num_of_inodes_per_block != t1 || sb->s_inodes_count != t2)
     {
-        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock incorrect!!!\n",);
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock incorrect!!!\n");
         return false;
     }
 
@@ -51,7 +51,7 @@ bool load_superblock()
     {
         altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
     }
-    memccpy(altfs_superblock, sb, sizeof(struct superblock));
+    memcpy(altfs_superblock, sb, sizeof(struct superblock));
     altfs_free_memory(sb);
     fuse_log(FUSE_LOG_DEBUG, "load_superblock : Superblock loaded!\n");
     return true;
