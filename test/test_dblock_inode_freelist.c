@@ -164,7 +164,7 @@ int test_data_block_ops()
             return -1;
         }
 
-        fprintf(stdout, "%s : Iteration: %ld Allocated block num %d\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
+        fprintf(stdout, "%s : Iteration: %d Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
         blocks_to_free[i] = block_num;
     }
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 5 MORE BLOCKS *********************\n");
