@@ -340,6 +340,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     if(logical_block_num < NUM_OF_DIRECT_BLOCKS)
     {
         data_block_num = node->i_direct_blocks[logical_block_num];
+        // UNCOMMENT
         // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from direct block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
         return data_block_num;
     }

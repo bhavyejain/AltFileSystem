@@ -113,6 +113,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
                     ssize_t rem_block_space = BLOCK_SIZE - curr_pos - RECORD_FIXED_LEN;
                     if(rem_block_space >= file_name_len)
                     {
+                        // UNCOMMENT
                         // fuse_log(FUSE_LOG_DEBUG, "%s : Space found in data block %ld (physical block #%ld) of directory for entry.\n", ADD_DIRECTORY_ENTRY, l_block_num, p_block_num);
                         unsigned short record_length = RECORD_FIXED_LEN + short_name_length;
                         char* record = dblock + curr_pos;
