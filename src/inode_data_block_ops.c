@@ -480,7 +480,10 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
         // remove all nodes starting from the given logical num
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_single_indirect);
-        for(ssize_t i = logical_block_num; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+        // Adjusting for single indirect block
+        ending_block_num -= NUM_OF_DIRECT_BLOCKS;
+
+        for(ssize_t i = logical_block_num; i < ending_block_num; i++)
         {
             if (!free_data_block(single_indirect_block_arr[i]))
             {
@@ -498,9 +501,6 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             return false;
         } 
         inodeObj->i_single_indirect = 0;*/
-
-        // Adjusting for single indirect block
-        ending_block_num -= NUM_OF_DIRECT_BLOCKS;
 
         if (ending_block_num < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
         {
@@ -552,6 +552,9 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_double_indirect);
 
+        // Adjusting for double indirect block
+        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
         for(ssize_t i = double_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
         {
             ssize_t j = (i == double_i_idx) ? inner_idx : 0;
@@ -565,7 +568,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
             ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
 
-            for(;j < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; j++)
+            for(;j < ending_block_num; j++) // TODO: Check that this is right or not j < ending_block_num
             {
                 if (!free_data_block(single_indirect_block_arr[j]))
                 {
@@ -584,8 +587,6 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         altfs_free_memory(double_indirect_block_arr);
         inodeObj->i_double_indirect = 0;
 
-        // Adjusting for double indirect block
-        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
 
         if (ending_block_num < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
         {
