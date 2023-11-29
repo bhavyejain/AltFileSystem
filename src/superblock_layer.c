@@ -20,6 +20,43 @@ bool altfs_write_superblock()
     return true;
 }
 
+/*
+Reads the first block of memory and assigns it to the static superblock object.
+
+@return true if success, false if failure.
+*/
+bool load_superblock()
+{
+    char sb_buffer[BLOCK_SIZE];
+    memset(sb_buffer, 0, BLOCK_SIZE);
+    altfs_read_block(0, sb_buffer);
+    char empty_buffer[BLOCK_SIZE];
+    memset(empty_buffer, 0, BLOCK_SIZE);
+    if(memcmp(sb_buffer, empty_buffer, BLOCK_SIZE) == 0)    // need to run mkfs
+    {
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock empty!!!\n",);
+        return false;
+    }
+
+    struct superblock* sb = (struct superblock*)sb_buffer;
+    ssize_t t1 = (BLOCK_SIZE) / sizeof(struct inode);
+    ssize_t t2 = INODE_BLOCK_COUNT * t1;
+    if(sb->s_num_of_inodes_per_block != t1 || sb->s_inodes_count != t2)
+    {
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock incorrect!!!\n",);
+        return false;
+    }
+
+    if(altfs_superblock == NULL)
+    {
+        altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
+    }
+    memccpy(altfs_superblock, sb, sizeof(struct superblock));
+    altfs_free_memory(sb);
+    fuse_log(FUSE_LOG_DEBUG, "load_superblock : Superblock loaded!\n");
+    return true;
+}
+
 // Initializes superblock and writes to physical block 0
 bool altfs_create_superblock()
 {

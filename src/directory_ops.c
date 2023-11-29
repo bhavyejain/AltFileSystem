@@ -294,12 +294,30 @@ ssize_t name_i(const char* const file_path)
 
 // Run makefs() before running initialize
 bool initialize_fs()
-{   
+{
+    if(!load_superblock())
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : No superblock found for altfs, aborting initialization!\n", INITIALIZE_FS);
+        return false;
+    }
+
+    // Create a cache that can be used to implement namei
+    create_inode_cache(&inodeCache, CACHE_CAPACITY);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Created inode cache to retrieve inode data faster.\n", INITIALIZE_FS);
+
+    // Check for root directory
     struct inode* root_dir = get_inode(ROOT_INODE_NUM);
     if(root_dir == NULL){
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", INITIALIZE_FS);
         return false;
     }
+
+    if(root_dir->i_allocated && root_dir->i_child_num >= 2)
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.", INITIALIZE_FS);
+        return true;
+    }
+    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", INITIALIZE_FS);
 
     // TODO: If root node is already created and we are remounting the FS, 
     // new entries need not be created again and just verify it using allocated = true
@@ -339,17 +357,8 @@ bool initialize_fs()
     }
     
     fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", INITIALIZE_FS, root_dir->i_blocks_num);
-    
-    // free memory on disk/ in memory for root since it has been written to disk/ memory
-    if (root_dir != NULL)
-    {
-        free(root_dir);
-        fuse_log(FUSE_LOG_DEBUG, "%s Successfully freed memory space allocated to root entry\n", INITIALIZE_FS);
-    }
-    // Create a cache that can be used to implement namei
-    create_inode_cache(&inodeCache, CACHE_CAPACITY);
-    
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully created inode cache to retrieve inode data faster\n", INITIALIZE_FS);
+    altfs_free_memory(root_dir);
+
     return true;
 }
 
