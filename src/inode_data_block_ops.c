@@ -589,6 +589,9 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             if (j == ending_block_num)
                 break;
 
+            // Suppose ending_block_num was 520, after first iteration, 512 blocks are removed
+            ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
             // We should not free the data block if there are elements in it
             // This can happen in the first block we are starting the deletion from
             // For example - Delete from block 526 => delete from logical number 2 onwards
