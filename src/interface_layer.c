@@ -327,13 +327,14 @@ ssize_t altfs_unlink(const char* path)
     }
 
     ssize_t inum = name_i(path);
-    if(inum == -1){
+    if(inum == -1)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", UNLINK, path);
-        return -1;
+        return -ENOENT;
     }
     struct inode* node = get_inode(inum);
     // If path is a directory which is not empty, fail operation
-    if(S_ISDIR(node->i_mode) && is_empty_dir(&node))
+    if(S_ISDIR(node->i_mode) && !is_empty_dir(&node))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to unnlink, dir is not empty: %s.\n", UNLINK, path);
         altfs_free_memory(node);

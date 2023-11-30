@@ -747,16 +747,14 @@ bool test_truncate()
     }
     altfs_free_memory(node2);
     altfs_free_memory(buff);
-    
-    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
-    return true;
-}
 
-bool test_rename()
-{
-    printf("\n----- %s : Testing rename() -----\n", INTERFACE_LAYER_TEST);
-
-    
+    // Permission test
+    printf("TEST 4\n");
+    if(altfs_truncate("/dir2/file2", 0) != -EACCES)
+    {
+        fprintf(stderr, "%s : Did not fail truncate on readonly file /dir2/file2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
@@ -766,7 +764,148 @@ bool test_unlink()
 {
     printf("\n----- %s : Testing unlink() -----\n", INTERFACE_LAYER_TEST);
 
-    
+    // Prep
+    if(!altfs_mkdir("/dir3", DEFAULT_PERMISSIONS))
+    {
+        printf("Dir creation failed.\n");
+        return false;
+    }
+    ssize_t file1_inum = altfs_open("/dir3/file1", O_CREAT | DEFAULT_PERMISSIONS);
+    if(file1_inum < ROOT_INODE_NUM)
+    {
+        printf("File1 creation failed.\n");
+        return false;
+    }
+    char content[50000]; // Go till single indirect block
+    memset(content, 'a', 50000);
+    if(altfs_write("/dir3/file1", content, 50000, 0) != 50000)
+    {
+        printf("Failed writing to file1\n");
+        return false;
+    }
+    ssize_t file2_inum = altfs_open("/dir3/file2", O_CREAT | DEFAULT_PERMISSIONS);
+    if(file2_inum < ROOT_INODE_NUM)
+    {
+        printf("File2 creation failed.\n");
+        return false;
+    }
+    printf("\n");
+
+    // Validation failures
+    printf("TEST 1\n");
+    if(altfs_unlink("/dir1/file5") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Did not flag non-existing file.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_unlink("/dir3") != -ENOTEMPTY)
+    {
+        fprintf(stderr, "%s : Did not flag non-empty directory /dir2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    // Remove File 1
+    printf("TEST 2\n");
+    if(altfs_unlink("/dir3/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to unlink /dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* file1 = get_inode(file1_inum);
+    if(file1->i_allocated || file1->i_file_size != 0 || file1->i_blocks_num != 0)
+    {
+        fprintf(stderr, "%s : Failed free inode %ld for file /dir3/file1.\n", INTERFACE_LAYER_TEST, file1_inum);
+        altfs_free_memory(file1);
+        return false;
+    }
+    altfs_free_memory(file1);
+    ssize_t dir_inum = name_i("/dir3");
+    struct inode* dir = get_inode(dir_inum);
+    if(dir->i_child_num != 3)
+    {
+        fprintf(stderr, "%s : Child count for /dir3 is not 3: %ld.\n", INTERFACE_LAYER_TEST, dir->i_child_num );
+        altfs_free_memory(dir);
+        return false;
+    }
+    altfs_free_memory(dir);
+    printf("\n");
+
+    // Remove File 2
+    printf("TEST 3\n");
+    if(altfs_unlink("/dir3/file2") != 0)
+    {
+        fprintf(stderr, "%s : Failed to unlink /dir3/file2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* file2 = get_inode(file2_inum);
+    if(file2->i_allocated || file2->i_file_size != 0 || file2->i_blocks_num != 0)
+    {
+        fprintf(stderr, "%s : Failed free inode %ld for file /dir3/file2.\n", INTERFACE_LAYER_TEST, file2_inum);
+        altfs_free_memory(file2);
+        return false;
+    }
+    altfs_free_memory(file2);
+    dir = get_inode(dir_inum);
+    if(dir->i_child_num != 2)
+    {
+        fprintf(stderr, "%s : Child count for /dir3 is not 2: %ld.\n", INTERFACE_LAYER_TEST, dir->i_child_num );
+        altfs_free_memory(dir);
+        return false;
+    }
+    altfs_free_memory(dir);
+    printf("\n");
+
+    // Remove Dir 3
+    printf("TEST 4\n");
+    if(altfs_unlink("/dir3") != 0)
+    {
+        fprintf(stderr, "%s : Failed to unlink /dir3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    dir = get_inode(dir_inum);
+    if(dir->i_allocated || dir->i_file_size != 0 || dir->i_blocks_num != 0)
+    {
+        fprintf(stderr, "%s : Failed free inode %ld for directory /dir3.\n", INTERFACE_LAYER_TEST, dir_inum);
+        altfs_free_memory(dir);
+        return false;
+    }
+    altfs_free_memory(dir);
+    struct inode* root = get_inode(ROOT_INODE_NUM);
+    if(root->i_child_num != 4)
+    {
+        fprintf(stderr, "%s : Child count for / is not 4: %ld.\n", INTERFACE_LAYER_TEST, root->i_child_num );
+        altfs_free_memory(root);
+        return false;
+    }
+    altfs_free_memory(root);
+    printf("\n");
+
+    // Verify removed from inode cache
+    printf("TEST 5\n");
+    if(name_i("/dir3") != -1)
+    {
+        fprintf(stderr, "%s : Failed to empty niode cache for /dir3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(name_i("/dir3/file1") != -1)
+    {
+        fprintf(stderr, "%s : Failed to empty niode cache for /dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_rename()
+{
+    printf("\n----- %s : Testing rename() -----\n", INTERFACE_LAYER_TEST);
+
+    if(altfs_write("/dir2/file4", "This is a test string.", 22, 0) != 22)
+    {
+        fprintf(stderr, "%s : Failed to write to /dir2/file4.", INTERFACE_LAYER_TEST);
+        return false;
+    }
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
@@ -858,15 +997,15 @@ int main()
         return -1;
     }
 
+    if(!test_unlink())
+    {
+        printf("%s : Testing altfs_unlink() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
     // if(!test_rename())
     // {
     //     printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
-
-    // if(!test_unlink())
-    // {
-    //     printf("%s : Testing altfs_unlink() failed!\n", INTERFACE_LAYER_TEST);
     //     return -1;
     // }
 
