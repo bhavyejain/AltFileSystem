@@ -45,10 +45,19 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_double_indirect);
         return -1;
     }
+
     *buff_numptr = (ssize_t *)buff;
+    char *buff2 = (char*)malloc(BLOCK_SIZE);
+
     for(ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)
     {
-        ssize_t *buff_numptr2 = (ssize_t *)buff_numptr[i];
+        fprintf(stdout, "Trying to read indirect block: %zd\n", buff_numptr[i]);
+        if (!altfs_read_block(buff_numptr[i], buff2))
+        {
+            fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, buff_numptr[i]);
+            return -1;
+        }
+        ssize_t *buff_numptr2 = (ssize_t *)buff2;
         fprintf(stdout, "Single indirect block addr: %zd\n", buff_numptr2);
         for(ssize_t j = 0; j < NUM_OF_ADDRESSES_PER_BLOCK / 8; j++)
         {
