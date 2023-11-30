@@ -589,9 +589,10 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
 
 ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to write %ls bytes to %s at offset %ld.\n", WRITE, nbytes, path, offset);
     if(nbytes == 0)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s :Nbytes is 0, returning 0.\n", WRITE);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Nbytes is 0, returning 0.\n", WRITE);
         return 0;
     }
     if(offset < 0)
