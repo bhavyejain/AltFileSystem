@@ -48,12 +48,12 @@ static void inode_to_stat(struct inode** node, struct stat** st){
 ssize_t altfs_getattr(const char* path, struct stat** st)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Getting attributes for %s\n", GETATTR, path);
-    if(st = NULL)
+    if(st == NULL)
     {
         fuse_log(FUSE_LOG_ERR, "%s : stat** pointer is NULL.\n", GETATTR, path);
         return -1;
     }
-    if(*st = NULL)
+    if(*st == NULL)
     {
         fuse_log(FUSE_LOG_ERR, "%s : stat* pointer is NULL.\n", GETATTR, path);
         return -1;
