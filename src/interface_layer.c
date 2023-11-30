@@ -248,7 +248,6 @@ ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
         char* dblock = read_data_block(dblock_num);
         
         ssize_t offset = 0;
-        ssize_t next_entry_loc = 0;
         while(offset < LAST_POSSIBLE_RECORD)
         {
             char* record = dblock + offset;
@@ -265,7 +264,7 @@ ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
             struct stat *stbuff = &stbuff_data;
             inode_to_stat(&file_inode, &stbuff);
             stbuff->st_ino = file_inum;
-            filler(buff, file_name, stbuff, 0);
+            filler(buff, file_name, stbuff, 0, 0);  // check if the last value should be FUSE_FILL_DIR_PLUS
             altfs_free_memory(file_inode);
 
             record = NULL;
@@ -286,7 +285,8 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
 
     fuse_log(FUSE_LOG_DEBUG, "%s : MKNOD mode passed: %ld.\n", MKNOD, mode);
 
-    ssize_t inum = create_new_file(path, &node, mode);
+    ssize_t parent_inum;
+    ssize_t inum = create_new_file(path, &node, mode, &parent_inum);
 
     if (inum <= -1) {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to allot inode with error: %ld.\n", MKNOD, inum);
@@ -326,7 +326,7 @@ ssize_t altfs_unlink(const char* path)
     }
     struct inode* node = get_inode(inum);
     // If path is a directory which is not empty, fail operation
-    if(S_ISDIR(node->i_mode) && is_empty_dir(node))
+    if(S_ISDIR(node->i_mode) && is_empty_dir(&node))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to unnlink, dir is not empty: %s.\n", UNLINK, path);
         altfs_free_memory(node);
@@ -334,7 +334,8 @@ ssize_t altfs_unlink(const char* path)
     }
 
     ssize_t parent_inum = name_i(parent_path);
-    if(parent_path == -1){
+    if(parent_inum == -1)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for parent path: %s.\n", UNLINK, parent_path);
         return -1;
     }

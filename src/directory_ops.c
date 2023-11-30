@@ -360,7 +360,7 @@ bool setup_filesystem()
     return true;
 }
 
-bool remove_from_inode_cache(char* path)
+bool remove_from_inode_cache(const char* path)
 {
     if(!remove_cache_entry(&inodeCache, path))
     {

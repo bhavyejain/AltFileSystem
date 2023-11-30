@@ -119,6 +119,6 @@ Helper to remove a path's entry from the inode cache.
 
 @return True is success, false if failure.
 */
-bool remove_from_inode_cache(char* path);
+bool remove_from_inode_cache(const char* path);
 
 #endif
