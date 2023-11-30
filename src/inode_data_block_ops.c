@@ -567,7 +567,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
             ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
 
-            for(;j < ending_block_num && j < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR; j++) 
+            for(;j < ending_block_num && j < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; j++) 
             {
                 if (!free_data_block(single_indirect_block_arr[j]))
                 {
