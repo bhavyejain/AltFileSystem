@@ -91,6 +91,13 @@ bool test_getattr()
         return false;
     }
     altfs_free_memory(file1);
+
+    if(altfs_getattr("/file2", &st) != -ENOENT)
+    {
+        use_log(FUSE_LOG_ERR, "%s : Should have failed for /file2 but returned passed.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(st);
+        return false;
+    }
     altfs_free_memory(st);
 
     printf("\n----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
