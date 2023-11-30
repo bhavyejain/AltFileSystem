@@ -651,19 +651,19 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
                 return (bytes_written == 0) ? -1 : bytes_written;
             }
 
-            if(i == end_i_block)   // last block to be written 
-            {
-                memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
-                bytes_written += end_block_offset + 1;
-                complete = true;
-            }
-            else  // first block to be written (i == start_i_block)
+            if(i == start_i_block)  // first block to be written (i == start_i_block)
             {
                 ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
                 memcpy(buf_read + start_block_offset, buff, to_write);
                 bytes_written += to_write;
             }
-            
+            else   // last block to be written 
+            {
+                memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
+                bytes_written += end_block_offset + 1;
+            }
+            complete = (i == end_i_block) ? true : false;
+
             written = write_data_block(dblock_num, buf_read);
         }
 
