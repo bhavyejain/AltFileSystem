@@ -587,7 +587,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
     return bytes_read;
 }
 
-ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, size_t offset)
+ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t offset)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to write %ld bytes to %s at offset %ld.\n", WRITE, nbytes, path, offset);
     if(nbytes == 0)
@@ -595,6 +595,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, size_t of
         fuse_log(FUSE_LOG_DEBUG, "%s : Nbytes is 0, returning 0.\n", WRITE);
         return 0;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s : Is offset < 0? : %ld.\n", WRITE, (offset < 0));
     if(offset < 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", WRITE, offset);
@@ -611,10 +612,10 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, size_t of
     struct inode* node = get_inode(inum);
     size_t bytes_written=0;
 
-    ssize_t start_i_block = offset / BLOCK_SIZE;
-    ssize_t start_block_offset = offset % BLOCK_SIZE;
-    ssize_t end_i_block = (offset + nbytes) / BLOCK_SIZE;
-    ssize_t end_block_offset = BLOCK_SIZE - (offset + nbytes)% BLOCK_SIZE;
+    ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);
+    ssize_t start_block_offset = (ssize_t)(offset % BLOCK_SIZE);
+    ssize_t end_i_block = (ssize_t)((offset + nbytes) / BLOCK_SIZE);
+    ssize_t end_block_offset = BLOCK_SIZE - (ssize_t)((offset + nbytes)% BLOCK_SIZE);
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
     ssize_t starting_block = start_i_block - node->i_blocks_num + 1; // In case offset > file size, we might be starting some blocks after what has been allocated.
 
@@ -709,7 +710,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, size_t of
         }
     }
 
-    ssize_t bytes_to_add = (offset + bytes_written) - node->i_file_size;
+    ssize_t bytes_to_add = (ssize_t)((offset + bytes_written) - node->i_file_size);
     bytes_to_add = (bytes_to_add > 0) ? bytes_to_add : 0;
     node->i_file_size += bytes_to_add;
     if(bytes_written > 0)
