@@ -121,14 +121,14 @@ Write bytes to a file.
 ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t offset);
 
 /*
-Truncate a file after the given offset.
+Truncate a file to the given length.
 
 @param path: A c-string that contains the full path.
-@param offset: The byte-offset in the file from where the file is supposed to be truncated.
+@param length: The final length of the file.
 
 @return 0 if success, -errno if failure.
 */
-ssize_t altfs_truncate(const char* path, off_t offset);
+ssize_t altfs_truncate(const char* path, off_t length);
 
 /*
 Change the permission bits of the inode corresponding to the path.

@@ -739,9 +739,9 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     return bytes_written;
 }
 
-ssize_t altfs_truncate(const char* path, off_t offset)
+ssize_t altfs_truncate(const char* path, off_t length)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s : Truncating %s to %ld bytes.\n", TRUNCATE, path, (ssize_t)offset);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Truncating %s to %ld bytes.\n", TRUNCATE, path, (ssize_t)length);
     ssize_t inum = name_i(path);
     if(inum == -1)
     {
@@ -755,22 +755,22 @@ ssize_t altfs_truncate(const char* path, off_t offset)
         return -EACCES;
     }
 
-    if(offset < 0)
+    if(length < 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", TRUNCATE, offset);
+        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", TRUNCATE, length);
         return -EINVAL;
     }
     
-    if(offset == 0 && node->i_file_size == 0)
+    if(length == 0 && node->i_file_size == 0)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : Offset is 0 and file size is also 0.\n", TRUNCATE);
         altfs_free_memory(node);
         return 0;
     }
 
-    if(offset > node->i_file_size)
+    if(length > node->i_file_size)
     {
-        ssize_t bytes_to_add = offset - node->i_file_size + 1;
+        ssize_t bytes_to_add = length - node->i_file_size;
         char* zeros = (char*)calloc(1, bytes_to_add);
         ssize_t written = altfs_write(path, zeros, bytes_to_add, node->i_file_size);
         altfs_free_memory(node);
@@ -785,7 +785,7 @@ ssize_t altfs_truncate(const char* path, off_t offset)
         }
     }
 
-    ssize_t i_block_num = (ssize_t)(offset / BLOCK_SIZE);
+    ssize_t i_block_num = (ssize_t)(length / BLOCK_SIZE);
     if(node->i_blocks_num > i_block_num + 1){
         // Remove everything from i_block_num + 1
         remove_datablocks_from_inode(node, i_block_num + 1);
@@ -800,12 +800,12 @@ ssize_t altfs_truncate(const char* path, off_t offset)
     }
     char* data_block = read_data_block(d_block_num);
 
-    ssize_t block_offset = (ssize_t)(offset % BLOCK_SIZE);
+    ssize_t block_offset = (ssize_t)(length % BLOCK_SIZE);
     memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
     write_data_block(d_block_num, data_block);
     altfs_free_memory(data_block);
 
-    node->i_file_size = (ssize_t)offset;
+    node->i_file_size = (ssize_t)length;
     write_inode(inum, node);
     altfs_free_memory(node);
     return 0;

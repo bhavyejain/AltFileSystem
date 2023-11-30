@@ -707,9 +707,9 @@ bool test_truncate()
     }
     inum = name_i("/dir2/file4");
     struct inode* node = get_inode(inum);
-    if(node->i_file_size != 11)
+    if(node->i_file_size != 10)
     {
-        fprintf(stderr, "%s : File size is not 11. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        fprintf(stderr, "%s : File size is not 10. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
         altfs_free_memory(node);
         return false;
     }
@@ -718,7 +718,7 @@ bool test_truncate()
 
     // Shortening test
     printf("TEST 3\n");
-    if(altfs_truncate("/dir2/file3", 16381) != 0)
+    if(altfs_truncate("/dir2/file3", 16382) != 0)
     {
         fprintf(stderr, "%s : Truncate /dir2/file3 failed.\n", INTERFACE_LAYER_TEST);
         return false;
