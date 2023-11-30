@@ -20,15 +20,25 @@ ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_lengt
     return -1;
 }
 
-bool copy_parent_path(char* const buffer, const char* const parent_path, ssize_t path_len)
+bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len)
 {
-    ssize_t index = get_last_index_of_parent_path(parent_path, path_len);
-    if(index == -1){
+    ssize_t index = get_last_index_of_parent_path(path, path_len);
+    if(index == -1)
+    {
         return false;
     }
-    memcpy(buffer, parent_path, index + 1);
+
+    if(index == 0)
+    {
+        memcpy(buffer, path, 1);
+        // We add null char since buffer length will be > than path len
+        buffer[1] = '\0';
+        return true;
+    }
+
+    memcpy(buffer, path, index);
     // We add null char since buffer length will be > than path len
-    buffer[index + 1] = '\0';
+    buffer[index] = '\0';
     return true;
 } 
 
@@ -258,7 +268,10 @@ ssize_t name_i(const char* const file_path)
     // Check for presence in cache
     ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
     if (inum_from_cache > 0)
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Returning inum %ld for %s from cache.\n", NAME_I, inum_from_cache, file_path);
         return inum_from_cache;
+    }
 
     // Recursively get inum from parent
     char parent_path[file_path_len + 1];
@@ -267,7 +280,10 @@ ssize_t name_i(const char* const file_path)
     
     ssize_t parent_inum = name_i(parent_path);
     if (parent_inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Parent %s not found.\n", NAME_I, parent_path);
         return -1;
+    }
 
     struct inode* inodeObj = get_inode(parent_inum);
     char child_path[file_path_len + 1];
@@ -289,6 +305,7 @@ ssize_t name_i(const char* const file_path)
     
     altfs_free_memory(filepos.p_block);
     set_cache_entry(&inodeCache, file_path, inum);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
     return inum;
 }
 

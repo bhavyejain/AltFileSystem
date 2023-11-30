@@ -170,7 +170,8 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
 {
     // Read the data block to get the indirect data block numbers
     char buffer[BLOCK_SIZE];
-    if(!altfs_read_block(i_block_num, buffer)){
+    if(!altfs_read_block(i_block_num, buffer))
+    {
         fuse_log(FUSE_LOG_ERR, "%s Error reading data block number %ld\n", FREE_INODE, i_block_num);
         return false;
     }
@@ -317,7 +318,8 @@ bool free_inode(ssize_t inum)
     node->i_triple_indirect = 0;
     node->i_child_num = 0;
 
-    if(!altfs_write_block(block_num, buffer)){
+    if(!altfs_write_block(block_num, buffer))
+    {
         fuse_log(FUSE_LOG_ERR, "%s Error writing data to block number %ld\n", FREE_INODE, block_num);
         return false;
     }
