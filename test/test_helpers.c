@@ -4,6 +4,46 @@
 #ifdef __DISK_LAYER__
 
 /*
+Print number of free blocks in free list
+*/
+unsigned long long get_num_of_free_blocks()
+{
+    char *buffer = (char*)malloc(BLOCK_SIZE);
+    // read block 0 = superblock
+    if (!altfs_read_block(0, buffer))
+    {
+        fprintf(stderr, "%s : Failed to read block 0 for superblock\n", SUPERBLOCK_LAYER_TEST);
+        return -1;
+    }
+    struct superblock *superblockObj = (struct superblock*)buffer;
+    altfs_free_memory(buffer);
+
+    unsigned long long nextfreeblock = superblockObj->s_freelist_head;
+    unsigned long long num_of_free_blocks = 0;
+
+    while(nextfreeblock)
+    {
+        char *buff = (char*)malloc(BLOCK_SIZE);
+
+        if (!altfs_read_block(nextfreeblock, buff))
+        {
+            printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
+            return -1;
+        }
+        
+        ssize_t *buff_numptr = (ssize_t *)buff;
+        nextfreeblock = buff_numptr[0]; 
+        
+        for(int i = 1; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)
+        {
+            if (buff_numptr[i] != 0)
+                num_of_free_blocks += 1;
+        }
+    }
+    return num_of_free_blocks;
+}
+
+/*
 Print the freelist starting brom block blocknum.
 */
 int print_freelist(ssize_t blocknum)
