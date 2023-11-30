@@ -610,12 +610,12 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     }
 
     struct inode* node = get_inode(inum);
-    size_t bytes_written=0;
+    size_t bytes_written = 0;
 
     ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);
     ssize_t start_block_offset = (ssize_t)(offset % BLOCK_SIZE);
-    ssize_t end_i_block = (ssize_t)((offset + nbytes) / BLOCK_SIZE);
-    ssize_t end_block_offset = (ssize_t)((offset + nbytes) % BLOCK_SIZE);
+    ssize_t end_i_block = (ssize_t)((offset + nbytes - 1) / BLOCK_SIZE);
+    ssize_t end_block_offset = (ssize_t)((offset + nbytes - 1) % BLOCK_SIZE);
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
     ssize_t starting_block = start_i_block - node->i_blocks_num + 1; // In case offset > file size, we might be starting some blocks after what has been allocated.
 
