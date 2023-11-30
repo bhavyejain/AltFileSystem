@@ -724,7 +724,7 @@ bool test_truncate()
         return false;
     }
     inum = name_i("/dir2/file3");
-    struct indoe* node2 = get_inode(inum);
+    struct inode* node2 = get_inode(inum);
     if(node2->i_file_size != 16382)
     {
         fprintf(stderr, "%s : File size is not 16383. Found: %ld.\n", INTERFACE_LAYER_TEST, node2->i_file_size);
