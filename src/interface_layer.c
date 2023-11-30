@@ -298,16 +298,13 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
     ssize_t parent_inum;
     ssize_t inum = create_new_file(path, &node, mode, &parent_inum);
 
-    if (inum <= -1) {
+    if (inum <= -1)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to allot inode with error: %ld.\n", MKNOD, inum);
         altfs_free_memory(node);
         return false;
     }
-    if(!write_inode(inum, node)){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to write inode: %ld.\n", MKNOD, inum);
-        altfs_free_memory(node);
-        return false;
-    }
+
     altfs_free_memory(node);
     return true;
 }
@@ -442,7 +439,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
     }
 
     // Truncate if required
-    if(oflag & O_TRUNC)
+    if((bool)(oflag & O_TRUNC) && (bool)(node->i_mode & S_IWUSR))
     {
         if(altfs_truncate(path, 0) == -1)
         {
