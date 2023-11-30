@@ -554,6 +554,13 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         // Adjusting for double indirect block
         ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DIRECT_BLOCKS;
 
+        // Adjusting ending block based on logical block start
+        // Example - If we are deleting from logical block 1040 onwards for a block with 1044 blocks
+        // This resides in double indirect block with index 1 and sinlge indirect with index 4
+        // So the ending should accordingly be updated to index 8 which will be the inner index where it ends 
+        // in the double indirect block number 1
+        ending_block_num -= (512*double_i_idx);
+
         for(ssize_t i = double_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
         {
             ssize_t j = (i == double_i_idx) ? inner_idx : 0;
