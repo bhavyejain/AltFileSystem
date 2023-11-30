@@ -93,7 +93,7 @@ bool test_getattr()
     altfs_free_memory(file1);
     altfs_free_memory(st);
 
-    printf("\n----- %s : Tested getattr()! -----\n", FILESYSTEM_OPS_TEST);
+    printf("\n----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
