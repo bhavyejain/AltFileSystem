@@ -120,7 +120,7 @@ int test_add_data_block_to_inode()
     fprintf(stdout, "%s : Allocated inode with number %ld\n", INODE_DATA_BLOCK_OPS, inum);
 
     struct inode* node = get_inode(inum);
-    int num_of_blocks_to_allocate = 20; //+ 512;
+    int num_of_blocks_to_allocate = 20 + 512;
     // Allocate 20+512 data blocks to inode
     for(int i = 0; i < num_of_blocks_to_allocate; i++)
     {
