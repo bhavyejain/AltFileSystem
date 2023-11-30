@@ -391,7 +391,7 @@ bool remove_datablocks_utility(struct inode* inodeObj, ssize_t p_block_num, ssiz
 
 bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_num)
 {
-    if (logical_block_num >= inodeObj->i_blocks_num)
+    if (logical_block_num > inodeObj->i_blocks_num)
     {
         fuse_log(FUSE_LOG_ERR, "%s : file block number is greater than number of blocks in inode \n", REMOVE_DATABLOCKS_FROM_INODE);
         return false;
