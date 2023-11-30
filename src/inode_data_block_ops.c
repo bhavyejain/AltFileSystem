@@ -495,6 +495,12 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             single_indirect_block_arr[i] = 0; //TODO: Check if this is needed
         }
 
+        if(!write_data_block(inodeObj->i_single_indirect, single_indirect_block_arr))
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified single indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
+            return false;
+        }
+
         if (ending_block_num <= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR)
         {
             fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
