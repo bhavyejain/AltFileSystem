@@ -128,7 +128,7 @@ static int fuse_unlink(const char* path)
 
 static int fuse_write(const char* path, const char* buff, size_t size, off_t offset, struct fuse_file_info* fi)
 {
-    return altfs_write(path, (void*)buff, size, offset);
+    return altfs_write(path, buff, size, offset);
 }
 
 static int fuse_rename(const char *from, const char *to, unsigned int flags)

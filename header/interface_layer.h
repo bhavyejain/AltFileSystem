@@ -106,7 +106,7 @@ Read bytes from a file.
 
 @return The actual number of bytes read.
 */
-ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset);
+ssize_t altfs_read(const char* path, void* buff, size_t nbytes, off_t offset);
 
 /*
 Write bytes to a file.
@@ -118,17 +118,17 @@ Write bytes to a file.
 
 @return Actual number of bytes written if data written, -1 if not written.
 */
-ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset);
+ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t offset);
 
 /*
-Truncate a file after the given offset.
+Truncate a file to the given length.
 
 @param path: A c-string that contains the full path.
-@param offset: The byte-offset in the file from where the file is supposed to be truncated.
+@param length: The final length of the file.
 
-@return 0 if success, -1 if failure.
+@return 0 if success, -errno if failure.
 */
-ssize_t altfs_truncate(const char* path, size_t offset);
+ssize_t altfs_truncate(const char* path, off_t length);
 
 /*
 Change the permission bits of the inode corresponding to the path.
