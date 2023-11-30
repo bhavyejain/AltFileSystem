@@ -585,11 +585,15 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
             altfs_free_memory(single_indirect_block_arr);
             
+            // if ending_block_num is reached, break out of loop
+            if (j == ending_block_num)
+                break;
+
             // We should not free the data block if there are elements in it
             // This can happen in the first block we are starting the deletion from
             // For example - Delete from block 526 => delete from logical number 2 onwards
             // The single indirect corresponding to this should not be freed
-            if (j != ending_block_num)
+            if (!(i == double_i_idx && j > 0))
             {
                 if (!free_data_block(data_block_num))
                 {
