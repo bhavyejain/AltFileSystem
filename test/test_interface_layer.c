@@ -104,7 +104,7 @@ bool test_getattr()
     }
     altfs_free_memory(st);
 
-    printf("----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
@@ -132,7 +132,90 @@ bool test_access()
         return false;
     }
 
-    printf("----- %s : Tested access()! -----\n", INTERFACE_LAYER_TEST);
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_mkdir()
+{
+    printf("\n----- %s : Testing mkdir() -----\n", INTERFACE_LAYER_TEST);
+    
+    // Already exists
+    if(altfs_mkdir("/dir1", DEFAULT_PERMISSIONS))
+    {
+        fprintf(stderr, "%s : Directory already existed, but did not fail.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Parent does not exist
+    if(altfs_mkdir("/dir2/dir1", DEFAULT_PERMISSIONS))
+    {
+        fprintf(stderr, "%s : Parent does not exist, but did not fail.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Should succeed
+    if(!altfs_mkdir("/dir2", DEFAULT_PERMISSIONS))
+    {
+        fprintf(stderr, "%s : Failed to create directory /dir2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    ssize_t dir2_inum = name_i("/dir2");
+    struct inode* dir2 = get_inode(dir2_inum);
+    if(dir2->i_blocks_num != 1)
+    {
+        fprintf(stderr, "%s : Incorrect number of blocks in directory /dir2: %ld\n", INTERFACE_LAYER_TEST, dir2->i_blocks_num);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    printf("\n");
+
+    // Check for entry "."
+    struct fileposition fp = get_file_position_in_dir(".", dir2);
+    if(fp.offset == -1)
+    {
+        fprintf(stderr, "%s : Failed to locate . in directory /dir2.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    char* record = fp.p_block + fp.offset;
+    ssize_t t1 = ((ssize_t*)(record + RECORD_LENGTH))[0];
+    if(t1 != dir2_inum)
+    {
+        fprintf(stderr, "%s : Wrong inum for . in directory /dir2.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    altfs_free_memory(fp.p_block);
+    printf("\n");
+
+    // Check for entry ".."
+    fp = get_file_position_in_dir("..", dir2);
+    if(fp.offset == -1)
+    {
+        fprintf(stderr, "%s : Failed to locate .. in directory /dir2.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    char* record = fp.p_block + fp.offset;
+    t1 = ((ssize_t*)(record + RECORD_LENGTH))[0];
+    if(t1 != ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : Wrong inum for .. in directory /dir2.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(fp.p_block);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    altfs_free_memory(fp.p_block);
+
+    altfs_free_memory(dir2);
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
@@ -163,6 +246,12 @@ int main()
     if(!test_access())
     {
         printf("%s : Testing altfs_access() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
+    if(!test_mkdir())
+    {
+        printf("%s : Testing altfs_mkdir() failed!\n", INTERFACE_LAYER_TEST);
         return -1;
     }
 
