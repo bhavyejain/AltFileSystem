@@ -87,7 +87,7 @@ bool test_getattr()
     }
     if(st->st_ino != file_inum || st->st_blocks != file1->i_blocks_num || st->st_size != 0)
     {
-        fprintf(stderr, "%s : Wrong values stored in st for /dir1/file1. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
+        fprintf(stderr, "%s : Wrong values stored in st for /dir1/file1. Should be (%ld, %ld, %d), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
             file_inum, file1->i_blocks_num, 0, st->st_ino, st->st_blocks, st->st_size);
         altfs_free_memory(file1);
         altfs_free_memory(st);
