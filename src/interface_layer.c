@@ -429,7 +429,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
             return -EACCES;
         }
     }
-    if((oflag & O_WRONLY) || (oflag & O_RDWR)) // Needs read permission
+    if((oflag & O_WRONLY) || (oflag & O_RDWR)) // Needs write permission
     {
         if(!(bool)(node->i_mode & S_IWUSR))
         {

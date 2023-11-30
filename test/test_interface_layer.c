@@ -240,7 +240,7 @@ bool test_mknod()
 {
     printf("\n----- %s : Testing mknod() -----\n", INTERFACE_LAYER_TEST);
     
-    if(!altfs_mknod("/dir2/file2", S_IFREG|DEFAULT_PERMISSIONS, -1))
+    if(!altfs_mknod("/dir2/file2", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
     {
         fprintf(stderr, "%s : Failed to create file /dir2/file2.\n", INTERFACE_LAYER_TEST);
         return false;
@@ -268,6 +268,130 @@ bool test_mknod()
     }
 
     altfs_free_memory(node);
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_open()
+{
+    printf("\n----- %s : Testing open() -----\n", INTERFACE_LAYER_TEST);
+
+    // Open non existing file
+    if(altfs_open("/file3", O_RDONLY) != -ENOENT)
+    {
+        fprintf(stderr, "%s : Did not fail for non existing file /file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Open non existing file with O_CREAT
+    ssize_t file3_inum = altfs_open("/dir2/file3", O_RDWR|O_CREAT);
+    if(file3_inum < ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : Failed to create file /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* file3 = get_inode(file3_inum);
+    if(file3->i_blocks_num != 0 || file3->i_file_size != 0)
+    {
+        fprintf(stderr, "%s : File /dir2/file3 created incorrectly.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(file3);
+        return false;
+    }
+    altfs_free_memory(file3);
+    if(name_i("/dir2/file3") != file3_inum)
+    {
+        fprintf(stderr, "%s : Namei did not work correctly for file /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Open valid file with correct permissions
+    if(altfs_open("/dir1/file1", O_RDWR) < ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : Failed to open file /dir1/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Fail becuase of permissions
+    if(altfs_open("/dir2/file2", O_WRONLY) != -EACCES)
+    {
+        fprintf(stderr, "%s : Permissions did not check correctly for /dir2/file2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    
+    // TODO: Add test for truncate
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_write()
+{
+    printf("\n----- %s : Testing write() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_read()
+{
+    printf("\n----- %s : Testing read() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_truncate()
+{
+    printf("\n----- %s : Testing truncate() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_rename()
+{
+    printf("\n----- %s : Testing rename() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_unlink()
+{
+    printf("\n----- %s : Testing unlink() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_chmod()
+{
+    printf("\n----- %s : Testing chmod() -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_permissions()
+{
+    printf("\n----- %s : Testing permissions -----\n", INTERFACE_LAYER_TEST);
+
+    
+    
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
@@ -313,6 +437,54 @@ int main()
         printf("%s : Testing altfs_mknod() failed!\n", INTERFACE_LAYER_TEST);
         return -1;
     }
+
+    if(!test_open())
+    {
+        printf("%s : Testing altfs_open() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
+    // if(!test_write())
+    // {
+    //     printf("%s : Testing altfs_write() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_read())
+    // {
+    //     printf("%s : Testing altfs_read() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_truncate())
+    // {
+    //     printf("%s : Testing altfs_truncate() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_rename())
+    // {
+    //     printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_unlink())
+    // {
+    //     printf("%s : Testing altfs_unlink() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_chmod())
+    // {
+    //     printf("%s : Testing altfs_chmod() failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
+
+    // if(!test_permissions())
+    // {
+    //     printf("%s : Testing permission control failed!\n", INTERFACE_LAYER_TEST);
+    //     return -1;
+    // }
 
     printf("=============== ALL TESTS RUN =============\n\n");
     return 0;
