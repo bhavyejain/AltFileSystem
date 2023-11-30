@@ -738,7 +738,7 @@ bool test_truncate()
         return false;
     }
     char* buff = read_data_block(node2->i_direct_blocks[3]);
-    if(strncpy("aaa00", buff + 4091, 5) != 0)
+    if(strncmp("aaa00", buff + 4091, 5) != 0)
     {
         fprintf(stderr, "%s : File not truncated properly. Found: %.5s.\n", INTERFACE_LAYER_TEST, buff + 4091);
         altfs_free_memory(node2);
