@@ -58,6 +58,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
             fprintf(stdout, "Double indirect block num <= 0.\n");
             return -1;
         }
+        fprintf(stdout, "Single indirect block num %zd\n", data_block_num);
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
         for (ssize_t j = 0; j < NUM_OF_ADDRESSES_PER_BLOCK / 8; j++)
