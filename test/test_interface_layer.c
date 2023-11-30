@@ -574,9 +574,100 @@ bool test_write()
 bool test_read()
 {
     printf("\n----- %s : Testing read() -----\n", INTERFACE_LAYER_TEST);
+    char* buffer = (char*)calloc(1, 24);
 
-    
-    
+    // Tests assume the file was opened for reading before so the file exists.
+    printf("TEST 1\n");
+    if(altfs_read("/dir2/file3", buffer, 0, 0) != 0)
+    {
+        fprintf(stderr, "%s : Did not return 0 when tried to read 0 bytes.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_read("/dir2/file3", buffer, 1, -1) != -EINVAL)
+    {
+        fprintf(stderr, "%s : Did not return error when tried to read at negative offset.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_read("/dir2/file3", buffer, 1, 20486) != -EOVERFLOW)
+    {
+        fprintf(stderr, "%s : Did not return error when tried to read at overflow offset.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Read from a single block
+    printf("TEST 2\n");
+    if(altfs_read("/dir2/file3", buffer, 12, 0) != 12)
+    {
+        fprintf(stderr, "%s : Did not read first 12 bytes fully from /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(strncmp(buffer, "Hello world!", 12) != 0)
+    {
+        fprintf(stderr, "%s : Did not read data correctly from /dir2/file3. Should be: |Hello world!|, got: %.12s\n", INTERFACE_LAYER_TEST, buffer);
+        return false;
+    }
+    if(altfs_read("/dir2/file3", buffer, 12, 11) != 12)
+    {
+        fprintf(stderr, "%s : Did not read 12 bytes fully from /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(strncmp(buffer, "!Hello world", 12) != 0)
+    {
+        fprintf(stderr, "%s : Did not read data correctly from /dir2/file3. Should be: |!Hello world|, got: %.12s\n", INTERFACE_LAYER_TEST, buffer);
+        return false;
+    }
+    printf("\n");
+    memset(buffer, 0, 24);
+
+    // Read from 2 blocks
+    printf("TEST 3\n");
+    if(altfs_read("/dir2/file3", buffer, 10, 4091) != 10)
+    {
+        fprintf(stderr, "%s : Did not read first 10 bytes fully from /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(strncmp(buffer, "aaaaaaaaaa", 10) != 0)
+    {
+        fprintf(stderr, "%s : Did not read data correctly from /dir2/file3. Should be: |aaaaaaaaaa|, got: %.10s\n", INTERFACE_LAYER_TEST, buffer);
+        return false;
+    }
+    printf("\n");
+    memset(buffer, 0, 24);
+
+    // Read from 3 blocks
+    printf("TEST 4\n");
+    realloc(buffer, 4106);
+    if(altfs_read("/dir2/file3", buffer, 4106, 4091) != 4106)
+    {
+        fprintf(stderr, "%s : Did not read first 10 bytes fully from /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    char test_buf[4106];
+    memset(test_buf, 'a', 4106);
+    if(strncmp(buffer, test_buf, 4106) != 0)
+    {
+        fprintf(stderr, "%s : Did not read data correctly from /dir2/file3. Should be: all a's, got: %.4106s\n", INTERFACE_LAYER_TEST, buffer);
+        return false;
+    }
+    printf("\n");
+    memset(buffer, 0, 100);
+
+    // Read towards end of file
+    printf("TEST 5\n");
+    if(altfs_read("/dir2/file3", buffer, 10, 20480) != 5)
+    {
+        fprintf(stderr, "%s : Did not read correct number of last bytes from /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(strncmp(buffer, "aaaaa", 5) != 0)
+    {
+        fprintf(stderr, "%s : Did not read data correctly from /dir2/file3. Should be: |aaaaa|, got: %.5s\n", INTERFACE_LAYER_TEST, buffer);
+        return false;
+    }
+
+    free(buffer);
+    buffer = NULL;
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
@@ -685,11 +776,11 @@ int main()
         return -1;
     }
 
-    // if(!test_read())
-    // {
-    //     printf("%s : Testing altfs_read() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
+    if(!test_read())
+    {
+        printf("%s : Testing altfs_read() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
 
     // if(!test_truncate())
     // {

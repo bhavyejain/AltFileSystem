@@ -106,7 +106,7 @@ Read bytes from a file.
 
 @return The actual number of bytes read.
 */
-ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset);
+ssize_t altfs_read(const char* path, void* buff, size_t nbytes, off_t offset);
 
 /*
 Write bytes to a file.

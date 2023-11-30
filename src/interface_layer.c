@@ -465,8 +465,9 @@ ssize_t altfs_close(ssize_t file_descriptor)
     return 0;
 }
 
-ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
+ssize_t altfs_read(const char* path, void* buff, size_t nbytes, off_t offset)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to read %ld bytes from %s.\n", READ, nbytes, path);
     if(nbytes == 0)
     {
         return 0;
@@ -584,6 +585,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
         fuse_log(FUSE_LOG_ERR, "%s : Could not write inode %ld.\n", READ, inum);
     }
     altfs_free_memory(node);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Read %ld bytes from %s.\n", READ, bytes_read, path);
     return bytes_read;
 }
 
