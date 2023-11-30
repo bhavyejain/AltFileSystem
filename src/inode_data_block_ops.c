@@ -495,7 +495,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
             single_indirect_block_arr[i] = 0; // To ensure the i_single_indirect is updated based on free nodes
         }
 
-        if(!write_data_block(inodeObj->i_single_indirect, single_indirect_block_arr))
+        if(!write_data_block(inodeObj->i_single_indirect, (char*)single_indirect_block_arr))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified single indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
             return false;
@@ -577,7 +577,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                 single_indirect_block_arr[j] = 0; // To ensure the i_double_indirect's indirect block is updated based on free nodes
             }
 
-            if(!write_data_block(data_block_num, single_indirect_block_arr))
+            if(!write_data_block(data_block_num, (char*)single_indirect_block_arr))
             {
                 fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified double indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
                 return false;
@@ -664,12 +664,12 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                     single_indirect_block_arr[k] = 0; // To ensure the i_triple_indirect's indirect block is updated based on free nodes
                 }
 
-                if(!write_data_block(double_indirect_data_block_num, single_indirect_block_arr))
+                if(!write_data_block(double_indirect_data_block_num, (char*)single_indirect_block_arr))
                 {
                     fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified triple indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
                     return false;
                 }
-                
+
                 altfs_free_memory(single_indirect_block_arr);
             }
             altfs_free_memory(double_indirect_block_arr);
