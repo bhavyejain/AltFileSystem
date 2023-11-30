@@ -118,7 +118,7 @@ Write bytes to a file.
 
 @return Actual number of bytes written if data written, -1 if not written.
 */
-ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset);
+ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, size_t offset);
 
 /*
 Truncate a file after the given offset.
