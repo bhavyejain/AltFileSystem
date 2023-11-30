@@ -121,7 +121,7 @@ int test_add_data_block_to_inode()
 
     struct inode* node = get_inode(inum);
 
-    ssize_t num_of_blocks_to_allocate[] = {8, 12, 100, 524, 550}; // TODO: Add more for triple indirect once moved to disk
+    ssize_t num_of_blocks_to_allocate[] = {8, 12, 100, 524, 530}; // TODO: Add more for triple indirect once moved to disk
     
     for(int k = 0; k < sizeof(num_of_blocks_to_allocate)/sizeof(num_of_blocks_to_allocate[0]); k++)
     {
@@ -153,7 +153,7 @@ int test_add_data_block_to_inode()
         print_inode_data_blocks(node, inum);
 
         // Verify removing data blocks - it removes data blocks starting from the given block number until the end
-        ssize_t blocks_to_remove[] = {3, 8, 12, 14, 16, 60, 524, 530, 550}; // TODO: Add more here for triple indirect once moved to disk
+        ssize_t blocks_to_remove[] = {3, 8, 12, 14, 16, 60, 524, 526, 530}; // TODO: Add more here for triple indirect once moved to disk
         ssize_t n = sizeof(blocks_to_remove)/sizeof(blocks_to_remove[0]);
         for(int i = 0; i < n; i++)
         {
