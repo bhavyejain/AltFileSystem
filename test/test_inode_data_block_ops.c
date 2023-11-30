@@ -157,8 +157,16 @@ int test_add_data_block_to_inode()
         ssize_t n = sizeof(blocks_to_remove)/sizeof(blocks_to_remove[0]);
         for(int i = 0; i < n; i++)
         {
+            fprintf(stdout, "%s: Blocks to remove: %zd Blocks allocated: %zd\n", blocks_to_remove[i], num_of_blocks_to_allocate[k])
             if (blocks_to_remove[i] > num_of_blocks_to_allocate[k])
+            {
+                if (!remove_datablocks_from_inode(node, 0))
+                {
+                    fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
+                    return -1;
+                }
                 break;
+            }
 
             if (!remove_datablocks_from_inode(node, blocks_to_remove[i]))
             {
