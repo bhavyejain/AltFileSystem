@@ -20,15 +20,25 @@ ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_lengt
     return -1;
 }
 
-bool copy_parent_path(char* const buffer, const char* const parent_path, ssize_t path_len)
+bool copy_parent_path(char* const buffer, const char* const path, ssize_t path_len)
 {
-    ssize_t index = get_last_index_of_parent_path(parent_path, path_len);
-    if(index == -1){
+    ssize_t index = get_last_index_of_parent_path(path, path_len);
+    if(index == -1)
+    {
         return false;
     }
-    memcpy(buffer, parent_path, index + 1);
+
+    if(index == 0)
+    {
+        memcpy(buffer, path, 1);
+        // We add null char since buffer length will be > than path len
+        buffer[1] = '\0';
+        return true;
+    }
+
+    memcpy(buffer, path, index);
     // We add null char since buffer length will be > than path len
-    buffer[index + 1] = '\0';
+    buffer[index] = '\0';
     return true;
 } 
 
