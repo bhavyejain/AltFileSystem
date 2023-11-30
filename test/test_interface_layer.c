@@ -307,7 +307,7 @@ bool test_open()
     printf("\n");
 
     // Open valid file with correct permissions
-    if(altfs_open("/dir1/file1", O_RDWR) < ROOT_INODE_NUM)
+    if(altfs_open("/dir1/file3", O_RDWR) < ROOT_INODE_NUM)
     {
         fprintf(stderr, "%s : Failed to open file /dir1/file1.\n", INTERFACE_LAYER_TEST);
         return false;
