@@ -153,7 +153,8 @@ int test_add_data_block_to_inode()
         print_inode_data_blocks(node, inum);
 
         // Verify removing data blocks - it removes data blocks starting from the given block number until the end
-        ssize_t blocks_to_remove[] = {3, 8, 12, 14, 16, 60, 524, 526, 530}; // TODO: Add more here for triple indirect once moved to disk
+        // NOTE - logical block numbers start from 0
+        ssize_t blocks_to_remove[] = {3, 7, 8, 11, 12, 14, 16, 60, 523, 524, 526, 530}; // TODO: Add more here for triple indirect once moved to disk
         ssize_t n = sizeof(blocks_to_remove)/sizeof(blocks_to_remove[0]);
         for(int i = 0; i < n; i++)
         {
