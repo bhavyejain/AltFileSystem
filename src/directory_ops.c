@@ -278,12 +278,10 @@ ssize_t name_i(const char* const file_path)
     if (!copy_parent_path(parent_path, file_path, file_path_len))
         return -1;
     
-    fuse_log(FUSE_LOG_DEBUG, "%s : Parent for %s : %s\n", NAME_I, file_path, parent_path);
-    
     ssize_t parent_inum = name_i(parent_path);
     if (parent_inum == -1)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Parent %ld not found.\n", NAME_I, parent_inum);
+        fuse_log(FUSE_LOG_ERR, "%s : Parent %s not found.\n", NAME_I, parent_path);
         return -1;
     }
 
@@ -307,7 +305,7 @@ ssize_t name_i(const char* const file_path)
     
     altfs_free_memory(filepos.p_block);
     set_cache_entry(&inodeCache, file_path, inum);
-    fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
     return inum;
 }
 
