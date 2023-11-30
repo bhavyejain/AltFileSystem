@@ -32,6 +32,7 @@ struct stat {
 }
 */
 static void inode_to_stat(struct inode** node, struct stat** st){
+    fuse_log(FUSE_LOG_DEBUG, "Filling st with inode info...\n");
     (*st)->st_mode = (*node)->i_mode;
     (*st)->st_nlink = (*node)->i_links_count;
     (*st)->st_uid = 0; // only one user for now
@@ -43,10 +44,13 @@ static void inode_to_stat(struct inode** node, struct stat** st){
     (*st)->st_atime = (*node)->i_atime;
     (*st)->st_ctime = (*node)->i_ctime;
     (*st)->st_mtime = (*node)->i_mtime;
+    fuse_log(FUSE_LOG_DEBUG, "Filling complete...\n");
 }
 
 ssize_t altfs_getattr(const char* path, struct stat** st)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Getting attributes for %s\n", GETATTR, path);
+
     memset(st, 0, sizeof(struct stat));
     ssize_t inum = name_i(path);
     if(inum == -1)
@@ -56,6 +60,12 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     }
 
     struct inode* node = get_inode(inum);
+    if(node == NULL)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", GETATTR, path);
+        return -1;
+    }
+
     inode_to_stat(&node, st);
     (*st)->st_ino = inum;
     altfs_free_memory(node);
@@ -248,7 +258,6 @@ ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
         char* dblock = read_data_block(dblock_num);
         
         ssize_t offset = 0;
-        ssize_t next_entry_loc = 0;
         while(offset < LAST_POSSIBLE_RECORD)
         {
             char* record = dblock + offset;
@@ -265,7 +274,7 @@ ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
             struct stat *stbuff = &stbuff_data;
             inode_to_stat(&file_inode, &stbuff);
             stbuff->st_ino = file_inum;
-            filler(buff, file_name, stbuff, 0);
+            filler(buff, file_name, stbuff, 0, 0);  // check if the last value should be FUSE_FILL_DIR_PLUS
             altfs_free_memory(file_inode);
 
             record = NULL;
@@ -286,7 +295,8 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
 
     fuse_log(FUSE_LOG_DEBUG, "%s : MKNOD mode passed: %ld.\n", MKNOD, mode);
 
-    ssize_t inum = create_new_file(path, &node, mode);
+    ssize_t parent_inum;
+    ssize_t inum = create_new_file(path, &node, mode, &parent_inum);
 
     if (inum <= -1) {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to allot inode with error: %ld.\n", MKNOD, inum);
@@ -326,7 +336,7 @@ ssize_t altfs_unlink(const char* path)
     }
     struct inode* node = get_inode(inum);
     // If path is a directory which is not empty, fail operation
-    if(S_ISDIR(node->i_mode) && is_empty_dir(node))
+    if(S_ISDIR(node->i_mode) && is_empty_dir(&node))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to unnlink, dir is not empty: %s.\n", UNLINK, path);
         altfs_free_memory(node);
@@ -334,7 +344,8 @@ ssize_t altfs_unlink(const char* path)
     }
 
     ssize_t parent_inum = name_i(parent_path);
-    if(parent_path == -1){
+    if(parent_inum == -1)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for parent path: %s.\n", UNLINK, parent_path);
         return -1;
     }
@@ -482,7 +493,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
     {
         return 0;
     }
-    if (offset >= node->file_size)
+    if (offset >= node->i_file_size)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Offset %ld is greater than file size %ld.\n", READ, offset, node->i_file_size);
         return -EOVERFLOW;
@@ -626,7 +637,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
         {
             memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;
-            written = write_data_block(dblock_num, overwrite_buf)
+            written = write_data_block(dblock_num, overwrite_buf);
         }
         else
         {
@@ -691,13 +702,13 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
             bytes_written += BLOCK_SIZE;
         }
 
-        if(!write_data_block(new_block_num, buffer))
+        if(!write_data_block(new_block_num, overwrite_buf))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, new_block_num);
             break;
         }
     }
-    altfs_free_memory(buffer);
+    altfs_free_memory(overwrite_buf);
 
     ssize_t bytes_to_add = (offset + bytes_written) - node->i_file_size;
     bytes_to_add = (bytes_to_add > 0) ? bytes_to_add : 0;
@@ -754,10 +765,10 @@ ssize_t altfs_truncate(const char* path, size_t offset)
 
     ssize_t block_offset = offset % BLOCK_SIZE;
     memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
-    write_dblock(d_block_num, data_block);
+    write_data_block(d_block_num, data_block);
     altfs_free_memory(data_block);
 
-    node->file_size = offset;
+    node->i_file_size = offset;
     write_inode(inum, node);
     altfs_free_memory(node);
     return 0;

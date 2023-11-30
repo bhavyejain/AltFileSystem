@@ -34,7 +34,7 @@ bool test_getattr()
 
     struct inode* file1 = get_inode(file_inum);
 
-    struct stat* st = (struct stat*)calloc(sizeof(struct stat));
+    struct stat* st = (struct stat*)calloc(1, sizeof(struct stat));
     if(!altfs_getattr("/", &st))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /.\n", INTERFACE_LAYER_TEST);
@@ -93,7 +93,7 @@ bool test_getattr()
     altfs_free_memory(file1);
     altfs_free_memory(st);
 
-    printf("\n----- %s : Tested getattr()! -----\n", FILESYSTEM_OPS_TEST);
+    printf("\n----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
 

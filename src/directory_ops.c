@@ -251,7 +251,7 @@ ssize_t name_i(const char* const file_path)
 
     if (file_path_len == 1 && file_path[0] == '/')
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Path length is /. Returning root inum\n", NAME_I);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Path is /. Returning root inum\n", NAME_I);
         return ROOT_INODE_NUM;
     }
 
@@ -360,7 +360,7 @@ bool setup_filesystem()
     return true;
 }
 
-bool remove_from_inode_cache(char* path)
+bool remove_from_inode_cache(const char* path)
 {
     if(!remove_cache_entry(&inodeCache, path))
     {
