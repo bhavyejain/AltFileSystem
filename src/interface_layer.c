@@ -615,7 +615,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);
     ssize_t start_block_offset = (ssize_t)(offset % BLOCK_SIZE);
     ssize_t end_i_block = (ssize_t)((offset + nbytes) / BLOCK_SIZE);
-    ssize_t end_block_offset = BLOCK_SIZE - (ssize_t)((offset + nbytes)% BLOCK_SIZE);
+    ssize_t end_block_offset = (ssize_t)((offset + nbytes) % BLOCK_SIZE);
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
     ssize_t starting_block = start_i_block - node->i_blocks_num + 1; // In case offset > file size, we might be starting some blocks after what has been allocated.
 
@@ -652,13 +652,14 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
 
             if(i == start_i_block)  // first block to be written
             {
-                memcpy(buf_read + start_block_offset, buff, BLOCK_SIZE - start_block_offset);
-                bytes_written += BLOCK_SIZE - start_block_offset;
+                ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
+                memcpy(buf_read + start_block_offset, buff, to_write);
+                bytes_written += to_write;
             }
             else   // last block to be written (i == end_i_block)
             {
-                memcpy(buf_read, buff + bytes_written, BLOCK_SIZE - end_block_offset);
-                bytes_written += BLOCK_SIZE - end_block_offset;
+                memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
+                bytes_written += end_block_offset + 1;
                 break;
             }
             written = write_data_block(dblock_num, buf_read);
@@ -693,9 +694,14 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         if(i == new_blocks_to_be_added) // last block to be written
         {
             memset(overwrite_buf, 0, BLOCK_SIZE);
-            memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE - end_block_offset);
-            ssize_t temp = BLOCK_SIZE - end_block_offset;
-            bytes_written += temp;
+            memcpy(overwrite_buf, buff + bytes_written, end_block_offset + 1);
+            bytes_written += end_block_offset + 1;
+        }
+        else if(starting_block >= 1 && i == starting_block) // first block with data; only goes in if overall starts writing here
+        {
+            ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
+            memcpy(buf_read + start_block_offset, buff, to_write);
+            bytes_written += to_write;
         }
         else if(i >= starting_block)    // write entire block
         {
