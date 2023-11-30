@@ -35,6 +35,8 @@ bool test_getattr()
     struct inode* file1 = get_inode(file_inum);
     printf("\n");
 
+    // Test for root /
+    printf("TEST 1\n");
     struct stat* st = (struct stat*)calloc(1, sizeof(struct stat));
     if(altfs_getattr("/", &st) != 0)
     {
@@ -58,6 +60,8 @@ bool test_getattr()
     altfs_free_memory(root);
     printf("\n");
 
+    // Test for /dir1
+    printf("TEST 2\n");
     if(altfs_getattr("/dir1", &st) != 0)
     {
         fprintf(stderr, "%s : Failed to get attributes for /dir1.\n", INTERFACE_LAYER_TEST);
@@ -78,6 +82,8 @@ bool test_getattr()
     altfs_free_memory(dir1);
     printf("\n");
 
+    // Test for /dir1/file1
+    printf("TEST 3\n");
     if(altfs_getattr("/dir1/file1", &st) != 0)
     {
         fprintf(stderr, "%s : Failed to get attributes for /dir1/file1.\n", INTERFACE_LAYER_TEST);
@@ -96,6 +102,8 @@ bool test_getattr()
     altfs_free_memory(file1);
     printf("\n");
 
+    // Test for /file2
+    printf("TEST 4\n");
     if(altfs_getattr("/file2", &st) != -ENOENT)
     {
         fprintf(stderr, "%s : Should have failed for /file2 but returned passed.\n", INTERFACE_LAYER_TEST);
@@ -141,6 +149,7 @@ bool test_mkdir()
     printf("\n----- %s : Testing mkdir() -----\n", INTERFACE_LAYER_TEST);
     
     // Already exists
+    printf("TEST 1\n");
     if(altfs_mkdir("/dir1", DEFAULT_PERMISSIONS))
     {
         fprintf(stderr, "%s : Directory already existed, but did not fail.\n", INTERFACE_LAYER_TEST);
@@ -149,6 +158,7 @@ bool test_mkdir()
     printf("\n");
 
     // Parent does not exist
+    printf("TEST 2\n");
     if(altfs_mkdir("/dir2/dir1", DEFAULT_PERMISSIONS))
     {
         fprintf(stderr, "%s : Parent does not exist, but did not fail.\n", INTERFACE_LAYER_TEST);
@@ -157,6 +167,7 @@ bool test_mkdir()
     printf("\n");
 
     // Should succeed
+    printf("TEST 3\n");
     if(!altfs_mkdir("/dir2", DEFAULT_PERMISSIONS))
     {
         fprintf(stderr, "%s : Failed to create directory /dir2.\n", INTERFACE_LAYER_TEST);
@@ -191,6 +202,7 @@ bool test_mkdir()
     printf("\n");
 
     // Check for entry "."
+    printf("TEST 4\n");
     struct fileposition fp = get_file_position_in_dir(".", dir2);
     if(fp.offset == -1)
     {
@@ -212,6 +224,7 @@ bool test_mkdir()
     printf("\n");
 
     // Check for entry ".."
+    printf("TEST 5\n");
     fp = get_file_position_in_dir("..", dir2);
     if(fp.offset == -1)
     {
@@ -277,6 +290,7 @@ bool test_open()
     printf("\n----- %s : Testing open() -----\n", INTERFACE_LAYER_TEST);
 
     // Open non existing file
+    printf("TEST 1\n");
     if(altfs_open("/file3", O_RDONLY) != -ENOENT)
     {
         fprintf(stderr, "%s : Did not fail for non existing file /file3.\n", INTERFACE_LAYER_TEST);
@@ -285,6 +299,7 @@ bool test_open()
     printf("\n");
 
     // Open non existing file with O_CREAT
+    printf("TEST 2\n");
     ssize_t file3_inum = altfs_open("/dir2/file3", O_RDWR|O_CREAT);
     if(file3_inum < ROOT_INODE_NUM)
     {
@@ -307,6 +322,7 @@ bool test_open()
     printf("\n");
 
     // Open valid file with correct permissions
+    printf("TEST 3\n");
     if(altfs_open("/dir2/file3", O_RDWR) < ROOT_INODE_NUM)
     {
         fprintf(stderr, "%s : Failed to open file /dir1/file1.\n", INTERFACE_LAYER_TEST);
@@ -315,6 +331,7 @@ bool test_open()
     printf("\n");
 
     // Fail becuase of permissions
+    printf("TEST 4\n");
     if(altfs_open("/dir2/file2", O_WRONLY) != -EACCES)
     {
         fprintf(stderr, "%s : Permissions did not check correctly for /dir2/file2.\n", INTERFACE_LAYER_TEST);
@@ -460,17 +477,17 @@ bool test_write()
     altfs_free_memory(buff);
     printf("\n");
 
-    // Will accross 3 datablocks (all existing)
+    // Will write accross 3 datablocks (all existing)
     printf("TEST 6\n");
     char big_data[4106]; // 5 + 4096 + 5
-    memset(big_data, 'a', 4116);
-    if(altfs_write("/dir2/file3", big_data, 4116, 4091) != 4116)
+    memset(big_data, 'a', 4106);
+    if(altfs_write("/dir2/file3", big_data, 4106, 4091) != 4106)
     {
         fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     file = get_inode(inum);
-    if(file->i_blocks_num != 3 || file->i_file_size != 8204)
+    if(file->i_blocks_num != 3 || file->i_file_size != 8202)
     {
         fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
         altfs_free_memory(file);
