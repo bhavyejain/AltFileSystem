@@ -552,7 +552,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         ssize_t* double_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_double_indirect);
 
         // Adjusting for double indirect block
-        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+        ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DIRECT_BLOCKS;
 
         for(ssize_t i = double_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
         {
@@ -630,7 +630,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_triple_indirect);
 
         // Adjusting for triple indirect block
-        ending_block_num -= NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR;
+        ending_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR + NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR + NUM_OF_DIRECT_BLOCKS;
 
         for(ssize_t i = triple_i_idx; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
         {

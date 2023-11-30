@@ -154,32 +154,32 @@ int test_add_data_block_to_inode()
 
         // Verify removing data blocks - it removes data blocks starting from the given block number until the end
         // NOTE - logical block numbers start from 0
-        ssize_t blocks_to_remove[] = {3, 7, 8, 11, 12, 14, 16, 60, 523, 524, 526, 530}; // TODO: Add more here for triple indirect once moved to disk
-        ssize_t n = sizeof(blocks_to_remove)/sizeof(blocks_to_remove[0]);
+        ssize_t logical_blocks_to_remove_from[] = {3, 7, 8, 11, 12, 14, 16, 60, 523, 524, 526, 530}; // TODO: Add more here for triple indirect once moved to disk
+        ssize_t n = sizeof(logical_blocks_to_remove_from_from)/sizeof(logical_blocks_to_remove_from[0]);
         for(int i = 0; i < n; i++)
         {
-            fprintf(stdout, "\n\n ********************** Blocks to remove: %ld Blocks allocated: %ld **********************\n\n", blocks_to_remove[i], num_of_blocks_to_allocate[k]);
-            if (blocks_to_remove[i] >= num_of_blocks_to_allocate[k])
+            fprintf(stdout, "\n\n ********************** Logical blocks to remove from: %ld Blocks allocated: %ld **********************\n\n", logical_blocks_to_remove_from[i], num_of_blocks_to_allocate[k]);
+            if (logical_blocks_to_remove_from[i] >= num_of_blocks_to_allocate[k])
             {
                 if (!remove_datablocks_from_inode(node, 0))
                 {
-                    fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
+                    fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, logical_blocks_to_remove_from[i], inum);
                     return -1;
                 }
                 break;
             }
 
-            if (!remove_datablocks_from_inode(node, blocks_to_remove[i]))
+            if (!remove_datablocks_from_inode(node, logical_blocks_to_remove_from[i]))
             {
-                fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
+                fprintf(stderr, "%s : Failed to remove data block %ld onwards from inum %ld\n", INODE_DATA_BLOCK_OPS, logical_blocks_to_remove_from[i], inum);
                 return -1;
             }
-            fprintf(stdout, "%s : Removed data blocks from %ld onwards from inode %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
+            fprintf(stdout, "%s : Removed data blocks from %ld onwards from inode %ld\n", INODE_DATA_BLOCK_OPS, logical_blocks_to_remove_from[i], inum);
             print_inode_data_blocks(node, inum);
 
             // reallocate removed data blocks
-            fprintf(stdout, "%s: Reallocating removed blocks\n", INODE_DATA_BLOCK_OPS);
-            for(int j = 0; j < num_of_blocks_to_allocate[k] - blocks_to_remove[i]; j++)
+            fprintf(stdout, "\n%s: Reallocating removed blocks\n", INODE_DATA_BLOCK_OPS);
+            for(int j = 0; j < num_of_blocks_to_allocate[k] - logical_blocks_to_remove_from[i]; j++)
             {
                 ssize_t data_block_num = allocate_data_block();
                 if (!data_block_num)
