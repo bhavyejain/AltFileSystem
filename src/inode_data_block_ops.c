@@ -585,15 +585,20 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
             altfs_free_memory(single_indirect_block_arr);
             
-            if (!free_data_block(data_block_num))
+            // We should not free the data block if there are elements in it
+            // This can happen in the first block we are starting the deletion from
+            // For example - Delete from block 526 => delete from logical number 2 onwards
+            // The single indirect corresponding to this should not be freed
+            if (j != ending_block_num)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, data_block_num);
-                return false;
+                if (!free_data_block(data_block_num))
+                {
+                    fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, data_block_num);
+                    return false;
+                }
             }
         }
         altfs_free_memory(double_indirect_block_arr);
-        inodeObj->i_double_indirect = 0;
-
 
         if (ending_block_num <= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR)
         {
