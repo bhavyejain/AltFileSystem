@@ -16,7 +16,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     fprintf(stdout, "\n************ PRINT INODE DATA BLOCKS *************\n");
     // Verify that all direct blocks are associated correctly with inode
     for(int i=0; i < NUM_OF_DIRECT_BLOCKS; i++)
-        fprintf(stdout, "%s : direct block %ld for inum %ld = %ld\n", INODE_DATA_BLOCK_OPS, i, inum, node->i_direct_blocks[i]);
+        fprintf(stdout, "%s : direct block %d for inum %ld = %ld\n", INODE_DATA_BLOCK_OPS, i, inum, node->i_direct_blocks[i]);
 
     fprintf(stdout, "%s : single indirect block %ld for inum %ld\n", INODE_DATA_BLOCK_OPS, node->i_single_indirect, inum);
     
@@ -28,7 +28,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     if (!altfs_read_block(node->i_single_indirect, buff))
     {
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_single_indirect);
-        return -1;
+        return;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
     altfs_free_memory(buff);
@@ -51,7 +51,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     if (!double_indirect_block_arr)
     {
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_double_indirect);
-        return -1;
+        return;
     }
 
     for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
@@ -63,7 +63,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         if(data_block_num < 0)
         {
             fprintf(stdout, "Double indirect block num <= 0.\n");
-            return -1;
+            return;
         }
         fprintf(stdout, "Single indirect block num %zd\n", data_block_num);
 
@@ -170,7 +170,7 @@ int test_add_data_block_to_inode()
 
             // reallocate removed data blocks
             fprintf(stdout, "%s: Reallocating removed blocks\n", INODE_DATA_BLOCK_OPS);
-            for(int j = 0; j < num_of_blocks_to_allocate - blocks_to_remove[i]; j++)
+            for(int j = 0; j < num_of_blocks_to_allocate[k] - blocks_to_remove[i]; j++)
             {
                 ssize_t data_block_num = allocate_data_block();
                 if (!data_block_num)
