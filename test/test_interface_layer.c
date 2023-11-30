@@ -203,7 +203,7 @@ bool test_mkdir()
         altfs_free_memory(dir2);
         return false;
     }
-    char* record = fp.p_block + fp.offset;
+    record = fp.p_block + fp.offset;
     t1 = ((ssize_t*)(record + RECORD_LENGTH))[0];
     if(t1 != ROOT_INODE_NUM)
     {
