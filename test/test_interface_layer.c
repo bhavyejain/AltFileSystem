@@ -219,6 +219,20 @@ bool test_mkdir()
     return true;
 }
 
+bool test_mknod()
+{
+    printf("\n----- %s : Testing mknod() -----\n", INTERFACE_LAYER_TEST);
+    
+    if(!altfs_mknod("/dir2/file2", S_IFREG|DEFAULT_PERMISSIONS, -1))
+    {
+        fprintf(stderr, "%s : Failed to create file /dir2/file2.\n");
+        return false;
+    }
+
+    printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
 int main()
 {
     printf("=============== TESTING INTERFACE OPERATIONS =============\n\n");
@@ -252,6 +266,12 @@ int main()
     if(!test_mkdir())
     {
         printf("%s : Testing altfs_mkdir() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
+    if(!test_mknod())
+    {
+        printf("%s : Testing altfs_mknod() failed!\n", INTERFACE_LAYER_TEST);
         return -1;
     }
 
