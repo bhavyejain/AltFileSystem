@@ -164,7 +164,8 @@ int test_add_data_block_to_inode()
         print_inode_data_blocks(node, inum);
 
         // reallocate removed data blocks
-        /*for(int j = 0; j < num_of_blocks_to_allocate - blocks_to_remove[i]; j++)
+        fprintf(stdout, "%s: Reallocating removed blocks\n", INODE_DATA_BLOCK_OPS);
+        for(int j = 0; j < num_of_blocks_to_allocate - blocks_to_remove[i]; j++)
         {
             ssize_t data_block_num = allocate_data_block();
             if (!data_block_num)
@@ -180,7 +181,8 @@ int test_add_data_block_to_inode()
                 return -1;
             }
             fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
-        }*/
+        }
+        fprintf(stdout, "\n************ REALLOCATED BLOCKS *************\n");
     }
     
     fprintf(stdout, "\n=============== END: TESTING INODE DATA BLOCK OPERATIONS =============\n");
