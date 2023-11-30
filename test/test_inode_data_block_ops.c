@@ -53,7 +53,10 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
     {
         ssize_t data_block_num = double_indirect_block_arr[i];
-        if(data_block_num <= 0)
+        if (data_block_num == 0)
+            break;
+        
+        if(data_block_num < 0)
         {
             fprintf(stdout, "Double indirect block num <= 0.\n");
             return -1;
