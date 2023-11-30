@@ -704,7 +704,7 @@ bool test_truncate()
         fprintf(stderr, "%s : Extend on truncate failed.\n", INTERFACE_LAYER_TEST);
         return false;
     }
-    ssize_t inum = name_i("/dir2/file4");
+    inum = name_i("/dir2/file4");
     struct inode* node = get_inode(inum);
     if(node->i_file_size != 10)
     {
