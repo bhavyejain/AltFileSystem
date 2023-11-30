@@ -20,7 +20,7 @@
 
 bool test_getattr()
 {
-    printf("\n***** %s : Testing getattr() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing getattr() ##########\n", INTERFACE_LAYER_TEST);
     ssize_t dir_inum = allocate_inode();
     struct inode* root = get_inode(ROOT_INODE_NUM);
     add_directory_entry(&root, dir_inum, "dir1");
@@ -112,13 +112,13 @@ bool test_getattr()
     }
     altfs_free_memory(st);
 
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_access()
 {
-    printf("\n***** %s : Testing access() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing access() ##########\n", INTERFACE_LAYER_TEST);
     
     if(altfs_access("/") != 0)
     {
@@ -140,13 +140,13 @@ bool test_access()
         return false;
     }
 
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_mkdir()
 {
-    printf("\n***** %s : Testing mkdir() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing mkdir() ##########\n", INTERFACE_LAYER_TEST);
     
     // Already exists
     printf("TEST 1\n");
@@ -245,13 +245,13 @@ bool test_mkdir()
     altfs_free_memory(fp.p_block);
 
     altfs_free_memory(dir2);
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_mknod()
 {
-    printf("\n***** %s : Testing mknod() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing mknod() ##########\n", INTERFACE_LAYER_TEST);
     
     if(!altfs_mknod("/dir2/file2", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
     {
@@ -281,13 +281,13 @@ bool test_mknod()
     }
 
     altfs_free_memory(node);
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_open()
 {
-    printf("\n***** %s : Testing open() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing open() ##########\n", INTERFACE_LAYER_TEST);
 
     // Open non existing file
     printf("TEST 1\n");
@@ -339,13 +339,13 @@ bool test_open()
     }
     
     // TODO: Add test for truncate
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_write()
 {
-    printf("\n***** %s : Testing write() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing write() ##########\n", INTERFACE_LAYER_TEST);
 
     // Tests assume the file was opened for writing before so the file exists.
     printf("TEST 1\n");
@@ -567,13 +567,13 @@ bool test_write()
     altfs_free_memory(buff);
     printf("\n");
     
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_read()
 {
-    printf("\n***** %s : Testing read() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing read() ##########\n", INTERFACE_LAYER_TEST);
     char* buffer = (char*)calloc(1, 24);
 
     // Tests assume the file was opened for reading before so the file exists.
@@ -668,13 +668,13 @@ bool test_read()
 
     free(buffer);
     buffer = NULL;
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_truncate()
 {
-    printf("\n***** %s : Testing truncate() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing truncate() ##########\n", INTERFACE_LAYER_TEST);
 
     ssize_t inum = altfs_open("/dir2/file4", O_CREAT|O_RDWR);
     if(inum < ROOT_INODE_NUM)
@@ -774,13 +774,13 @@ bool test_truncate()
         return false;
     }
     
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_unlink()
 {
-    printf("\n***** %s : Testing unlink() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing unlink() ##########\n", INTERFACE_LAYER_TEST);
 
     // Prep
     if(!altfs_mkdir("/dir3", DEFAULT_PERMISSIONS))
@@ -821,6 +821,7 @@ bool test_unlink()
         fprintf(stderr, "%s : Did not flag non-empty directory /dir2.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    printf("\n");
 
     // Remove File 1
     printf("TEST 2\n");
@@ -911,13 +912,13 @@ bool test_unlink()
         return false;
     }
 
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_rename()
 {
-    printf("\n***** %s : Testing rename() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing rename() ##########\n", INTERFACE_LAYER_TEST);
 
     if(altfs_write("/dir2/file4", "This is a test string.", 22, 0) != 22)
     {
@@ -925,27 +926,27 @@ bool test_rename()
         return false;
     }
     
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_chmod()
 {
-    printf("\n***** %s : Testing chmod() *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing chmod() ##########\n", INTERFACE_LAYER_TEST);
 
     
     
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
 bool test_permissions()
 {
-    printf("\n***** %s : Testing permissions *****\n", INTERFACE_LAYER_TEST);
+    printf("\n########## %s : Testing permissions ##########\n", INTERFACE_LAYER_TEST);
 
     
     
-    printf("***** %s : Done! *****\n", INTERFACE_LAYER_TEST);
+    printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
