@@ -786,6 +786,7 @@ ssize_t altfs_truncate(const char* path, off_t length)
     }
 
     ssize_t i_block_num = (ssize_t)((length - 1) / BLOCK_SIZE);
+    fuse_log(FUSE_LOG_DEBUG, "%s : i_block_num is %ld\n", TRUNCATE, i_block_num);
     if(node->i_blocks_num > i_block_num + 1){
         // Remove everything from i_block_num + 1
         remove_datablocks_from_inode(node, i_block_num + 1);
