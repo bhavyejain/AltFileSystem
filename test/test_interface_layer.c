@@ -525,8 +525,6 @@ bool test_write()
 
     // Will write accross 3 datablocks (all new, starting in between the first new block)
     printf("TEST 7\n");
-    char big_data[4106]; // 5 + 4096 + 5
-    memset(big_data, 'a', 4106);
     if(altfs_write("/dir2/file3", big_data, 4106, 16379) != 4106)
     {
         fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
