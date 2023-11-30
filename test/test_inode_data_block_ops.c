@@ -41,8 +41,11 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         fprintf(stdout,"\n");
     }
 
+    if (node->i_double_indirect == 0)
+        return;
+
     fprintf(stdout, "\n************ BLOCK ADDRESSES IN DOUBLE INDIRECT BLOCK: %ld *************\n",node->i_double_indirect);
-    
+
     ssize_t *double_indirect_block_arr = (ssize_t*) read_data_block(node->i_double_indirect);
     if (!double_indirect_block_arr)
     {
