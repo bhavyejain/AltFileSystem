@@ -614,6 +614,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
     ssize_t end_i_block = (offset + nbytes) / BLOCK_SIZE;
     ssize_t end_block_offset = BLOCK_SIZE - (offset + nbytes)% BLOCK_SIZE;
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
+    ssize_t starting_block = start_i_block - node->i_blocks_num + 1; // In case offset > file size, we might be starting some blocks after what has been allocated.
 
     char *buf_read = NULL;
     char overwrite_buf[BLOCK_SIZE];
@@ -693,7 +694,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
             ssize_t temp = BLOCK_SIZE - end_block_offset;
             bytes_written += temp;
         }
-        else    // write entire block
+        else if(i >= starting_block)    // write entire block
         {
             memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;

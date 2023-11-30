@@ -330,7 +330,181 @@ bool test_write()
 {
     printf("\n----- %s : Testing write() -----\n", INTERFACE_LAYER_TEST);
 
-    
+    // Tests assume the file was opened for writing before so the file exists.
+    printf("TEST 1\n");
+    char* data = "Hello world!";
+    if(altfs_write("/dir2/file3", data, 0, 0) != 0)
+    {
+        fprintf(stderr, "%s : Did not return 0 when tried to write 0 bytes.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_write("/dir2/file3", data, 1, -1) != -EINVAL)
+    {
+        fprintf(stderr, "%s : Did not return error when tried to write at negative offset.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    ssize_t inum = name_i("/dir2/file3");
+
+    // Will add new data blocks
+    printf("TEST 2\n");
+    if(altfs_write("/dir2/file3", data, 12, 0) != 12)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* file = get_inode(inum);
+    if(file->i_blocks_num != 1 || file->i_file_size != 12)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    char* buff = read_data_block(file->i_direct_blocks[0]);
+    if(strncmp(data, buff, 12) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in /dir2/file3. Should be: |%s|, was: |%s|\n", INTERFACE_LAYER_TEST, data, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
+
+    // Will write in the same datablock again (add)
+    printf("TEST 3\n");
+    if(altfs_write("/dir2/file3", data, 12, 12) != 12)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    file = get_inode(inum);
+    if(file->i_blocks_num != 1 || file->i_file_size != 24)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    buff = read_data_block(file->i_direct_blocks[0]);
+    if(strncmp("Hello world!Hello world!", buff, 24) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in /dir2/file3. Should be: |Hello world!Hello world!|, was: |%s|\n", INTERFACE_LAYER_TEST, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
+
+    // Will write in the next datablock (add)
+    printf("TEST 4\n");
+    if(altfs_write("/dir2/file3", data, 12, 4096) != 12)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    file = get_inode(inum);
+    if(file->i_blocks_num != 2 || file->i_file_size != 4108)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    buff = read_data_block(file->i_direct_blocks[1]);
+    if(strncmp(data, buff, 12) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 1 /dir2/file3. Should be: |%s|, was: |%s|\n", INTERFACE_LAYER_TEST, data, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
+
+    // Will write in two datablocks (one existing, one new)
+    printf("TEST 4\n");
+    if(altfs_write("/dir2/file3", data, 12, 8190) != 12)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    file = get_inode(inum);
+    if(file->i_blocks_num != 3 || file->i_file_size != 8204)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    buff = read_data_block(file->i_direct_blocks[1]);
+    if(strncmp(data, buff + 4094, 2) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 1 /dir2/file3. Should be: |%.2s|, was: |%.2s|\n", INTERFACE_LAYER_TEST, data, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(buff);
+    buff = read_data_block(file->i_direct_blocks[2]);
+    if(strncmp(data + 2, buff, 10) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 2 /dir2/file3. Should be: |%s|, was: |%s|\n", INTERFACE_LAYER_TEST, data, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
+
+    // Will accross 3 datablocks (all existing)
+    printf("TEST 5\n");
+    char big_data[4106]; // 5 + 4096 + 5
+    memset(big_data, 'a', 4116);
+    if(altfs_write("/dir2/file3", big_data, 4116, 4091) != 4116)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    file = get_inode(inum);
+    if(file->i_blocks_num != 3 || file->i_file_size != 8204)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    buff = read_data_block(file->i_direct_blocks[0]);
+    if(strncmp("aaaaa", buff + 4091, 5) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 0 in /dir2/file3. Should be: |%.5s|, was: |%.5s|\n", INTERFACE_LAYER_TEST, "aaaaa", buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(buff);
+    buff = read_data_block(file->i_direct_blocks[1]);
+    if(strncmp(big_data, buff, 4096) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 1 in /dir2/file3. Should be: all a's, was: |%s|\n", INTERFACE_LAYER_TEST, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(buff);
+    buff = read_data_block(file->i_direct_blocks[2]);
+    if(strncmp("aaaaa", buff, 5) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 2 in /dir2/file3. Should be: |%s|, was: |%.5s|\n", INTERFACE_LAYER_TEST, "aaaaa", buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
@@ -444,11 +618,11 @@ int main()
         return -1;
     }
 
-    // if(!test_write())
-    // {
-    //     printf("%s : Testing altfs_write() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
+    if(!test_write())
+    {
+        printf("%s : Testing altfs_write() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
 
     // if(!test_read())
     // {
