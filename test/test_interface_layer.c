@@ -426,14 +426,14 @@ bool test_write()
     printf("\n");
 
     // Will write in two datablocks (one existing, one new)
-    printf("TEST 4\n");
+    printf("TEST 5\n");
     if(altfs_write("/dir2/file3", data, 12, 8190) != 12)
     {
         fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     file = get_inode(inum);
-    if(file->i_blocks_num != 3 || file->i_file_size != 8204)
+    if(file->i_blocks_num != 3 || file->i_file_size != 8202)
     {
         fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
         altfs_free_memory(file);
@@ -461,7 +461,7 @@ bool test_write()
     printf("\n");
 
     // Will accross 3 datablocks (all existing)
-    printf("TEST 5\n");
+    printf("TEST 6\n");
     char big_data[4106]; // 5 + 4096 + 5
     memset(big_data, 'a', 4116);
     if(altfs_write("/dir2/file3", big_data, 4116, 4091) != 4116)
