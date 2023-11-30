@@ -35,7 +35,7 @@ bool test_getattr()
     struct inode* file1 = get_inode(file_inum);
 
     struct stat* st = (struct stat*)calloc(1, sizeof(struct stat));
-    if(!altfs_getattr("/", &st))
+    if(altfs_getattr("/", &st) != 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(root);
@@ -56,7 +56,7 @@ bool test_getattr()
     }
     altfs_free_memory(root);
 
-    if(!altfs_getattr("/dir1", &st))
+    if(altfs_getattr("/dir1", &st) != 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /dir1.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(dir1);
@@ -75,7 +75,7 @@ bool test_getattr()
     }
     altfs_free_memory(dir1);
 
-    if(!altfs_getattr("/dir1/file1", &st))
+    if(altfs_getattr("/dir1/file1", &st) != 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /dir1/file1.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(file1);

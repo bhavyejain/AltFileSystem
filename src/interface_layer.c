@@ -51,7 +51,7 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Getting attributes for %s\n", GETATTR, path);
 
-    memset(st, 0, sizeof(struct stat));
+    memset(*st, 0, sizeof(struct stat));
     ssize_t inum = name_i(path);
     if(inum == -1)
     {
