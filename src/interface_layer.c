@@ -706,7 +706,6 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
             break;
         }
     }
-    altfs_free_memory(overwrite_buf);
 
     ssize_t bytes_to_add = (offset + bytes_written) - node->i_file_size;
     bytes_to_add = (bytes_to_add > 0) ? bytes_to_add : 0;
