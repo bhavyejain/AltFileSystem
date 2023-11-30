@@ -8,20 +8,9 @@
 #include "../src/inode_ops.c"
 #include "../src/data_block_ops.c"
 
-#define DATABLOCK_LAYER_TEST "altfs_datablock_layer_test"
+#include "test_helpers.c"
 
-void print_inode(struct inode** node)
-{
-    printf("\n******************** INODE ********************\n");
-    for(ssize_t i = 0; i < NUM_OF_DIRECT_BLOCKS; i++)
-    {
-        printf("Direct block %ld: %ld\n", i, (*node)->i_direct_blocks[i]);
-    }
-    printf("Single indirect block: %ld\n", (*node)->i_single_indirect);
-    printf("Double indirect block: %ld\n", (*node)->i_double_indirect);
-    printf("Triple indirect block: %ld\n", (*node)->i_triple_indirect);
-    printf("******************** INODE ********************\n\n");
-}
+#define DATABLOCK_LAYER_TEST "altfs_datablock_layer_test"
 
 int main()
 {

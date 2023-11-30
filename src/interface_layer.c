@@ -45,6 +45,35 @@ static void inode_to_stat(struct inode** node, struct stat** st){
     (*st)->st_mtime = (*node)->i_mtime;
 }
 
+ssize_t altfs_getattr(const char* path, struct stat** st)
+{
+    memset(st, 0, sizeof(struct stat));
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
+        return -ENOENT;
+    }
+
+    struct inode* node = get_inode(inum);
+    inode_to_stat(&node, st);
+    (*st)->st_ino = inum;
+    altfs_free_memory(node);
+    return 0;
+}
+
+ssize_t altfs_access(const char* path)
+{
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", ACCESS, path);
+        return -ENOENT;
+    }
+    // TODO: Check Permissions
+    return 0;
+}
+
 /*
 Allocates a new inode for a file and fills the inode with default values.
 */
@@ -195,6 +224,60 @@ bool altfs_mkdir(const char* path, mode_t mode)
     return true;
 }
 
+ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
+{
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", READDIR, path);
+        return -ENOENT;
+    }
+
+    struct inode* node = get_inode(inum);
+    if(!S_ISDIR(node->i_mode))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Path %s is not a directory.\n", READDIR, path);
+        return -ENOTDIR;
+    }
+
+    ssize_t num_blocks = node->i_blocks_num;
+    ssize_t prev = 0;
+    for(ssize_t i_block_num = 0; i_block_num < num_blocks; i_block_num++)
+    {
+        ssize_t dblock_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
+        char* dblock = read_data_block(dblock_num);
+        
+        ssize_t offset = 0;
+        ssize_t next_entry_loc = 0;
+        while(offset < LAST_POSSIBLE_RECORD)
+        {
+            char* record = dblock + offset;
+            unsigned short rec_len = ((unsigned short*)record)[0];
+            ssize_t file_inum = ((ssize_t*)(record + RECORD_LENGTH))[0];
+            unsigned short name_len = rec_len - RECORD_FIXED_LEN;
+
+            char file_name[name_len];
+            memcpy(file_name, record + RECORD_FIXED_LEN, name_len);
+
+            struct inode* file_inode = get_inode(file_inum);
+            struct stat stbuff_data;
+            memset(&stbuff_data, 0, sizeof(struct stat));
+            struct stat *stbuff = &stbuff_data;
+            inode_to_stat(&file_inode, &stbuff);
+            stbuff->st_ino = file_inum;
+            filler(buff, file_name, stbuff, 0);
+            altfs_free_memory(file_inode);
+
+            record = NULL;
+            offset += rec_len;
+        }
+        altfs_free_memory(dblock);
+    }
+    altfs_free_memory(node);
+
+    return 0;
+}
+
 bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
 {
     // TODO: Buggy code
@@ -217,52 +300,6 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
     }
     altfs_free_memory(node);
     return true;
-}
-
-ssize_t altfs_truncate(const char* path, size_t offset)
-{
-    ssize_t inum = name_i(path);
-    if(inum == -1){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", TRUNCATE, path);
-        return -1;
-    }
-
-    struct inode* node = get_inode(inum);
-    if(offset > node->i_file_size){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: offset is greater than file size.\n", TRUNCATE);
-        altfs_free_memory(node);
-        return -1;
-    }
-    if(offset == 0 && node->i_file_size == 0){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: Offset is 0 and file size is also 0.\n", TRUNCATE);
-        altfs_free_memory(node);
-        return 0;
-    }
-
-    ssize_t i_block_num = offset / BLOCK_SIZE;
-    if(node->i_blocks_num > i_block_num + 1){
-        // Remove everything from i_block_num + 1
-        remove_datablocks_from_inode(node, i_block_num + 1);
-    }
-
-    // Get data block for offset
-    ssize_t prev = 0;
-    ssize_t d_block_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
-    if(d_block_num <= 0){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get data block number from inode block number.\n", TRUNCATE);
-        return -1;
-    }
-    char* data_block = read_data_block(d_block_num);
-
-    ssize_t block_offset = offset % BLOCK_SIZE;
-    memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
-    write_dblock(d_block_num, data_block);
-    altfs_free_memory(data_block);
-
-    node->file_size = offset;
-    write_inode(inum, node);
-    altfs_free_memory(node);
-    return 0;
 }
 
 ssize_t altfs_unlink(const char* path)
@@ -348,12 +385,6 @@ ssize_t altfs_unlink(const char* path)
     return 0;
 }
 
-// Check if this even needs to be implemented.
-ssize_t altfs_close(ssize_t file_descriptor)
-{
-    return 0;
-}
-
 ssize_t altfs_open(const char* path, ssize_t oflag)
 {
     ssize_t inum = name_i(path);
@@ -418,6 +449,12 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
     }
     altfs_free_memory(node);
     return inum;
+}
+
+// Check if this even needs to be implemented.
+ssize_t altfs_close(ssize_t file_descriptor)
+{
+    return 0;
 }
 
 ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
@@ -680,15 +717,49 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
     return bytes_written;
 }
 
-ssize_t altfs_access(const char* path)
+ssize_t altfs_truncate(const char* path, size_t offset)
 {
     ssize_t inum = name_i(path);
-    if(inum == -1)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", ACCESS, path);
-        return -ENOENT;
+    if(inum == -1){
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", TRUNCATE, path);
+        return -1;
     }
-    // TODO: Check Permissions
+
+    struct inode* node = get_inode(inum);
+    if(offset > node->i_file_size){
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: offset is greater than file size.\n", TRUNCATE);
+        altfs_free_memory(node);
+        return -1;
+    }
+    if(offset == 0 && node->i_file_size == 0){
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: Offset is 0 and file size is also 0.\n", TRUNCATE);
+        altfs_free_memory(node);
+        return 0;
+    }
+
+    ssize_t i_block_num = offset / BLOCK_SIZE;
+    if(node->i_blocks_num > i_block_num + 1){
+        // Remove everything from i_block_num + 1
+        remove_datablocks_from_inode(node, i_block_num + 1);
+    }
+
+    // Get data block for offset
+    ssize_t prev = 0;
+    ssize_t d_block_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
+    if(d_block_num <= 0){
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to get data block number from inode block number.\n", TRUNCATE);
+        return -1;
+    }
+    char* data_block = read_data_block(d_block_num);
+
+    ssize_t block_offset = offset % BLOCK_SIZE;
+    memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
+    write_dblock(d_block_num, data_block);
+    altfs_free_memory(data_block);
+
+    node->file_size = offset;
+    write_inode(inum, node);
+    altfs_free_memory(node);
     return 0;
 }
 
@@ -714,77 +785,6 @@ ssize_t altfs_chmod(const char* path, mode_t mode)
         fuse_log(FUSE_LOG_ERR, "%s : Inode write unsuccessful.\n", CHMOD);
         return -1;
     }
-    return 0;
-}
-
-ssize_t altfs_getattr(const char* path, struct stat** st)
-{
-    memset(st, 0, sizeof(struct stat));
-    ssize_t inum = name_i(path);
-    if(inum == -1)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
-        return -ENOENT;
-    }
-
-    struct inode* node = get_inode(inum);
-    inode_to_stat(&node, st);
-    (*st)->st_ino = inum;
-    altfs_free_memory(node);
-    return 0;
-}
-
-ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
-{
-    ssize_t inum = name_i(path);
-    if(inum == -1)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", READDIR, path);
-        return -ENOENT;
-    }
-
-    struct inode* node = get_inode(inum);
-    if(!S_ISDIR(node->i_mode))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Path %s is not a directory.\n", READDIR, path);
-        return -ENOTDIR;
-    }
-
-    ssize_t num_blocks = node->i_blocks_num;
-    ssize_t prev = 0;
-    for(ssize_t i_block_num = 0; i_block_num < num_blocks; i_block_num++)
-    {
-        ssize_t dblock_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
-        char* dblock = read_data_block(dblock_num);
-        
-        ssize_t offset = 0;
-        ssize_t next_entry_loc = 0;
-        while(offset < LAST_POSSIBLE_RECORD)
-        {
-            char* record = dblock + offset;
-            unsigned short rec_len = ((unsigned short*)record)[0];
-            ssize_t file_inum = ((ssize_t*)(record + RECORD_LENGTH))[0];
-            unsigned short name_len = rec_len - RECORD_FIXED_LEN;
-
-            char file_name[name_len];
-            memcpy(file_name, record + RECORD_FIXED_LEN, name_len);
-
-            struct inode* file_inode = get_inode(file_inum);
-            struct stat stbuff_data;
-            memset(&stbuff_data, 0, sizeof(struct stat));
-            struct stat *stbuff = &stbuff_data;
-            inode_to_stat(&file_inode, &stbuff);
-            stbuff->st_ino = file_inum;
-            filler(buff, file_name, stbuff, 0);
-            altfs_free_memory(file_inode);
-
-            record = NULL;
-            offset += rec_len;
-        }
-        altfs_free_memory(dblock);
-    }
-    altfs_free_memory(node);
-
     return 0;
 }
 

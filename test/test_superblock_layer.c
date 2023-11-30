@@ -2,51 +2,11 @@
 #include "../src/disk_layer.c"
 #include "../src/superblock_layer.c"
 
+#include "test_helpers.c"
+
 #define SUPERBLOCK_LAYER_TEST "altfs_superblock_layer_test"
 #define SUCCESS "Success: "
 #define FAILED "Failed: "
-
-int print_freelist(ssize_t blocknum)
-{   
-    printf("\n******************** FREELIST ********************\n");
-    printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
-    char *buff = (char*)malloc(BLOCK_SIZE);
-
-    if (!altfs_read_block(blocknum, buff))
-    {
-        printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
-        return -1;
-    }
-    ssize_t *buff_numptr = (ssize_t *)buff;
-    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
-    {
-        for (size_t j = 0; j < 8; j++)
-        {
-            if (i == 0 && j == 0)
-                printf("Next free block: %ld\n", buff_numptr[0]);
-            else
-            printf("%ld ", buff_numptr[i * 8 + j]);
-        }
-        printf("\n");
-    }
-    printf("\n*************************************************\n");
-    return buff_numptr[0];
-}
-
-void print_superblock(struct superblock *superblockObj)
-{
-    printf("\n******************** SUPERBLOCK ********************\n");
-    printf("\n NUM OF INODES: %ld \n NEXT AVAILABLE INODE: %ld \n FREE LIST HEAD: %ld \n INODES PER BLOCK: %ld \n", superblockObj->s_inodes_count, superblockObj->s_first_ino, superblockObj->s_freelist_head, superblockObj->s_num_of_inodes_per_block);
-    printf("\n****************************************************\n");
-    return;
-}
-
-void print_constants()
-{
-    printf("\n******************** CONSTANTS ********************\n");
-    printf("\n BLOCK COUNT: %ld \n NUM_OF_DATA_BLOCKS: %ld \n NUM OF DIRECT BLOCKS: %ld \n BLOCK SIZE: %ld \n INODES PER BLOCK: %ld\n INODE BLOCK COUNT: %ld\n",BLOCK_COUNT, NUM_OF_DATA_BLOCKS, NUM_OF_DIRECT_BLOCKS, BLOCK_SIZE, (BLOCK_SIZE) / sizeof(struct inode), INODE_BLOCK_COUNT);
-    printf("\n***************************************************\n\n");
-}
 
 int main(int argc, char *argv[])
 {

@@ -127,6 +127,7 @@ struct inode* get_inode(ssize_t inum)
     struct inode* requested_inode = (struct inode*)malloc(sizeof(struct inode));
 
     memcpy(requested_inode, node, sizeof(struct inode));
+    node = NULL;
     return requested_inode;
 }
 
