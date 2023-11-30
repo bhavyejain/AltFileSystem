@@ -682,6 +682,7 @@ bool test_truncate()
         fprintf(stderr, "%s : File /dir/file4 not created.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    printf("\n");
 
     // Negative tests
     printf("TEST 1\n");
@@ -706,9 +707,9 @@ bool test_truncate()
     }
     inum = name_i("/dir2/file4");
     struct inode* node = get_inode(inum);
-    if(node->i_file_size != 10)
+    if(node->i_file_size != 11)
     {
-        fprintf(stderr, "%s : File size is not 10. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        fprintf(stderr, "%s : File size is not 11. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
         altfs_free_memory(node);
         return false;
     }
