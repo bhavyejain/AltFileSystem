@@ -358,7 +358,6 @@ ssize_t altfs_unlink(const char* path)
         return -1;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : Record data block contents before removal:\n%s\n" UNLINK, file_pos.p_block);
     // Rewrite block with child entry deleted
     char buffer[BLOCK_SIZE];
     memset(buffer, 0, BLOCK_SIZE);
@@ -370,7 +369,6 @@ ssize_t altfs_unlink(const char* path)
         memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
     }
     write_data_block(file_pos.p_plock_num, buffer);
-    fuse_log(FUSE_LOG_DEBUG, "%s : Record data block contents after removal:\n%s\n" UNLINK, buffer);
     altfs_free_memory(file_pos.p_block);
 
     time_t curr_time = time(NULL);
@@ -786,10 +784,19 @@ ssize_t altfs_truncate(const char* path, off_t length)
         }
     }
 
-    ssize_t i_block_num = (ssize_t)((length - 1) / BLOCK_SIZE);
+    ssize_t i_block_num = (length == 0) ? -1 : (ssize_t)((length - 1) / BLOCK_SIZE);
     if(node->i_blocks_num > i_block_num + 1){
         // Remove everything from i_block_num + 1
         remove_datablocks_from_inode(node, i_block_num + 1);
+    }
+
+    if(i_block_num == -1)
+    {
+        node->i_file_size = 0;
+        write_inode(inum, node);
+        altfs_free_memory(node);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Truncating %s successful.\n", TRUNCATE, path, (ssize_t)length);
+        return 0;
     }
 
     // Get data block for offset
