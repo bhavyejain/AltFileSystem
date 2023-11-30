@@ -32,7 +32,7 @@ struct stat {
 }
 */
 static void inode_to_stat(struct inode** node, struct stat** st){
-    fuse_log(FUSE_LOG_DEBUG, "Filling st with inode info...\n");
+    // fuse_log(FUSE_LOG_DEBUG, "Filling st with inode info...\n");
     (*st)->st_mode = (*node)->i_mode;
     (*st)->st_nlink = (*node)->i_links_count;
     (*st)->st_uid = 0; // only one user for now
@@ -44,14 +44,14 @@ static void inode_to_stat(struct inode** node, struct stat** st){
     (*st)->st_atime = (*node)->i_atime;
     (*st)->st_ctime = (*node)->i_ctime;
     (*st)->st_mtime = (*node)->i_mtime;
-    fuse_log(FUSE_LOG_DEBUG, "Filling complete...\n");
+    // fuse_log(FUSE_LOG_DEBUG, "Filling complete...\n");
 }
 
 ssize_t altfs_getattr(const char* path, struct stat** st)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Getting attributes for %s\n", GETATTR, path);
 
-    memset(st, 0, sizeof(struct stat));
+    memset(*st, 0, sizeof(struct stat));
     ssize_t inum = name_i(path);
     if(inum == -1)
     {

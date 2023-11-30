@@ -33,11 +33,12 @@ bool test_getattr()
     write_inode(dir_inum, dir1);
 
     struct inode* file1 = get_inode(file_inum);
+    printf("\n");
 
     struct stat* st = (struct stat*)calloc(1, sizeof(struct stat));
-    if(!altfs_getattr("/", &st))
+    if(altfs_getattr("/", &st) != 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /.\n", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to get attributes for /.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(root);
         altfs_free_memory(dir1);
         altfs_free_memory(file1);
@@ -46,7 +47,7 @@ bool test_getattr()
     }
     if(st->st_ino != ROOT_INODE_NUM || st->st_blocks != root->i_blocks_num || st->st_size != BLOCK_SIZE)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Wrong values stored in st for /. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
+        fprintf(stderr, "%s : Wrong values stored in st for /. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
             ROOT_INODE_NUM, root->i_blocks_num, BLOCK_SIZE, st->st_ino, st->st_blocks, st->st_size);
         altfs_free_memory(root);
         altfs_free_memory(dir1);
@@ -55,10 +56,11 @@ bool test_getattr()
         return false;
     }
     altfs_free_memory(root);
+    printf("\n");
 
-    if(!altfs_getattr("/dir1", &st))
+    if(altfs_getattr("/dir1", &st) != 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /dir1.\n", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to get attributes for /dir1.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(dir1);
         altfs_free_memory(file1);
         altfs_free_memory(st);
@@ -66,7 +68,7 @@ bool test_getattr()
     }
     if(st->st_ino != dir_inum || st->st_blocks != dir1->i_blocks_num || st->st_size != BLOCK_SIZE)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Wrong values stored in st for /dir1. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
+        fprintf(stderr, "%s : Wrong values stored in st for /dir1. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
             dir_inum, dir1->i_blocks_num, BLOCK_SIZE, st->st_ino, st->st_blocks, st->st_size);
         altfs_free_memory(dir1);
         altfs_free_memory(file1);
@@ -74,26 +76,63 @@ bool test_getattr()
         return false;
     }
     altfs_free_memory(dir1);
+    printf("\n");
 
-    if(!altfs_getattr("/dir1/file1", &st))
+    if(altfs_getattr("/dir1/file1", &st) != 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get attributes for /dir1/file1.\n", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to get attributes for /dir1/file1.\n", INTERFACE_LAYER_TEST);
         altfs_free_memory(file1);
         altfs_free_memory(st);
         return false;
     }
     if(st->st_ino != file_inum || st->st_blocks != file1->i_blocks_num || st->st_size != 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Wrong values stored in st for /dir1/file1. Should be (%ld, %ld, %ld), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
+        fprintf(stderr, "%s : Wrong values stored in st for /dir1/file1. Should be (%ld, %ld, %d), are (%ld, %ld, %ld).\n", INTERFACE_LAYER_TEST,
             file_inum, file1->i_blocks_num, 0, st->st_ino, st->st_blocks, st->st_size);
         altfs_free_memory(file1);
         altfs_free_memory(st);
         return false;
     }
     altfs_free_memory(file1);
+    printf("\n");
+
+    if(altfs_getattr("/file2", &st) != -ENOENT)
+    {
+        fprintf(stderr, "%s : Should have failed for /file2 but returned passed.\n", INTERFACE_LAYER_TEST);
+        altfs_free_memory(st);
+        return false;
+    }
     altfs_free_memory(st);
 
-    printf("\n----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
+    printf("----- %s : Tested getattr()! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
+bool test_access()
+{
+    printf("\n----- %s : Testing access() -----\n", INTERFACE_LAYER_TEST);
+    
+    if(altfs_access("/") != 0)
+    {
+        fprintf(stderr, "%s : Failed to access /.", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    if(altfs_access("/dir1/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to access /dir1/file1.", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    if(altfs_access("/dir1/file2") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Got wrong access to /dir1/file2", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    printf("----- %s : Tested access()! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }
 
@@ -118,6 +157,12 @@ int main()
     if(!test_getattr())
     {
         printf("%s : Testing altfs_getattr() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
+    if(!test_access())
+    {
+        printf("%s : Testing altfs_access() failed!\n", INTERFACE_LAYER_TEST);
         return -1;
     }
 
