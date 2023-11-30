@@ -595,7 +595,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         fuse_log(FUSE_LOG_DEBUG, "%s : Nbytes is 0, returning 0.\n", WRITE);
         return 0;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Is offset < 0? : %ld.\n", WRITE, (offset < 0));
+
     if(offset < 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", WRITE, offset);
@@ -724,7 +724,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         fuse_log(FUSE_LOG_ERR, "%s : Could not write inode %ld.\n", WRITE, inum);
         return -1;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Write complete.\n", WRITE);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Write complete. Bytes written: %ld\n", WRITE, bytes_written);
     altfs_free_memory(node);
     return bytes_written;
 }
