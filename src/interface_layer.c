@@ -47,6 +47,18 @@ static void inode_to_stat(struct inode** node, struct stat** st){
 
 ssize_t altfs_getattr(const char* path, struct stat** st)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Getting attributes for %s\n", GETATTR, path);
+    if(st = NULL)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : stat** pointer is NULL.\n", GETATTR, path);
+        return -1;
+    }
+    if(*st = NULL)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : stat* pointer is NULL.\n", GETATTR, path);
+        return -1;
+    }
+
     memset(st, 0, sizeof(struct stat));
     ssize_t inum = name_i(path);
     if(inum == -1)
@@ -56,6 +68,12 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     }
 
     struct inode* node = get_inode(inum);
+    if(node == NULL)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", GETATTR, path);
+        return -1;
+    }
+
     inode_to_stat(&node, st);
     (*st)->st_ino = inum;
     altfs_free_memory(node);
