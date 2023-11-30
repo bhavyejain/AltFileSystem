@@ -171,6 +171,23 @@ bool test_mkdir()
         altfs_free_memory(dir2);
         return false;
     }
+    if(dir2->i_child_num != 2)
+    {
+        fprintf(stderr, "%s : Incorrect number of children in directory /dir2: %ld\n", INTERFACE_LAYER_TEST, dir2->i_child_num);
+        altfs_free_memory(dir2);
+        return false;
+    }
+    printf("\n");
+
+    struct inode* root = get_inode(ROOT_INODE_NUM);
+    if(root->i_child_num != 4)
+    {
+        fprintf(stderr, "%s : Incorrect number of children in parent directory /: %ld\n", INTERFACE_LAYER_TEST, root->i_child_num);
+        altfs_free_memory(dir2);
+        altfs_free_memory(root);
+        return false;
+    }
+    altfs_free_memory(root);
     printf("\n");
 
     // Check for entry "."
@@ -229,6 +246,28 @@ bool test_mknod()
         return false;
     }
 
+    ssize_t inum = name_i("/dir2/file2");
+    if(inum <= ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : Failed to get inum for file /dir2/file2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    struct inode* node = get_inode(inum);
+    if(node->i_blocks_num != 0)
+    {
+        fprintf(stderr, "%s : New file /dir2/file2 has more than 0 blocks: %ld.\n", INTERFACE_LAYER_TEST, node->i_blocks_num);
+        altfs_free_memory(node);
+        return false;
+    }
+    if(node->i_file_size != 0)
+    {
+        fprintf(stderr, "%s : New file /dir2/file2 has non 0 size: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+
+    altfs_free_memory(node);
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
 }

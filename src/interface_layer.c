@@ -304,12 +304,7 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
         altfs_free_memory(node);
         return false;
     }
-    if(!write_inode(inum, node))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to write inode: %ld.\n", MKNOD, inum);
-        altfs_free_memory(node);
-        return false;
-    }
+
     altfs_free_memory(node);
     return true;
 }
