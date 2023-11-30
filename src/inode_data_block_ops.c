@@ -492,7 +492,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                 fuse_log(FUSE_LOG_ERR, "%s : Failed to free single indirect block %zd starting deletion from logical block %zd\n", REMOVE_DATABLOCKS_FROM_INODE, i, logical_block_num);
                 return false;
             }
-            single_indirect_block_arr[i] = 0; //TODO: Check if this is needed
+            single_indirect_block_arr[i] = 0; // To ensure the i_single_indirect is updated based on free nodes
         }
 
         if(!write_data_block(inodeObj->i_single_indirect, single_indirect_block_arr))
@@ -574,9 +574,17 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                     fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, single_indirect_block_arr[j]);
                     return false;
                 }
-                single_indirect_block_arr[j] = 0; // TODO: Check if this is required or not
+                single_indirect_block_arr[j] = 0; // To ensure the i_double_indirect's indirect block is updated based on free nodes
             }
+
+            if(!write_data_block(data_block_num, single_indirect_block_arr))
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified double indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
+                return false;
+            }
+
             altfs_free_memory(single_indirect_block_arr);
+            
             if (!free_data_block(data_block_num))
             {
                 fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, data_block_num);
@@ -645,18 +653,24 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                     return false;
                 }
                 ssize_t k = (j == double_i_idx) ? inner_idx : 0;
+                ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(double_indirect_data_block_num);
                 for(; k < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR && k < ending_block_num; k++) // TODO: Check if the bounds checking for i,j,k, are right
                 {
-                    ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(double_indirect_data_block_num);
-                    
                     if (!free_data_block(single_indirect_block_arr[k]))
                     {
                         fuse_log(FUSE_LOG_ERR, "%s : Failed to free block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, single_indirect_block_arr[k]);
                         return false;
                     }
-                    single_indirect_block_arr[k] = 0; // TODO: Check if this is required or not
-                    altfs_free_memory(single_indirect_block_arr);
+                    single_indirect_block_arr[k] = 0; // To ensure the i_triple_indirect's indirect block is updated based on free nodes
                 }
+
+                if(!write_data_block(double_indirect_data_block_num, single_indirect_block_arr))
+                {
+                    fuse_log(FUSE_LOG_ERR, "%s : Failed to write modified triple indirect block %zd \n", REMOVE_DATABLOCKS_FROM_INODE, inodeObj->i_single_indirect);
+                    return false;
+                }
+                
+                altfs_free_memory(single_indirect_block_arr);
             }
             altfs_free_memory(double_indirect_block_arr);
         }
