@@ -31,7 +31,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         return -1;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
-    altfs_free_memory(buff);
+    //altfs_free_memory(buff);
 
     for (ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
     {
