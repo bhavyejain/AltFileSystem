@@ -739,27 +739,53 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     return bytes_written;
 }
 
-ssize_t altfs_truncate(const char* path, size_t offset)
+ssize_t altfs_truncate(const char* path, off_t offset)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Truncating %s to %ld bytes.\n", TRUNCATE, path, (ssize_t)offset);
     ssize_t inum = name_i(path);
-    if(inum == -1){
+    if(inum == -1)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", TRUNCATE, path);
-        return -1;
+        return -ENOENT;
+    }
+    struct inode* node = get_inode(inum);
+    if(!(bool)(node->i_mode & S_IWUSR))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", TRUNCATE, path);
+        return -EACCES;
     }
 
-    struct inode* node = get_inode(inum);
-    if(offset > node->i_file_size){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: offset is greater than file size.\n", TRUNCATE);
-        altfs_free_memory(node);
-        return -1;
+    if(offset < 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", TRUNCATE, offset);
+        return -EINVAL;
     }
-    if(offset == 0 && node->i_file_size == 0){
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate: Offset is 0 and file size is also 0.\n", TRUNCATE);
+    
+    if(offset == 0 && node->i_file_size == 0)
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Offset is 0 and file size is also 0.\n", TRUNCATE);
         altfs_free_memory(node);
         return 0;
     }
 
-    ssize_t i_block_num = offset / BLOCK_SIZE;
+    if(offset > node->i_file_size)
+    {
+        ssize_t bytes_to_add = offset - node->i_file_size + 1;
+        char* zeros = (char*)calloc(1, bytes_to_add);
+        ssize_t written = altfs_write(path, zeros, bytes_to_add, node->i_file_size);
+        altfs_free_memory(node);
+        if(written == bytes_to_add)
+        {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Extended by %ld bytes.\n", TRUNCATE, written);
+            return 0;
+        } else
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : Failed to truncate.\n", TRUNCATE);
+            return -1;
+        }
+    }
+
+    ssize_t i_block_num = (ssize_t)(offset / BLOCK_SIZE);
     if(node->i_blocks_num > i_block_num + 1){
         // Remove everything from i_block_num + 1
         remove_datablocks_from_inode(node, i_block_num + 1);
@@ -774,12 +800,12 @@ ssize_t altfs_truncate(const char* path, size_t offset)
     }
     char* data_block = read_data_block(d_block_num);
 
-    ssize_t block_offset = offset % BLOCK_SIZE;
+    ssize_t block_offset = (ssize_t)(offset % BLOCK_SIZE);
     memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
     write_data_block(d_block_num, data_block);
     altfs_free_memory(data_block);
 
-    node->i_file_size = offset;
+    node->i_file_size = (ssize_t)offset;
     write_inode(inum, node);
     altfs_free_memory(node);
     return 0;

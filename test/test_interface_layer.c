@@ -676,7 +676,76 @@ bool test_truncate()
 {
     printf("\n----- %s : Testing truncate() -----\n", INTERFACE_LAYER_TEST);
 
-    
+    ssize_t inum = altfs_open("/dir2/file4", O_CREAT|O_RDWR);
+    if(inum < ROOT_INODE_NUM)
+    {
+        fprintf(stderr, "%s : File /dir/file4 not created.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    // Negative tests
+    printf("TEST 1\n");
+    if(altfs_truncate("/dir2/file4", -1) != -EINVAL)
+    {
+        fprintf(stderr, "%s : Did not return error when offset is negative.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_truncate("/dir2/file4", 0) != 0)
+    {
+        fprintf(stderr, "%s : Did not return 0 when offset is 0 and file size is 0.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Extensibility test
+    printf("TEST 2\n");
+    if(altfs_truncate("/dir2/file4", 10) != 0)
+    {
+        fprintf(stderr, "%s : Extend on truncate failed.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    ssize_t inum = name_i("/dir2/file4");
+    struct inode* node = get_inode(inum);
+    if(node->i_file_size != 10)
+    {
+        fprintf(stderr, "%s : File size is not 10. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(node);
+    printf("\n");
+
+    // Shortening test
+    printf("TEST 3\n");
+    if(altfs_truncate("/dir2/file3", 16381) != 0)
+    {
+        fprintf(stderr, "%s : Truncate /dir2/file3 failed.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    inum = name_i("/dir2/file3");
+    node = get_inode(inum);
+    if(node->i_file_size != 16382)
+    {
+        fprintf(stderr, "%s : File size is not 16383. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    if(node->i_blocks_num != 4)
+    {
+        fprintf(stderr, "%s : File has something other than 4 blocks. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_blocks_num);
+        altfs_free_memory(node);
+        return false;
+    }
+    char* buff = read_data_block(node->i_direct_blocks[3]);
+    if(strncpy("aaa00", buff + 4091, 5) != 0)
+    {
+        fprintf(stderr, "%s : File not truncated properly. Found: %.5s.\n", INTERFACE_LAYER_TEST, buff + 4091);
+        altfs_free_memory(node);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(node);
+    altfs_free_memory(buff);
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
@@ -782,11 +851,11 @@ int main()
         return -1;
     }
 
-    // if(!test_truncate())
-    // {
-    //     printf("%s : Testing altfs_truncate() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
+    if(!test_truncate())
+    {
+        printf("%s : Testing altfs_truncate() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
 
     // if(!test_rename())
     // {
@@ -812,6 +881,6 @@ int main()
     //     return -1;
     // }
 
-    printf("=============== ALL TESTS RUN =============\n\n");
+    printf("\n=============== ALL TESTS RUN =============\n\n");
     return 0;
 }

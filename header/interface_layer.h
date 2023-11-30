@@ -126,9 +126,9 @@ Truncate a file after the given offset.
 @param path: A c-string that contains the full path.
 @param offset: The byte-offset in the file from where the file is supposed to be truncated.
 
-@return 0 if success, -1 if failure.
+@return 0 if success, -errno if failure.
 */
-ssize_t altfs_truncate(const char* path, size_t offset);
+ssize_t altfs_truncate(const char* path, off_t offset);
 
 /*
 Change the permission bits of the inode corresponding to the path.
