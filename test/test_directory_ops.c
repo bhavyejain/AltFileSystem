@@ -282,7 +282,7 @@ bool test_name_i()
 
 int main()
 {
-    printf("=============== TESTING DIRECTORY & INIT FS OPERATIONS =============\n\n");
+    printf("=============== TESTING DIRECTORY OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
     if(!altfs_makefs())
     {
