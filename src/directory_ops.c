@@ -268,6 +268,8 @@ ssize_t name_i(const char* const file_path)
     if (!copy_parent_path(parent_path, file_path, file_path_len))
         return -1;
     
+    fuse_log(FUSE_LOG_DEBUG, "%s : Parent for %s : %s\n", NAME_I, file_path, parent_path);
+    
     ssize_t parent_inum = name_i(parent_path);
     if (parent_inum == -1)
     {
