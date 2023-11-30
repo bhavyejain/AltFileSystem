@@ -159,7 +159,7 @@ int test_add_data_block_to_inode()
         for(int i = 0; i < n; i++)
         {
             fprintf(stdout, "\n\n ********************** Blocks to remove: %ld Blocks allocated: %ld **********************\n\n", blocks_to_remove[i], num_of_blocks_to_allocate[k]);
-            if (blocks_to_remove[i] > num_of_blocks_to_allocate[k])
+            if (blocks_to_remove[i] >= num_of_blocks_to_allocate[k])
             {
                 if (!remove_datablocks_from_inode(node, 0))
                 {
