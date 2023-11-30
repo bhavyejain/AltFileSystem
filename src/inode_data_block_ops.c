@@ -567,7 +567,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
             ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
 
-            for(;j < ending_block_num && j < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR; j++) // TODO: Check that this is right or not j < ending_block_num
+            for(;j < ending_block_num && j < NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR; j++) 
             {
                 if (!free_data_block(single_indirect_block_arr[j]))
                 {
@@ -624,6 +624,10 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
 
     logical_block_num -= NUM_OF_DOUBLE_INDIRECT_BLOCK_ADDR;
 
+    // TODO: This code also definitely has bugs. Make resolutions similar to commits:
+    // f808eb67d7e1a38f3fc4f55b269ac724ca75b12a
+    // 455cfee87622186327d5c9b97dd7b01eaff62c6e
+    // fe85c30d344c5fe84cfef138413b270af95d5b2c
     if (logical_block_num <= NUM_OF_TRIPLE_INDIRECT_BLOCK_ADDR)
     {
         if(inodeObj->i_triple_indirect == 0)
