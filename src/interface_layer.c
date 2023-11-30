@@ -483,7 +483,7 @@ ssize_t altfs_read(const char* path, void* buff, size_t nbytes, size_t offset)
     {
         return 0;
     }
-    if (offset >= node->file_size)
+    if (offset >= node->i_file_size)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Offset %ld is greater than file size %ld.\n", READ, offset, node->i_file_size);
         return -EOVERFLOW;
@@ -627,7 +627,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
         {
             memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;
-            written = write_data_block(dblock_num, overwrite_buf)
+            written = write_data_block(dblock_num, overwrite_buf);
         }
         else
         {
@@ -692,7 +692,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
             bytes_written += BLOCK_SIZE;
         }
 
-        if(!write_data_block(new_block_num, buffer))
+        if(!write_data_block(new_block_num, overwrite_buf))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, new_block_num);
             break;
@@ -755,10 +755,10 @@ ssize_t altfs_truncate(const char* path, size_t offset)
 
     ssize_t block_offset = offset % BLOCK_SIZE;
     memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
-    write_dblock(d_block_num, data_block);
+    write_data_block(d_block_num, data_block);
     altfs_free_memory(data_block);
 
-    node->file_size = offset;
+    node->i_file_size = offset;
     write_inode(inum, node);
     altfs_free_memory(node);
     return 0;
