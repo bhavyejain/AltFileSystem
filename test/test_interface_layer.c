@@ -637,7 +637,7 @@ bool test_read()
 
     // Read from 3 blocks
     printf("TEST 4\n");
-    realloc(buffer, 4106);
+    buffer = (char*)realloc(buffer, 4106);
     if(altfs_read("/dir2/file3", buffer, 4106, 4091) != 4106)
     {
         fprintf(stderr, "%s : Did not read first 10 bytes fully from /dir2/file3.\n", INTERFACE_LAYER_TEST);
