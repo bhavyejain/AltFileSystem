@@ -757,7 +757,7 @@ ssize_t altfs_truncate(const char* path, off_t length)
 
     if(length < 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Negative offset provided: %ld.\n", TRUNCATE, length);
+        fuse_log(FUSE_LOG_ERR, "%s : Negative legth provided: %ld.\n", TRUNCATE, length);
         return -EINVAL;
     }
     
@@ -785,7 +785,7 @@ ssize_t altfs_truncate(const char* path, off_t length)
         }
     }
 
-    ssize_t i_block_num = (ssize_t)(length / BLOCK_SIZE);
+    ssize_t i_block_num = (ssize_t)((length - 1) / BLOCK_SIZE);
     if(node->i_blocks_num > i_block_num + 1){
         // Remove everything from i_block_num + 1
         remove_datablocks_from_inode(node, i_block_num + 1);
@@ -794,15 +794,19 @@ ssize_t altfs_truncate(const char* path, off_t length)
     // Get data block for offset
     ssize_t prev = 0;
     ssize_t d_block_num = get_disk_block_from_inode_block(node, i_block_num, &prev);
-    if(d_block_num <= 0){
+    if(d_block_num <= 0)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get data block number from inode block number.\n", TRUNCATE);
         return -1;
     }
     char* data_block = read_data_block(d_block_num);
 
-    ssize_t block_offset = (ssize_t)(length % BLOCK_SIZE);
-    memset(data_block + block_offset, 0, BLOCK_SIZE - block_offset);
-    write_data_block(d_block_num, data_block);
+    ssize_t block_offset = (ssize_t)((length - 1) % BLOCK_SIZE);
+    if(block_offset != BLOCK_SIZE - 1)
+    {
+        memset(data_block + block_offset + 1, 0, BLOCK_SIZE - block_offset - 1);
+        write_data_block(d_block_num, data_block);
+    }
     altfs_free_memory(data_block);
 
     node->i_file_size = (ssize_t)length;
