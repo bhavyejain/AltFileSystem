@@ -724,28 +724,28 @@ bool test_truncate()
         return false;
     }
     inum = name_i("/dir2/file3");
-    node = get_inode(inum);
-    if(node->i_file_size != 16382)
+    struct indoe* node2 = get_inode(inum);
+    if(node2->i_file_size != 16382)
     {
-        fprintf(stderr, "%s : File size is not 16383. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
-        altfs_free_memory(node);
+        fprintf(stderr, "%s : File size is not 16383. Found: %ld.\n", INTERFACE_LAYER_TEST, node2->i_file_size);
+        altfs_free_memory(node2);
         return false;
     }
-    if(node->i_blocks_num != 4)
+    if(node2->i_blocks_num != 4)
     {
-        fprintf(stderr, "%s : File has something other than 4 blocks. Found: %ld.\n", INTERFACE_LAYER_TEST, node->i_blocks_num);
-        altfs_free_memory(node);
+        fprintf(stderr, "%s : File has something other than 4 blocks. Found: %ld.\n", INTERFACE_LAYER_TEST, node2->i_blocks_num);
+        altfs_free_memory(node2);
         return false;
     }
-    char* buff = read_data_block(node->i_direct_blocks[3]);
+    char* buff = read_data_block(node2->i_direct_blocks[3]);
     if(strncpy("aaa00", buff + 4091, 5) != 0)
     {
         fprintf(stderr, "%s : File not truncated properly. Found: %.5s.\n", INTERFACE_LAYER_TEST, buff + 4091);
-        altfs_free_memory(node);
+        altfs_free_memory(node2);
         altfs_free_memory(buff);
         return false;
     }
-    altfs_free_memory(node);
+    altfs_free_memory(node2);
     altfs_free_memory(buff);
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
