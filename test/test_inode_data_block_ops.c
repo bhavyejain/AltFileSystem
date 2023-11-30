@@ -183,6 +183,7 @@ int test_add_data_block_to_inode()
             fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
         }
         fprintf(stdout, "\n************ REALLOCATED BLOCKS *************\n");
+        print_inode_data_blocks(node, inum);
     }
     
     fprintf(stdout, "\n=============== END: TESTING INODE DATA BLOCK OPERATIONS =============\n");
