@@ -30,6 +30,8 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         return -1;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
+    altfs_free_memory(buff);
+
     for (ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
     {
         for (ssize_t j = 0; j < 8; j++)
@@ -40,14 +42,34 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     }
 
     fprintf(stdout, "\n************ BLOCK ADDRESSES IN DOUBLE INDIRECT BLOCK: %ld *************\n",node->i_double_indirect);
-    if (!altfs_read_block(node->i_double_indirect, buff))
+    
+    ssize_t *double_indirect_block_arr = (ssize_t*) read_data_block(node->i_double_indirect);
+    if (!double_indirect_block_arr)
     {
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_double_indirect);
         return -1;
     }
 
-    *buff_numptr = (ssize_t *)buff;
-    char *buff2 = (char*)malloc(BLOCK_SIZE);
+    for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
+    {
+        ssize_t data_block_num = double_indirect_block_arr[i];
+        if(data_block_num <= 0)
+        {
+            fprintf(stdout, "Double indirect block num <= 0.\n");
+            return -1;
+        }
+
+        ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(data_block_num);
+        for (ssize_t j = 0; j < NUM_OF_ADDRESSES_PER_BLOCK / 8; j++)
+        {
+            for (ssize_t k = 0; k < 8; k++)
+            {
+                fprintf(stdout, "%ld ", single_indirect_block_arr[j * 8 + k]);
+            }
+            fprintf(stdout,"\n");
+        }
+    }
+    /*char *buff2 = (char*)malloc(BLOCK_SIZE);
 
     for(ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)
     {
@@ -67,7 +89,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
             }
             fprintf(stdout, "\n");
         }
-    }
+    }*/
 }
 
 int allocate_datablocks_util(struct inode *node, int num_of_blocks, ssize_t inum)
