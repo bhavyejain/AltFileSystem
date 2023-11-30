@@ -896,6 +896,7 @@ bool test_unlink()
         altfs_free_memory(root);
         return false;
     }
+    print_dir_contents(&root, 0);
     altfs_free_memory(root);
     printf("\n");
 
@@ -903,12 +904,12 @@ bool test_unlink()
     printf("TEST 5\n");
     if(name_i("/dir3") != -1)
     {
-        fprintf(stderr, "%s : Failed to empty niode cache for /dir3.\n", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to empty inode cache for /dir3.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     if(name_i("/dir3/file1") != -1)
     {
-        fprintf(stderr, "%s : Failed to empty niode cache for /dir3/file1.\n", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to empty inode cache for /dir3/file1.\n", INTERFACE_LAYER_TEST);
         return false;
     }
 
