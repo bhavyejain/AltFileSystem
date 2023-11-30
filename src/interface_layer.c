@@ -804,6 +804,7 @@ ssize_t altfs_truncate(const char* path, off_t length)
     ssize_t block_offset = (ssize_t)((length - 1) % BLOCK_SIZE);
     if(block_offset != BLOCK_SIZE - 1)
     {
+        fuse_log(FUSE_LOG_DEBUG, "Block offset: %ld\n", block_offset);
         memset(data_block + block_offset + 1, 0, BLOCK_SIZE - block_offset - 1);
         fuse_log(FUSE_LOG_DEBUG, "New contents:\n%.4096s\n", data_block);
         write_data_block(d_block_num, data_block);
