@@ -623,7 +623,8 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     char overwrite_buf[BLOCK_SIZE];
     // First write to the data blocks that are allocated to the inode already.
     ssize_t prev_block = 0;
-    for(ssize_t i = start_i_block; i < node->i_blocks_num; i++)
+    bool complete = false;
+    for(ssize_t i = start_i_block; i < node->i_blocks_num && !complete; i++)
     {
         ssize_t dblock_num = get_disk_block_from_inode_block(node, i, &prev_block);
         if(dblock_num <= 0)
@@ -650,18 +651,19 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
                 return (bytes_written == 0) ? -1 : bytes_written;
             }
 
-            if(i == start_i_block)  // first block to be written
+            if(i == end_i_block)   // last block to be written 
+            {
+                memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
+                bytes_written += end_block_offset + 1;
+                complete = true;
+            }
+            else  // first block to be written (i == start_i_block)
             {
                 ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
                 memcpy(buf_read + start_block_offset, buff, to_write);
                 bytes_written += to_write;
             }
-            else   // last block to be written (i == end_i_block)
-            {
-                memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
-                bytes_written += end_block_offset + 1;
-                break;
-            }
+            
             written = write_data_block(dblock_num, buf_read);
         }
 
