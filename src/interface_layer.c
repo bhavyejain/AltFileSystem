@@ -702,7 +702,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         else if(starting_block >= 1 && i == starting_block) // first block with data; only goes in if overall starts writing here
         {
             ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
-            memcpy(buf_read + start_block_offset, buff, to_write);
+            memcpy(overwrite_buf + start_block_offset, buff, to_write);
             bytes_written += to_write;
         }
         else if(i >= starting_block)    // write entire block
