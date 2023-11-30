@@ -722,6 +722,7 @@ ssize_t altfs_write(const char* path, void* buff, size_t nbytes, size_t offset)
         fuse_log(FUSE_LOG_ERR, "%s : Could not write inode %ld.\n", WRITE, inum);
         return -1;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s : Write complete.", WRITE);
     altfs_free_memory(node);
     return bytes_written;
 }
