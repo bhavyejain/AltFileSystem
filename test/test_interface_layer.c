@@ -108,6 +108,34 @@ bool test_getattr()
     return true;
 }
 
+bool test_access()
+{
+    printf("\n----- %s : Testing access() -----\n", INTERFACE_LAYER_TEST);
+    
+    if(altfs_access("/") != 0)
+    {
+        fprintf(stderr, "%s : Failed to access /.", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    if(altfs_access("/dir1/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to access /dir1/file1.", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    if(altfs_access("/dir1/file2") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Got wrong access to /dir1/file2", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
+    printf("----- %s : Tested access()! -----\n", INTERFACE_LAYER_TEST);
+    return true;
+}
+
 int main()
 {
     printf("=============== TESTING INTERFACE OPERATIONS =============\n\n");
@@ -129,6 +157,12 @@ int main()
     if(!test_getattr())
     {
         printf("%s : Testing altfs_getattr() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
+
+    if(!test_access())
+    {
+        printf("%s : Testing altfs_access() failed!\n", INTERFACE_LAYER_TEST);
         return -1;
     }
 
