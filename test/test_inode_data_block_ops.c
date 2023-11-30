@@ -30,13 +30,34 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         return -1;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
-    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
+    for (ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
     {
-        for (size_t j = 0; j < 8; j++)
+        for (ssize_t j = 0; j < 8; j++)
         {
             fprintf(stdout, "%ld ", buff_numptr[i * 8 + j]);
         }
         fprintf(stdout,"\n");
+    }
+
+    fprintf(stdout, "\n************ BLOCK ADDRESSES IN DOUBLE INDIRECT BLOCK: %ld *************\n",node->i_double_indirect);
+    if (!altfs_read_block(node->i_double_indirect, buff))
+    {
+        fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_double_indirect);
+        return -1;
+    }
+    *buff_numptr = (ssize_t *)buff;
+    for(ssize_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)
+    {
+        ssize_t *buff_numptr2 = (ssize_t *)buff_numptr[i];
+        fprintf(stdout, "Single indirect block addr: %zd\n", buff_numptr2);
+        for(ssize_t j = 0; j < NUM_OF_ADDRESSES_PER_BLOCK / 8; j++)
+        {
+            for(ssize_t k = 0; k < 8; k++)
+            {
+                fprintf(stdout, "%zd", buff_numptr2[j * 8 + k]);
+            }
+            fprintf(stdout, "\n");
+        }
     }
 }
 
@@ -80,8 +101,8 @@ int test_add_data_block_to_inode()
     fprintf(stdout, "%s : Allocated inode with number %ld\n", INODE_DATA_BLOCK_OPS, inum);
 
     struct inode* node = get_inode(inum);
-    int num_of_blocks_to_allocate = 20;
-    // Allocate 20 data blocks to inode
+    int num_of_blocks_to_allocate = 20 + 512;
+    // Allocate 20+512 data blocks to inode
     for(int i = 0; i < num_of_blocks_to_allocate; i++)
     {
         ssize_t data_block_num = allocate_data_block();
@@ -121,8 +142,26 @@ int test_add_data_block_to_inode()
             return -1;
         }
         fprintf(stdout, "%s : Removed data blocks from %ld onwards from inode %ld\n", INODE_DATA_BLOCK_OPS, blocks_to_remove[i], inum);
-        //node =  (inum);
         print_inode_data_blocks(node, inum);
+
+        // reallocate removed data blocks
+        /*for(int j = 0; j < num_of_blocks_to_allocate - blocks_to_remove[i]; j++)
+        {
+            ssize_t data_block_num = allocate_data_block();
+            if (!data_block_num)
+            {
+                fprintf(stderr, "%s : Failed to allocate data block for inode %ld\n", INODE_DATA_BLOCK_OPS, inum);
+                return -1;
+            }
+            fprintf(stdout, "%s : Allocated new data block %ld\n", INODE_DATA_BLOCK_OPS, data_block_num);
+
+            if (!add_datablock_to_inode(node, data_block_num))
+            {
+                fprintf(stderr, "%s : Failed to associate data block %ld to inode %ld\n",INODE_DATA_BLOCK_OPS, data_block_num, inum);
+                return -1;
+            }
+            fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
+        }*/
     }
     
     fprintf(stdout, "\n=============== END: TESTING INODE DATA BLOCK OPERATIONS =============\n");
