@@ -896,7 +896,6 @@ bool test_unlink()
         altfs_free_memory(root);
         return false;
     }
-    print_dir_contents(&root, 0);
     altfs_free_memory(root);
     printf("\n");
 

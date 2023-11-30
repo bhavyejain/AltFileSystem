@@ -258,7 +258,10 @@ ssize_t name_i(const char* const file_path)
     // Check for presence in cache
     ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
     if (inum_from_cache > 0)
+    {
+        fuse_log(FUSE_LOG_DEBUG, "%s : Returning inum %ld for %s from cache.\n", NAME_I, inum_from_cache, file_path);
         return inum_from_cache;
+    }
 
     // Recursively get inum from parent
     char parent_path[file_path_len + 1];
@@ -267,7 +270,10 @@ ssize_t name_i(const char* const file_path)
     
     ssize_t parent_inum = name_i(parent_path);
     if (parent_inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Parent %ld not found.\n", NAME_I, parent_inum);
         return -1;
+    }
 
     struct inode* inodeObj = get_inode(parent_inum);
     char child_path[file_path_len + 1];
@@ -289,6 +295,7 @@ ssize_t name_i(const char* const file_path)
     
     altfs_free_memory(filepos.p_block);
     set_cache_entry(&inodeCache, file_path, inum);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
     return inum;
 }
 
