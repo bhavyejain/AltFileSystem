@@ -225,7 +225,7 @@ bool test_mknod()
     
     if(!altfs_mknod("/dir2/file2", S_IFREG|DEFAULT_PERMISSIONS, -1))
     {
-        fprintf(stderr, "%s : Failed to create file /dir2/file2.\n");
+        fprintf(stderr, "%s : Failed to create file /dir2/file2.\n", INTERFACE_LAYER_TEST);
         return false;
     }
 
