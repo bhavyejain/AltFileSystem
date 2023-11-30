@@ -522,6 +522,52 @@ bool test_write()
     altfs_free_memory(file);
     altfs_free_memory(buff);
     printf("\n");
+
+    // Will write accross 3 datablocks (all new, starting in between the first new block)
+    printf("TEST 7\n");
+    char big_data[4106]; // 5 + 4096 + 5
+    memset(big_data, 'a', 4106);
+    if(altfs_write("/dir2/file3", big_data, 4106, 16379) != 4106)
+    {
+        fprintf(stderr, "%s : Did not write full string to /dir2/file3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    file = get_inode(inum);
+    if(file->i_blocks_num != 6 || file->i_file_size != 20485)
+    {
+        fprintf(stderr, "%s : File size for /dir2/file3 not correct. n_blocks: %ld, size (bytes): %ld\n", INTERFACE_LAYER_TEST, file->i_blocks_num, file->i_file_size);
+        altfs_free_memory(file);
+        return false;
+    }
+    buff = read_data_block(file->i_direct_blocks[3]);
+    if(strncmp("aaaaa", buff + 4091, 5) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 0 in /dir2/file3. Should be: |%.5s|, was: |%.5s|\n", INTERFACE_LAYER_TEST, "aaaaa", buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(buff);
+    buff = read_data_block(file->i_direct_blocks[4]);
+    if(strncmp(big_data, buff, 4096) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 1 in /dir2/file3. Should be: all a's, was: |%s|\n", INTERFACE_LAYER_TEST, buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(buff);
+    buff = read_data_block(file->i_direct_blocks[5]);
+    if(strncmp("aaaaa", buff, 5) != 0)
+    {
+        fprintf(stderr, "%s : Incorrect data written in block 2 in /dir2/file3. Should be: |%s|, was: |%.5s|\n", INTERFACE_LAYER_TEST, "aaaaa", buff);
+        altfs_free_memory(file);
+        altfs_free_memory(buff);
+        return false;
+    }
+    altfs_free_memory(file);
+    altfs_free_memory(buff);
+    printf("\n");
     
     printf("----- %s : Done! -----\n", INTERFACE_LAYER_TEST);
     return true;
