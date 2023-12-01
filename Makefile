@@ -3,10 +3,6 @@ CC=gcc
 BIN=./bin
 SOURCE=./src
 
-TEST=./test
-TEST_BIN=./test/bin
-TESTS = test1 test2 # add more tests here
-
 SHELL = /bin/sh
 PKGFLAGS = `pkg-config fuse3 --cflags --libs`
 
@@ -26,16 +22,42 @@ $(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 		$(shell mkdir -p $(BIN))
 		$(CC) -o $@ $^ $(DEBUG_FLAGS)
 
-tests: $(TESTS)
+# ============= TESTING =============
+TEST=./test
+TEST_BIN=./test/bin
 
-test_disk_layer: test/test_disklayer.c 
+test_disk_layer: test/test_disk_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
-	$(CC) -o $(TEST_BIN)/$@ $^
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-$(TESTS): %: $(TEST)/%.c
+test_superblock_layer: test/test_superblock_layer.c 
 	$(shell  mkdir -p $(TEST_BIN))
-	$(CC) -o $(TEST_BIN)/$@ $^
-	
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_dblock_inode_layer: test/test_dblock_inode_layer.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_dblock_inode_freelist: test/test_dblock_inode_freelist.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_inode_data_block_ops: test/test_inode_data_block_ops.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_directory_ops: test/test_directory_ops.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_interface_layer: test/test_interface_layer.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_dblock_inode_freelist test_inode_data_block_ops test_directory_ops test_interface_layer
+
+# ============ CLEAN =============
+
 clean:
 	rm -rf obj/*
 	rm -rf ./bin
