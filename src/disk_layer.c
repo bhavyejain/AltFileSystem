@@ -2,7 +2,6 @@
 
 #include "../header/disk_layer.h"
 
-// TODO: change this while moving to disk 
 #ifdef DISK_MEMORY
     static ssize_t mem_ptr;
 #else 
