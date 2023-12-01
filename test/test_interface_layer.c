@@ -917,9 +917,10 @@ bool test_unlink()
         fprintf(stderr, "%s : Failed to empty inode cache for /dir3/file1.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    printf("\n");
 
     // Try to remove root
-    printf("TEST 5\n");
+    printf("TEST 6\n");
     if(altfs_unlink("/") != -EACCES)
     {
         fprintf(stderr, "%s : Failed to flag root deletion.\n", INTERFACE_LAYER_TEST);

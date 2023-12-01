@@ -311,6 +311,18 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
 
 ssize_t altfs_unlink(const char* path)
 {
+    ssize_t inum = name_i(path);
+    if(inum == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", UNLINK, path);
+        return -ENOENT;
+    }
+    if(inum == ROOT_INODE_NUM)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting. %s.\n", UNLINK);
+        return -EACCES;
+    }
+    
     ssize_t path_len = strlen(path);
     char child_name[path_len + 1];
     if(!copy_file_name(child_name, path, path_len))
@@ -326,18 +338,6 @@ ssize_t altfs_unlink(const char* path)
         return -EINVAL;
     }
 
-    ssize_t inum = name_i(path);
-    if(inum == -1)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", UNLINK, path);
-        return -ENOENT;
-    }
-    if(inum == ROOT_INODE_NUM)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting. %s.\n", UNLINK);
-        return -EACCES;
-    }
-    
     struct inode* node = get_inode(inum);
     // If path is a directory which is not empty, fail operation
     if(S_ISDIR(node->i_mode) && !is_empty_dir(&node))
