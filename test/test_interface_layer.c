@@ -980,7 +980,7 @@ bool test_rename()
         return false;
     }
     ssize_t inum2 = name_i("/dir2/file1");
-    if(inum1 == -1)
+    if(inum2 == -1)
     {
         fprintf(stderr, "%s : Failed to add /dir2/file1.\n", INTERFACE_LAYER_TEST);
         return false;
