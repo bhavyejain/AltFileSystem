@@ -53,4 +53,6 @@ static int fuse_write(const char* path, const char* buff, size_t size, off_t off
 
 static int fuse_rename(const char *from, const char *to);
 
+static void fuse_destroy(void *private_data);
+
 #endif

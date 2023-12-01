@@ -20,6 +20,7 @@ static const struct fuse_operations fuse_ops = {
     .write    = fuse_write,
     .utimens  = fuse_utimens,
     .rename   = fuse_rename,
+    .destroy = fuse_destroy,
 };
 
 static int fuse_access(const char* path, int mode)
@@ -134,6 +135,11 @@ static int fuse_write(const char* path, const char* buff, size_t size, off_t off
 static int fuse_rename(const char *from, const char *to, unsigned int flags)
 {
     return altfs_rename(from, to);
+}
+
+static void fuse_destroy(void *private_data)
+{
+    altfs_destroy();
 }
 
 int main(int argc, char* argv[]){
