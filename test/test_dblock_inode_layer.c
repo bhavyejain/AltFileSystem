@@ -223,10 +223,18 @@ int main()
     altfs_free_memory(read_inode);
 
     // Free the inode
+    unsigned long long free_blocks_init = get_num_of_free_blocks();
     fprintf(stdout, "%s : Freeing the inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
     if(!free_inode(inum))
     {
         fprintf(stderr, "%s : Unable to free inode %ld.\n", DATABLOCK_LAYER_TEST, inum);
+        return -1;
+    }
+    unsigned long long free_blocks_final = get_num_of_free_blocks();
+    ssize_t blocks_freed = free_blocks_final - free_blocks_init;
+    if(blocks_freed != 12)
+    {
+        fprintf(stderr, "%s : All blocks not freed. Number of blocks freed: %ld.\n", DATABLOCK_LAYER_TEST, blocks_freed);
         return -1;
     }
 
