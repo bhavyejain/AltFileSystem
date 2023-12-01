@@ -86,6 +86,7 @@ ssize_t altfs_access(const char* path)
 
 /*
 Allocates a new inode for a file and fills the inode with default values.
+Make sure a file does not exist through name_i() before calling this.
 */
 ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode, ssize_t* parent_inum)
 {
@@ -478,7 +479,7 @@ ssize_t altfs_close(ssize_t file_descriptor)
     return 0;
 }
 
-ssize_t altfs_read(const char* path, void* buff, size_t nbytes, off_t offset)
+ssize_t altfs_read(const char* path, char* buff, size_t nbytes, off_t offset)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to read %ld bytes from %s.\n", READ, nbytes, path);
     if(nbytes == 0)
@@ -898,7 +899,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     size_t bytes_read, bytes_written;
     while((bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset)) > 0)
     {
-        bytes_written = altfs_write(to, (void*)buffer, bytes_read, offset);
+        bytes_written = altfs_write(to, buffer, bytes_read, offset);
         if(bytes_read != bytes_written){
             fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
             return -1;

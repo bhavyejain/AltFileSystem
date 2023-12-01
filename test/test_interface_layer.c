@@ -947,7 +947,7 @@ bool test_rename()
     // Prepare
     if(altfs_write("/dir2/file4", "This is a test string.", 22, 0) != 22)
     {
-        fprintf(stderr, "%s : Failed to write to /dir2/file4.", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to write to /dir2/file4.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     printf("\n");
@@ -956,15 +956,87 @@ bool test_rename()
     printf("TEST 1\n");
     if(altfs_rename("/dir2/file4", "/dir3/file1") != -ENOENT)
     {
-        fprintf(stderr, "%s : Failed to flag non existing parent for destination.", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to flag non existing parent for destination.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     if(altfs_rename("/dir2/file4", "/dir2/dir3/file1") != -ENOENT)
     {
-        fprintf(stderr, "%s : Failed to flag non existing parent for destination 2.", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to flag non existing parent for destination 2.\n", INTERFACE_LAYER_TEST);
         return false;
     }
     printf("\n");
+
+    // Rename should be successful
+    printf("TEST 2\n");
+    if(altfs_rename("/dir2/file4", "/dir2/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/file4 to /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    ssize_t inum1 = name_i("/dir2/file4");
+    if(inum1 != -1)
+    {
+        fprintf(stderr, "%s : Failed to remove /dir2/file4.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    ssize_t inum2 = name_i("/dir2/file1");
+    if(inum1 == -1)
+    {
+        fprintf(stderr, "%s : Failed to add /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* node = get_inode(inum2);
+    if(node->i_file_size != 22)
+    {
+        fprintf(stderr, "%s : The file /dir2/file1 should have 22 bytes. Has: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(node);
+    printf("\n");
+
+    // Rename larger file
+    printf("TEST 3\n");
+    if(!altfs_mkdir("/dir2/dir3", DEFAULT_PERMISSIONS))
+    {
+        fprintf(stderr, "%s : Failed to create directory /dir2/dir3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_rename("/dir2/file3", "/dir2/dir3/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/file4 to /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    inum1 = name_i("/dir2/dir3/file1");
+    if(inum1 == -1)
+    {
+        fprintf(stderr, "%s : Failed to add /dir2/dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    node = get_inode(inum1);
+    if(node->i_file_size != 16382)
+    {
+        fprintf(stderr, "%s : The file /dir2/dir3/file1 should have 16382 bytes. Has: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(node);
+    printf("\n");
+
+    // Rename a directory (should not affect children)
+    printf("TEST 4\n");
+    if(altfs_rename("/dir2/dir3", "/dir2/dir1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/dir3 to /dir2/dir1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    inum1 = name_i("/dir2/dir3/file1");
+    inum2 = name_i("/dir2/dir1/file1");
+    if(inum1 != -1 || inum2 == -1)
+    {
+        fprintf(stderr, "%s : Wrong inums fetched for /dir2/dir3/file1: %ld (should be -1), or /dir2/dir1/file1: %ld (should not be -1).\n", INTERFACE_LAYER_TEST, inum1, inum2);
+        return false;
+    }
     
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
