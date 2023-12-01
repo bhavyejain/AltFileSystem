@@ -107,13 +107,6 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
         return -ENOENT;
     }
 
-    ssize_t child_inode_num = name_i(path);
-    if(child_inode_num != -1)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File already exists: %s.\n", CREATE_NEW_FILE, path);
-        return -EEXIST;
-    }
-
     struct inode* parent_inode = get_inode(parent_inode_num);
     // Check if parent is a directory
     if(!S_ISDIR(parent_inode->i_mode))
@@ -138,7 +131,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
     }
 
     // Allocate new inode and add directory entry
-    child_inode_num = allocate_inode();
+    ssize_t child_inode_num = allocate_inode();
     if(child_inode_num == -1)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not allocate an inode for file.\n", CREATE_NEW_FILE);
@@ -199,6 +192,14 @@ bool altfs_mkdir(const char* path, mode_t mode)
 {
     struct inode* dir_inode = NULL;
     ssize_t parent_inum;
+
+    ssize_t inum = name_i(path);
+    if(inum != -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Directory already exists: %s.\n", MKDIR, path);
+        return false;
+    }
+
     ssize_t dir_inode_num = create_new_file(path, &dir_inode, S_IFDIR|mode, &parent_inum);
     if(dir_inode_num <= -1)
     {
@@ -295,8 +296,15 @@ bool altfs_mknod(const char* path, mode_t mode, dev_t dev)
 
     fuse_log(FUSE_LOG_DEBUG, "%s : MKNOD mode passed: %ld.\n", MKNOD, mode);
 
+    ssize_t inum = name_i(path);
+    if(inum != -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File already exists: %s.\n", CREATE_NEW_FILE, path);
+        return false;
+    }
+
     ssize_t parent_inum;
-    ssize_t inum = create_new_file(path, &node, mode, &parent_inum);
+    inum = create_new_file(path, &node, mode, &parent_inum);
 
     if (inum <= -1)
     {
@@ -404,7 +412,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
     bool created = false;
 
     // Create new file if required
-    if(inum <= -1 && (oflag & O_CREAT))
+    if(inum == -1 && (oflag & O_CREAT))
     {
         struct inode* node = NULL;
         ssize_t parent_inum;
@@ -418,7 +426,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
         altfs_free_memory(node);
         created = true;
     }
-    else if(inum <= -1)
+    else if(inum == -1)
     {
         fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", OPEN, path);
         return -ENOENT;

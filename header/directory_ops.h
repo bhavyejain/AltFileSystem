@@ -108,7 +108,7 @@ Get inum for given file path
 
 @param file_path: File path whose inode number is required
 
-@return ssize_t Inode number corresponding to the given file path
+@return ssize_t Inode number corresponding to the given file path, or -1.
 */
 ssize_t name_i(const char* const file_path);
 
