@@ -26,7 +26,7 @@ $(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
 TEST=./test
 TEST_BIN=./test/bin
 
-test_disk_layer: test/test_disk_layer.c 
+test_disk_layer: test/test_disk_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
