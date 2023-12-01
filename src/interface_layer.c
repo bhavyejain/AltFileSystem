@@ -364,32 +364,6 @@ ssize_t altfs_unlink(const char* path)
     }
     struct inode* parent = get_inode(parent_inum);
 
-    // struct fileposition file_pos = get_file_position_in_dir(child_name, parent);
-    // if(file_pos.offset == -1)
-    // {
-    //     fuse_log(FUSE_LOG_ERR, "%s : No entry found for child %s in parent %s.\n", UNLINK, child_name, parent_path);
-    //     altfs_free_memory(node);
-    //     altfs_free_memory(parent);
-    //     return -1;
-    // }
-
-    // // Rewrite block with child entry deleted
-    // char buffer[BLOCK_SIZE];
-    // memset(buffer, 0, BLOCK_SIZE);
-    // memcpy(buffer, file_pos.p_block, file_pos.offset);
-    // unsigned short rec_len = ((unsigned short*)(file_pos.p_block + file_pos.offset))[0];
-    // ssize_t next_offset = file_pos.offset + rec_len;
-    // if(next_offset < BLOCK_SIZE)
-    // {
-    //     memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
-    // }
-    // write_data_block(file_pos.p_plock_num, buffer);
-    // altfs_free_memory(file_pos.p_block);
-
-    // time_t curr_time = time(NULL);
-    // parent->i_ctime = curr_time;
-    // parent->i_mtime = curr_time;
-    // parent->i_child_num--;
     if(!remove_directory_entry(&parent, child_name))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not delete entry for child %s in parent %s.\n", UNLINK, child_name, parent_path);
@@ -880,61 +854,116 @@ ssize_t altfs_rename(const char *from, const char *to)
 
     if(altfs_access(from) != 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", RENAME, from);
+        fuse_log(FUSE_LOG_ERR, "%s : From path %s not found.\n", RENAME, from);
         return -ENOENT;
     }
     // check if to doesn't exist
     if(altfs_access(to) == 0)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Path %s already exists.\n", RENAME, to);
+        fuse_log(FUSE_LOG_ERR, "%s : To path %s already exists.\n", RENAME, to);
         return -EEXIST;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : ACCESSES CHECKED.\n", RENAME);
-
-    // create to
-    ssize_t oflag = O_WRONLY | O_CREAT | O_TRUNC;
-    ssize_t status = altfs_open(to, oflag);
-    fuse_log(FUSE_LOG_DEBUG, "%s : CREATED NEW FILE.\n", RENAME);
-    if(status < 0)
+    
+    ssize_t to_path_len = strlen(to);
+    char to_parent_path[to_path_len + 1];
+    if(!copy_parent_path(to_parent_path, to, to_path_len))
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Error creating file %s.\n", RENAME, to);
-        return status;
+        fuse_log(FUSE_LOG_ERR, "%s : No parent path exists for path: %s.\n", RENAME, to);
+        return -ENOENT;
     }
 
-    // copy data from -> to
-    size_t offset = 0;
-    char buffer[BLOCK_SIZE];
-    memset(buffer, 0, BLOCK_SIZE);
-    size_t bytes_read, bytes_written;
-    bool transferring = true;
-    while(transferring)
+    // Check for to's parent sanity.
+    ssize_t to_parent_inode_num = name_i(to_parent_path);
+    if(to_parent_inode_num == -1)
     {
-        bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset);
-        fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
-        if(bytes_read <= -1)
-        {
-            transferring = false;
-            fuse_log(FUSE_LOG_DEBUG, "%s : STOPPING TRANSFER.\n", RENAME);
-        }
-        else
-        {
-            bytes_written = altfs_write(to, buffer, bytes_read, offset);
-            fuse_log(FUSE_LOG_DEBUG, "%s : WRITTEN: %ld bytes to offset %ld.\n", RENAME, bytes_written, offset);
-            if(bytes_read != bytes_written)
-            {
-                fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
-                return -1;
-            }
-            offset += bytes_read;
-        }
+        fuse_log(FUSE_LOG_ERR, "%s : Invalid parent path: %s.\n", RENAME, to_parent_path);
+        return -ENOENT;
     }
-    // delete from
-    status = altfs_unlink(from);
-    if(status != 0)
+    struct inode* to_parent_inode = get_inode(to_parent_inode_num);
+    if(!S_ISDIR(to_parent_inode->i_mode))
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Error removing path %s.\n", RENAME, from);
-        return status;
+        fuse_log(FUSE_LOG_ERR, "%s : Parent is not a directory: %s.\n", RENAME, to_parent_path);
+        altfs_free_memory(to_parent_inode);
+        return -ENOENT;
+    }
+    // Check parent write permission
+    if(!(bool)(to_parent_inode->i_mode & S_IWUSR))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Parent directory does not have write permission: %s.\n", RENAME, to_parent_path);
+        altfs_free_memory(to_parent_inode);
+        return -EACCES;
     }
 
+    /*
+    Add record in to's parent.
+    */
+    fuse_log(FUSE_LOG_DEBUG, "%s : Adding record in TO's parent.\n", RENAME);
+    char to_child_name[to_path_len + 1];
+    if(!copy_file_name(to_child_name, to, to_path_len))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error getting child file name from path: %s.\n", RENAME, to);
+        return -1;
+    }
+
+    ssize_t inum = name_i(from);
+    if(!add_directory_entry(&to_parent_inode, inum, to_child_name))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error adding child record %s to parent %s: %s.\n", RENAME, to_child_name, to_parent_path);
+        altfs_free_memory(to_parent_inode);
+        return -EDQUOT;
+    }
+    time_t curr_time = time(NULL);
+    to_parent_inode->i_mtime = curr_time;
+    to_parent_inode->i_ctime = curr_time;
+    if(!write_inode(to_parent_inode_num, to_parent_inode))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Could not write directory inode.\n", RENAME);
+        altfs_free_memory(to_parent_inode);
+        return -1;
+    }
+    altfs_free_memory(to_parent_inode);
+
+    /*
+    Remove record in from's parent.
+    */
+    fuse_log(FUSE_LOG_DEBUG, "%s : Removing record from FROM's parent.\n", RENAME);
+    ssize_t from_path_len = strlen(from);
+    char from_parent_path[from_path_len + 1];
+    if(!copy_parent_path(from_parent_path, from, from_path_len))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : No parent path exists for path: %s.\n", RENAME, from);
+        return -ENOENT;
+    }
+
+    ssize_t from_parent_inode_num = name_i(from_parent_path);
+    if(from_parent_inode_num == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Invalid parent path: %s.\n", RENAME, from_parent_path);
+        return -ENOENT;
+    }
+    struct inode* from_parent_inode = get_inode(from_parent_inode_num);
+
+    char from_child_name[from_path_len + 1];
+    if(!copy_file_name(from_child_name, from, from_path_len))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error getting child file name from path: %s.\n", RENAME, from);
+        return -1;
+    }
+
+    if(!remove_directory_entry(&from_parent_inode, from_child_name))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Could not delete entry for child %s in parent %s.\n", RENAME, from_child_name, from_parent_path);
+        altfs_free_memory(from_parent_inode);
+        return -1;
+    }
+    if(!write_inode(from_parent_inode_num, from_parent_inode))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Could not write directory inode.\n", RENAME);
+        altfs_free_memory(from_parent_inode);
+        return -1;
+    }
+    altfs_free_memory(from_parent_inode);
+
+    fuse_log(FUSE_LOG_DEBUG, "%s : Renaming complete.\n", RENAME);
     return 0;
 }
