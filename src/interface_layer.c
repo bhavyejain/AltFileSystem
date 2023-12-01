@@ -390,7 +390,7 @@ ssize_t altfs_unlink(const char* path)
     // parent->i_ctime = curr_time;
     // parent->i_mtime = curr_time;
     // parent->i_child_num--;
-    if(!remove_directory_entry(&parent))
+    if(!remove_directory_entry(&parent, child_name))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not delete entry for child %s in parent %s.\n", UNLINK, child_name, parent_path);
         altfs_free_memory(node);
@@ -405,6 +405,7 @@ ssize_t altfs_unlink(const char* path)
         free_inode(inum);
     } else
     {
+        time_t curr_time = time(NULL);
         node->i_status_change_time = curr_time;
         write_inode(inum, node);
     }
