@@ -423,7 +423,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
             fuse_log(FUSE_LOG_ERR, "%s : Error creating file %s, errno: %ld.\n", OPEN, path, inum);
             return inum;
         }
-        write_inode(inum, node);
+        // write_inode(inum, node);
         altfs_free_memory(node);
         created = true;
     }
@@ -522,7 +522,7 @@ ssize_t altfs_read(const char* path, char* buff, size_t nbytes, off_t offset)
     ssize_t end_block_offset = BLOCK_SIZE - (offset + nbytes) % BLOCK_SIZE; // Ending offet in last block till where to read
 
     ssize_t blocks_to_read = end_i_block - start_i_block + 1; // Number of blocks that need to be read
-    fuse_log(FUSE_LOG_DEBUG, "%s : Number of blocks to read from: %ld.\n", READ, blocks_to_read);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Number of blocks to read: %ld.\n", READ, blocks_to_read);
 
     size_t bytes_read = 0;
     ssize_t dblock_num;
@@ -898,8 +898,14 @@ ssize_t altfs_rename(const char *from, const char *to)
     char buffer[BLOCK_SIZE];
     memset(buffer, 0, BLOCK_SIZE);
     size_t bytes_read, bytes_written;
-    while((bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset)) > 0)
+    bool transferring = true;
+    while(transferring)
     {
+        bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset);
+        if(bytes_read <= 0)
+        {
+            transferring = false;
+        }
         fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
         bytes_written = altfs_write(to, buffer, bytes_read, offset);
         fuse_log(FUSE_LOG_DEBUG, "%s : WRITTEN: %ld bytes to offset %ld.\n", RENAME, bytes_written, offset);
