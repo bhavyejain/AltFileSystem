@@ -253,6 +253,7 @@ bool test_mknod()
 {
     printf("\n########## %s : Testing mknod() ##########\n", INTERFACE_LAYER_TEST);
     
+    printf("TEST 1\n");
     if(!altfs_mknod("/dir2/file2", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
     {
         fprintf(stderr, "%s : Failed to create file /dir2/file2.\n", INTERFACE_LAYER_TEST);
@@ -279,8 +280,16 @@ bool test_mknod()
         altfs_free_memory(node);
         return false;
     }
-
     altfs_free_memory(node);
+    printf("\n");
+
+    printf("TEST 2\n");
+    if(altfs_mknod("/dir3/file1", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
+    {
+        fprintf(stderr, "%s : Failed to flag parent does not exist for file /dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
@@ -825,11 +834,17 @@ bool test_unlink()
 
     // Remove File 1
     printf("TEST 2\n");
+    unsigned long long free_blocks_init = get_num_of_free_blocks();
     if(altfs_unlink("/dir3/file1") != 0)
     {
         fprintf(stderr, "%s : Failed to unlink /dir3/file1.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    unsigned long long free_blocks_final = get_num_of_free_blocks();
+    ssize_t blocks_freed = free_blocks_final - free_blocks_init;
+    // Verify manually in logs. Should have freed 14 - #of blocks allocated to freelist.
+    printf("%s : Should have freed 14 blocks. Freed: %ld\n", INTERFACE_LAYER_TEST, blocks_freed);
+
     struct inode* file1 = get_inode(file1_inum);
     if(file1->i_allocated || file1->i_file_size != 0 || file1->i_blocks_num != 0)
     {
@@ -911,6 +926,15 @@ bool test_unlink()
         fprintf(stderr, "%s : Failed to empty inode cache for /dir3/file1.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    printf("\n");
+
+    // Try to remove root
+    printf("TEST 6\n");
+    if(altfs_unlink("/") != -EACCES)
+    {
+        fprintf(stderr, "%s : Failed to flag root deletion.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
 
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
@@ -920,9 +944,97 @@ bool test_rename()
 {
     printf("\n########## %s : Testing rename() ##########\n", INTERFACE_LAYER_TEST);
 
+    // Prepare
     if(altfs_write("/dir2/file4", "This is a test string.", 22, 0) != 22)
     {
-        fprintf(stderr, "%s : Failed to write to /dir2/file4.", INTERFACE_LAYER_TEST);
+        fprintf(stderr, "%s : Failed to write to /dir2/file4.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // The target path does not have valid parent
+    printf("TEST 1\n");
+    if(altfs_rename("/dir2/file4", "/dir3/file1") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Failed to flag non existing parent for destination.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_rename("/dir2/file4", "/dir2/dir3/file1") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Failed to flag non existing parent for destination 2.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    printf("\n");
+
+    // Rename should be successful
+    printf("TEST 2\n");
+    if(altfs_rename("/dir2/file4", "/dir2/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/file4 to /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    ssize_t inum1 = name_i("/dir2/file4");
+    if(inum1 != -1)
+    {
+        fprintf(stderr, "%s : Failed to remove /dir2/file4.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    ssize_t inum2 = name_i("/dir2/file1");
+    if(inum2 == -1)
+    {
+        fprintf(stderr, "%s : Failed to add /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    struct inode* node = get_inode(inum2);
+    if(node->i_file_size != 22)
+    {
+        fprintf(stderr, "%s : The file /dir2/file1 should have 22 bytes. Has: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(node);
+    printf("\n");
+
+    // Rename larger file
+    printf("TEST 3\n");
+    if(!altfs_mkdir("/dir2/dir3", DEFAULT_PERMISSIONS))
+    {
+        fprintf(stderr, "%s : Failed to create directory /dir2/dir3.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(altfs_rename("/dir2/file3", "/dir2/dir3/file1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/file4 to /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    inum1 = name_i("/dir2/dir3/file1");
+    if(inum1 == -1)
+    {
+        fprintf(stderr, "%s : Failed to add /dir2/dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    node = get_inode(inum1);
+    if(node->i_file_size != 16382)
+    {
+        fprintf(stderr, "%s : The file /dir2/dir3/file1 should have 16382 bytes. Has: %ld.\n", INTERFACE_LAYER_TEST, node->i_file_size);
+        altfs_free_memory(node);
+        return false;
+    }
+    altfs_free_memory(node);
+    printf("\n");
+
+    // Rename a directory (should not affect children)
+    printf("TEST 4\n");
+    if(altfs_rename("/dir2/dir3", "/dir2/dir1") != 0)
+    {
+        fprintf(stderr, "%s : Failed to rename /dir2/dir3 to /dir2/dir1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    inum1 = name_i("/dir2/dir3/file1");
+    inum2 = name_i("/dir2/dir1/file1");
+    if(inum1 != -1 || inum2 == -1)
+    {
+        fprintf(stderr, "%s : Wrong inums fetched for /dir2/dir3/file1: %ld (should be -1), or /dir2/dir1/file1: %ld (should not be -1).\n", INTERFACE_LAYER_TEST, inum1, inum2);
         return false;
     }
     
@@ -1022,11 +1134,11 @@ int main()
         return -1;
     }
 
-    // if(!test_rename())
-    // {
-    //     printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
+    if(!test_rename())
+    {
+        printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
 
     // if(!test_chmod())
     // {

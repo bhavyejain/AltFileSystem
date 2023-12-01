@@ -193,6 +193,35 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
     return true;
 }
 
+bool remove_directory_entry(struct inode** dir_inode, char* file_name)
+{
+    struct fileposition file_pos = get_file_position_in_dir(file_name, (*dir_inode));
+    if(file_pos.offset == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "remove_directory_entry : No entry found for child %s.\n", file_name);
+        return false;
+    }
+
+    // Rewrite block with child entry deleted
+    char buffer[BLOCK_SIZE];
+    memset(buffer, 0, BLOCK_SIZE);
+    memcpy(buffer, file_pos.p_block, file_pos.offset);
+    unsigned short rec_len = ((unsigned short*)(file_pos.p_block + file_pos.offset))[0];
+    ssize_t next_offset = file_pos.offset + rec_len;
+    if(next_offset < BLOCK_SIZE)
+    {
+        memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
+    }
+    write_data_block(file_pos.p_plock_num, buffer);
+    altfs_free_memory(file_pos.p_block);
+
+    time_t curr_time = time(NULL);
+    (*dir_inode)->i_ctime = curr_time;
+    (*dir_inode)->i_mtime = curr_time;
+    (*dir_inode)->i_child_num--;
+    return true;
+}
+
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
 {
     // fuse_log(FUSE_LOG_ERR, "%s : Looking for file: %s.\n", GET_FILE_POS_IN_DIR, file_name);

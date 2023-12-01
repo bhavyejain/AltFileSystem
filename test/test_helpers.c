@@ -4,6 +4,38 @@
 #ifdef __DISK_LAYER__
 
 /*
+Print the freelist starting brom block blocknum.
+*/
+int print_freelist(ssize_t blocknum)
+{   
+    printf("\n******************** FREELIST ********************\n");
+    printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
+    char *buff = (char*)malloc(BLOCK_SIZE);
+
+    if (!altfs_read_block(blocknum, buff))
+    {
+        printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
+        return -1;
+    }
+    ssize_t *buff_numptr = (ssize_t *)buff;
+    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (i == 0 && j == 0)
+                printf("Next free block: %ld\n", buff_numptr[0]);
+            else
+            printf("%ld ", buff_numptr[i * 8 + j]);
+        }
+        printf("\n");
+    }
+    printf("\n*************************************************\n");
+    return buff_numptr[0];
+}
+
+#ifdef __SUPERBLOCK_LAYER__
+
+/*
 Print number of free blocks in free list
 */
 unsigned long long get_num_of_free_blocks()
@@ -42,38 +74,6 @@ unsigned long long get_num_of_free_blocks()
     }
     return num_of_free_blocks;
 }
-
-/*
-Print the freelist starting brom block blocknum.
-*/
-int print_freelist(ssize_t blocknum)
-{   
-    printf("\n******************** FREELIST ********************\n");
-    printf("\n************ FREELIST FOR BLOCK: %ld *************\n",blocknum);
-    char *buff = (char*)malloc(BLOCK_SIZE);
-
-    if (!altfs_read_block(blocknum, buff))
-    {
-        printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
-        return -1;
-    }
-    ssize_t *buff_numptr = (ssize_t *)buff;
-    for (size_t i = 0; i < NUM_OF_ADDRESSES_PER_BLOCK / 8; i++)
-    {
-        for (size_t j = 0; j < 8; j++)
-        {
-            if (i == 0 && j == 0)
-                printf("Next free block: %ld\n", buff_numptr[0]);
-            else
-            printf("%ld ", buff_numptr[i * 8 + j]);
-        }
-        printf("\n");
-    }
-    printf("\n*************************************************\n");
-    return buff_numptr[0];
-}
-
-#ifdef __SUPERBLOCK_LAYER__
 
 void print_constants()
 {
