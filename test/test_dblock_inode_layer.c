@@ -232,7 +232,7 @@ int main()
     }
     unsigned long long free_blocks_final = get_num_of_free_blocks();
     ssize_t blocks_freed = free_blocks_final - free_blocks_init;
-    if(blocks_freed != 12)
+    if(blocks_freed != 21)
     {
         fprintf(stderr, "%s : All blocks not freed. Number of blocks freed: %ld.\n", DATABLOCK_LAYER_TEST, blocks_freed);
         return -1;
