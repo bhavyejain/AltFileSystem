@@ -121,6 +121,7 @@ int test_data_block_ops()
         // store block nums to free later
         blocks_to_free[i] = block_num;
     }
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 10 BLOCKS *********************\n");
 
     // print free list after allocating 10 blocks
@@ -131,6 +132,7 @@ int test_data_block_ops()
         }
     sb = (struct superblock*)sb_buf;
     print_freelist(sb->s_freelist_head);
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
 
     // free first 5 data blocks allocated
     fprintf(stdout, "\n******************* START: VERIFY FREELIST AFTER FREEING 5 BLOCKS *********************\n");
@@ -143,6 +145,7 @@ int test_data_block_ops()
         }
         fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
     }
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER FREEING 5 BLOCKS *********************\n");
 
     // print free list after freeing 5 blocks
@@ -152,6 +155,7 @@ int test_data_block_ops()
             return -1;
         }
     sb = (struct superblock*)sb_buf;
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     print_freelist(sb->s_freelist_head);
 
     // allocate 5 more blocks
@@ -168,6 +172,7 @@ int test_data_block_ops()
         fprintf(stdout, "%s : Iteration: %d Allocated block num %ld\n", DBLOCK_INODE_FREELIST_TEST, i, block_num);
         blocks_to_free[i] = block_num;
     }
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER ALLOCATING 5 MORE BLOCKS *********************\n");
 
     // print free list after allocating 5 more blocks
@@ -177,6 +182,7 @@ int test_data_block_ops()
             return -1;
         }
     sb = (struct superblock*)sb_buf;
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     print_freelist(sb->s_freelist_head);
 
     // free all 10 data blocks allocated
@@ -190,6 +196,7 @@ int test_data_block_ops()
         }
         fprintf(stdout, "%s : Freed block num %ld\n", DBLOCK_INODE_FREELIST_TEST, blocks_to_free[i]);
     }
+    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     fprintf(stdout, "\n******************* END: VERIFY FREELIST AFTER FREEING 10 BLOCKS *********************\n");
 
     // print free list after freeing 10 blocks
