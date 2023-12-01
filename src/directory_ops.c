@@ -184,7 +184,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
 
     if(!add_datablock_to_inode((*dir_inode), data_block_num))
     {
-        printf("couldn't add dblock to inode\n");
+        fuse_log(FUSE_LOG_ERR, "%s : Error adding data block to inode.\n", ADD_DIRECTORY_ENTRY);
         return false;
     }
 
@@ -380,27 +380,27 @@ bool setup_filesystem()
 
     char* dir_name = ".";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added . entry for root directory\n", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added . entry for root directory\n", SETUP_FILESYSTEM);
 
     dir_name = "..";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added .. entry for root directory\n", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added .. entry for root directory\n", SETUP_FILESYSTEM);
 
     if(!write_inode(ROOT_INODE_NUM, root_dir)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to write inode for root directory\n", SETUP_FILESYSTEM);
         // TODO: remove directory entries?
         return false;
     }
     
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", SETUP_FILESYSTEM, root_dir->i_blocks_num);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully wrote root dir inode with %ld data blocks\n", SETUP_FILESYSTEM, root_dir->i_blocks_num);
     altfs_free_memory(root_dir);
 
     return true;

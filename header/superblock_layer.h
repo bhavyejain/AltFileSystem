@@ -11,10 +11,10 @@
  * with reading and writing from and to data blocks
 */
 
+#define ALTFS_CREATE_FREELIST "altfs_create_freelist"
+#define ALTFS_CREATE_ILIST "altfs_create_ilist"
 #define ALTFS_MAKEFS "altfs_makefs"
 #define ALTFS_SUPERBLOCK "altfs_create_superblock"
-#define ALTFS_CREATE_ILIST "altfs_create_ilist"
-#define ALTFS_CREATE_FREELIST "altfs_create_freelist"
 
 #define NUM_OF_DIRECT_BLOCKS ((ssize_t) 12)
 #define ADDRESS_SIZE ((ssize_t) 8)

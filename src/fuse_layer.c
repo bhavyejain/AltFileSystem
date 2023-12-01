@@ -1,7 +1,24 @@
+#ifndef FUSE_USE_VERSION
+#define FUSE_USE_VERSION 31
+#endif
+
+#include <fuse.h>
 #include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <stddef.h>
 #include <stdbool.h>
 
-#include "../header/fuse_layer.h"
+#include "../src/disk_layer.c"
+#include "../src/superblock_layer.c"
+#include "../src/inode_ops.c"
+#include "../src/data_block_ops.c"
+#include "../src/inode_data_block_ops.c"
+#include "../src/inode_cache.c"
+#include "../src/directory_ops.c"
+#include "../src/interface_layer.c"
 
 static const struct fuse_operations fuse_ops = {
     .access   = fuse_access,

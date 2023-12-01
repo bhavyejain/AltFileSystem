@@ -13,10 +13,13 @@
 
 // Allocates memory - returns true on success
 bool altfs_alloc_memory();
+
 // Frees memory - returns true on success
 bool altfs_dealloc_memory();
+
 // Writes from the buffer to a block 
 bool altfs_write_block(ssize_t blockid, char *buffer);
+
 // read from the block to the buffer
 bool altfs_read_block(ssize_t blockid, char *buffer);
 
