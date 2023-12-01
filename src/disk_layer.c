@@ -28,7 +28,7 @@ bool altfs_dealloc_memory()
 {
     // TODO: Change this when moving to disk
     fuse_log(FUSE_LOG_DEBUG, "%s Deallocating memory\n",ALTFS_DEALLOC_MEMORY);
-    if (!mem_ptr)
+    if (mem_ptr != NULL)
         free(mem_ptr);
     else
     {
