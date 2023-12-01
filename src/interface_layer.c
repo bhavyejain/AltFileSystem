@@ -882,10 +882,12 @@ ssize_t altfs_rename(const char *from, const char *to)
         fuse_log(FUSE_LOG_ERR, "%s : Path %s already exists.\n", RENAME, to);
         return -EEXIST;
     }
+    fuse_log(FUSE_LOG_DEBUG, "%s : ACCESSES CHECKED.\n", RENAME);
 
     // create to
     ssize_t oflag = O_WRONLY | O_CREAT | O_TRUNC;
     ssize_t status = altfs_open(to, oflag);
+    fuse_log(FUSE_LOG_DEBUG, "%s : CREATED NEW FILE.\n", RENAME);
     if(status < 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Error creating file %s.\n", RENAME, to);
@@ -899,8 +901,11 @@ ssize_t altfs_rename(const char *from, const char *to)
     size_t bytes_read, bytes_written;
     while((bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset)) > 0)
     {
+        fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
         bytes_written = altfs_write(to, buffer, bytes_read, offset);
-        if(bytes_read != bytes_written){
+        fuse_log(FUSE_LOG_DEBUG, "%s : WRITTEN: %ld bytes to offset %ld.\n", RENAME, bytes_written, offset);
+        if(bytes_read != bytes_written)
+        {
             fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
             return -1;
         }
