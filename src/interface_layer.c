@@ -903,7 +903,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     {
         bytes_read = altfs_read(from, buffer, BLOCK_SIZE, offset);
         fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
-        if(bytes_read <= 0)
+        if(bytes_read <= -1)
         {
             transferring = false;
             fuse_log(FUSE_LOG_DEBUG, "%s : STOPPING TRANSFER.\n", RENAME);
