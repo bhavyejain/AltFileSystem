@@ -12,7 +12,7 @@
 
 #ifdef DISK_MEMORY
     #define DEVICE_NAME "/dev/vdb"
-    #define FS_SIZE ((ssize_t) 1073741824*5) // Currently 5GB TODO - Change to 40 GB later
+    #define FS_SIZE ((ssize_t) 1073741824*10) // Currently 10GB TODO - Change to 40 GB later
 #else
     #define FS_SIZE ((ssize_t) 104857600*5) 
 #endif
