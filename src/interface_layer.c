@@ -866,12 +866,11 @@ ssize_t altfs_chmod(const char* path, mode_t mode)
 
 ssize_t altfs_rename(const char *from, const char *to)
 {
+    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting rename from %s to %s.\n", RENAME, from, to);
     // Hacky approach - copy file to the new location and remove the old one
     // check if from exists
-    struct fuse_file_info to_fi;
-    memset(&to_fi, 0, sizeof(to_fi));
 
-    if(altfs_access(from)!=0)
+    if(altfs_access(from) != 0)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Path %s not found.\n", RENAME, from);
         return -ENOENT;
