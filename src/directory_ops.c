@@ -199,7 +199,7 @@ bool remove_directory_entry(struct inode** dir_inode, char* file_name)
     if(file_pos.offset == -1)
     {
         fuse_log(FUSE_LOG_ERR, "remove_directory_entry : No entry found for child %s.\n", file_name);
-        return -1;
+        return false;
     }
 
     // Rewrite block with child entry deleted
@@ -219,6 +219,7 @@ bool remove_directory_entry(struct inode** dir_inode, char* file_name)
     (*dir_inode)->i_ctime = curr_time;
     (*dir_inode)->i_mtime = curr_time;
     (*dir_inode)->i_child_num--;
+    return true;
 }
 
 struct fileposition get_file_position_in_dir(const char* const file_name, const struct inode* const parent_inode)
