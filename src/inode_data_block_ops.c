@@ -742,7 +742,6 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
         altfs_free_memory(triple_indirect_block_arr);
         
         fuse_log(FUSE_LOG_DEBUG, "%s : Successfully deleted data blocks from block %zd to %zd\n",REMOVE_DATABLOCKS_FROM_INODE, starting_block_num, inodeObj->i_blocks_num);
-        inodeObj->i_triple_indirect = 0;
         inodeObj->i_blocks_num = starting_block_num;
         return true;
     }
