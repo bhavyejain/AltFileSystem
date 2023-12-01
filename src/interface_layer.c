@@ -906,15 +906,18 @@ ssize_t altfs_rename(const char *from, const char *to)
         {
             transferring = false;
         }
-        fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
-        bytes_written = altfs_write(to, buffer, bytes_read, offset);
-        fuse_log(FUSE_LOG_DEBUG, "%s : WRITTEN: %ld bytes to offset %ld.\n", RENAME, bytes_written, offset);
-        if(bytes_read != bytes_written)
+        else
         {
-            fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
-            return -1;
+            fuse_log(FUSE_LOG_DEBUG, "%s : READ: %ld bytes from offset %ld.\n", RENAME, bytes_read, offset);
+            bytes_written = altfs_write(to, buffer, bytes_read, offset);
+            fuse_log(FUSE_LOG_DEBUG, "%s : WRITTEN: %ld bytes to offset %ld.\n", RENAME, bytes_written, offset);
+            if(bytes_read != bytes_written)
+            {
+                fuse_log(FUSE_LOG_ERR, "%s : Error transferring contents.\n", RENAME);
+                return -1;
+            }
+            offset += bytes_read;
         }
-        offset += bytes_read;
     }
     // delete from
     status = altfs_unlink(from);
