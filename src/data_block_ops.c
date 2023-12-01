@@ -123,6 +123,7 @@ bool free_data_block(ssize_t index) {
         }
     }
 
+    // If the freed data block is not added to the freelist head block
     if(added == 0)
     {
         ssize_t temp = altfs_superblock->s_freelist_head;
@@ -134,7 +135,7 @@ bool free_data_block(ssize_t index) {
         }
         memset(buffer, 0, BLOCK_SIZE);
         memcpy(buffer, &temp, ADDRESS_SIZE);
-        fuse_log(FUSE_LOG_DEBUG, "%s : Writing data block: %ld.\n", FREE_DATA_BLOCK, index);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Adding freelist data block (new head): %ld.\n", FREE_DATA_BLOCK, index);
         if(!altfs_write_block(index, buffer))
         {
             fuse_log(FUSE_LOG_ERR, "%s Error in writing next free block number to the block that was freed.\n", FREE_DATA_BLOCK);
@@ -142,7 +143,6 @@ bool free_data_block(ssize_t index) {
         }
     } else
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Writing to freelist head.\n", FREE_DATA_BLOCK);
         if(!altfs_write_block(altfs_superblock->s_freelist_head, buffer)) {
             fuse_log(FUSE_LOG_ERR, "%s Error in writing number of the block freed to the freelist head.\n", FREE_DATA_BLOCK);
             return false;
