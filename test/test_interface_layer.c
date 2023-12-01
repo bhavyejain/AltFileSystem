@@ -968,6 +968,7 @@ bool test_rename()
 
     // Rename should be successful
     printf("TEST 2\n");
+    ssize_t initial_inum = name_i("/dir2/file4");
     if(altfs_rename("/dir2/file4", "/dir2/file1") != 0)
     {
         fprintf(stderr, "%s : Failed to rename /dir2/file4 to /dir2/file1.\n", INTERFACE_LAYER_TEST);
@@ -983,6 +984,11 @@ bool test_rename()
     if(inum2 == -1)
     {
         fprintf(stderr, "%s : Failed to add /dir2/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    if(inum2 != initial_inum)
+    {
+        fprintf(stderr, "%s : Inode number changed from %ld to %ld.\n", INTERFACE_LAYER_TEST, initial_inum, inum2);
         return false;
     }
     struct inode* node = get_inode(inum2);
