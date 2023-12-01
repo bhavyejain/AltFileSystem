@@ -711,6 +711,8 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                     break;
                 }
 
+                ending_block_num -= NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR;
+
                 // free single indirect block
                 if (should_free_single_indirect)
                 {

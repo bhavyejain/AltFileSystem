@@ -133,24 +133,17 @@ int test_add_data_block_to_inode()
                 fprintf(stderr, "%s : Failed to allocate data block for inode %ld\n", INODE_DATA_BLOCK_OPS, inum);
                 return -1;
             }
-            //fprintf(stdout, "%s : Allocated new data block %ld\n", INODE_DATA_BLOCK_OPS, data_block_num);
 
             if (!add_datablock_to_inode(node, data_block_num))
             {
                 fprintf(stderr, "%s : Failed to associate data block %ld to inode %ld\n",INODE_DATA_BLOCK_OPS, data_block_num, inum);
                 return -1;
             }
-            //fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
 
         }
-        /*if (!allocate_datablocks_util(node, num_of_blocks_to_allocate, inum))
-        {
-            fprintf(stderr, "Failed to allocate %d blocks to inode %zd\n", num_of_blocks_to_allocate, inum);
-            return -1;
-        }*/
+
         fprintf(stdout, "\n ================================== ALLOCATED %zd BLOCKS ==================================\n", num_of_blocks_to_allocate[k]);
-        //fprintf(stdout, "%s: Allocated %ld data blocks to inode\n", INODE_DATA_BLOCK_OPS, num_of_blocks_to_allocate[k]);
-        print_inode_data_blocks(node, inum);
+        //print_inode_data_blocks(node, inum); TODO: Uncomment later
 
         // Verify removing data blocks - it removes data blocks starting from the given block number until the end
         // NOTE - logical block numbers start from 0
@@ -175,7 +168,7 @@ int test_add_data_block_to_inode()
                 return -1;
             }
             fprintf(stdout, "%s : Removed data blocks from %ld onwards from inode %ld\n", INODE_DATA_BLOCK_OPS, logical_blocks_to_remove_from[i], inum);
-            print_inode_data_blocks(node, inum);
+            // print_inode_data_blocks(node, inum); TODO: Uncomment later
 
             // reallocate removed data blocks
             fprintf(stdout, "\n%s: Reallocating removed blocks\n", INODE_DATA_BLOCK_OPS);
@@ -187,18 +180,16 @@ int test_add_data_block_to_inode()
                     fprintf(stderr, "%s : Failed to allocate data block for inode %ld\n", INODE_DATA_BLOCK_OPS, inum);
                     return -1;
                 }
-                //fprintf(stdout, "%s : Allocated new data block %ld\n", INODE_DATA_BLOCK_OPS, data_block_num);
 
                 if (!add_datablock_to_inode(node, data_block_num))
                 {
                     fprintf(stderr, "%s : Failed to associate data block %ld to inode %ld\n",INODE_DATA_BLOCK_OPS, data_block_num, inum);
                     return -1;
                 }
-                //fprintf(stdout, "%s : Associated data block %ld with inum %ld\n", INODE_DATA_BLOCK_OPS, data_block_num, inum);
             }
             fprintf(stdout, "\n************ REALLOCATED BLOCKS *************\n");
-            print_inode_data_blocks(node, inum);
-        }
+            // print_inode_data_blocks(node, inum); TODO: Uncomment later
+        } 
         fprintf(stdout, "\n ================================== REMOVED BLOCKS FROM %zd ALLOCATED BLOCKS ==================================\n", num_of_blocks_to_allocate[k]);
     }
     
