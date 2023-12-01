@@ -8,8 +8,14 @@
 #define ALTFS_READ_BLOCK "altfs_read_block"
 #define ALTFS_WRITE_BLOCK "altfs_write_block"
 
+#ifdef DISK_MEMORY
+    #define DEVICE_NAME "/dev/vdb"
+    #define FS_SIZE ((ssize_t) 1073741824) // TODO - Change to 40 GB later
+#else
+    #define FS_SIZE ((ssize_t) 104857600*5) // TODO: put this under if condition once disk implementation is done
+#endif
+
 #define BLOCK_COUNT ((ssize_t) (FS_SIZE/BLOCK_SIZE))
-#define FS_SIZE ((ssize_t) 104857600*5) // TODO: put this under if condition once disk implementation is done
 
 // Allocates memory - returns true on success
 bool altfs_alloc_memory();
