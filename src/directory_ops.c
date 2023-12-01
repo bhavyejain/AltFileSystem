@@ -414,3 +414,9 @@ bool remove_from_inode_cache(const char* path)
     }
     return true;
 }
+
+void flush_inode_cache()
+{
+    free_inode_cache(&inodeCache);
+    create_inode_cache(&inodeCache, CACHE_CAPACITY);
+}

@@ -131,4 +131,9 @@ Helper to remove a path's entry from the inode cache.
 */
 bool remove_from_inode_cache(const char* path);
 
+/*
+Remove all entries from the inode cache.
+*/
+void flush_inode_cache();
+
 #endif
