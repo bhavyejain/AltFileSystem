@@ -332,6 +332,12 @@ ssize_t altfs_unlink(const char* path)
         fuse_log(FUSE_LOG_ERR, "%s : Failed to get inode number for path: %s.\n", UNLINK, path);
         return -ENOENT;
     }
+    if(inum == ROOT_INODE_NUM)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting. %s.\n", UNLINK);
+        return -EACCES;
+    }
+    
     struct inode* node = get_inode(inum);
     // If path is a directory which is not empty, fail operation
     if(S_ISDIR(node->i_mode) && !is_empty_dir(&node))

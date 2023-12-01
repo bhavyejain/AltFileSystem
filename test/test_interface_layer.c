@@ -912,6 +912,14 @@ bool test_unlink()
         return false;
     }
 
+    // Try to remove root
+    printf("TEST 5\n");
+    if(altfs_unlink("/") != -EACCES)
+    {
+        fprintf(stderr, "%s : Failed to flag root deletion.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
