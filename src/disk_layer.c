@@ -118,7 +118,7 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
             fuse_log(FUSE_LOG_ERR, "%s : lseek to offset %jd failed for block id %zd\n", ALTFS_WRITE_BLOCK, offset, blockid);
             return false;
         }
-        if(read(mem_ptr, buffer, BLOCK_SIZE) != BLOCK_SIZE)
+        if(write(mem_ptr, buffer, BLOCK_SIZE) != BLOCK_SIZE)
         {
             fuse_log(FUSE_LOG_ERR, "%s: Writing contents to disk failed\n", ALTFS_WRITE_BLOCK);
             return false;
