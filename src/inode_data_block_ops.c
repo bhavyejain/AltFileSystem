@@ -685,7 +685,7 @@ bool remove_datablocks_from_inode(struct inode* inodeObj, ssize_t logical_block_
                 ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(single_indirect_data_block_num);
                 
                 // free single level indirect block only if all blocks from 0 have been removed i.e k != inner_idx
-                should_free_single_indirect = (k == inner_idx) ? false : true
+                should_free_single_indirect = (k == inner_idx) ? false : true;
 
                 for(; k < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR && k < ending_block_num; k++) // TODO: Check if the bounds checking for i,j,k, are right
                 {
