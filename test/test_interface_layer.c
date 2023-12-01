@@ -825,11 +825,17 @@ bool test_unlink()
 
     // Remove File 1
     printf("TEST 2\n");
+    unsigned long long free_blocks_init = get_num_of_free_blocks();
     if(altfs_unlink("/dir3/file1") != 0)
     {
         fprintf(stderr, "%s : Failed to unlink /dir3/file1.\n", INTERFACE_LAYER_TEST);
         return false;
     }
+    unsigned long long free_blocks_final = get_num_of_free_blocks();
+    ssize_t blocks_freed = free_blocks_final - free_blocks_init;
+    // Verify manually in logs. Should have freed 14 - #of blocks allocated to freelist.
+    printf("%s : Should have freed 14 blocks. Freed: %ld\n", INTERFACE_LAYER_TEST, blocks_freed);
+
     struct inode* file1 = get_inode(file1_inum);
     if(file1->i_allocated || file1->i_file_size != 0 || file1->i_blocks_num != 0)
     {
