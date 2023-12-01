@@ -86,6 +86,16 @@ Name is the file name.
 bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* file_name);
 
 /*
+Remove record for a file from a directory's records.
+
+@param dir_inode: Double pointer to the directory (parent) inode.
+@param file_name: Name of the file being removed.
+
+@return true or false
+*/
+bool remove_directory_entry(struct inode** dir_inode, char* file_name);
+
+/*
 Return position of file in dir
 
 @param file_name: File name to search.

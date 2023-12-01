@@ -364,32 +364,39 @@ ssize_t altfs_unlink(const char* path)
     }
     struct inode* parent = get_inode(parent_inum);
 
-    struct fileposition file_pos = get_file_position_in_dir(child_name, parent);
-    if(file_pos.offset == -1)
+    // struct fileposition file_pos = get_file_position_in_dir(child_name, parent);
+    // if(file_pos.offset == -1)
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : No entry found for child %s in parent %s.\n", UNLINK, child_name, parent_path);
+    //     altfs_free_memory(node);
+    //     altfs_free_memory(parent);
+    //     return -1;
+    // }
+
+    // // Rewrite block with child entry deleted
+    // char buffer[BLOCK_SIZE];
+    // memset(buffer, 0, BLOCK_SIZE);
+    // memcpy(buffer, file_pos.p_block, file_pos.offset);
+    // unsigned short rec_len = ((unsigned short*)(file_pos.p_block + file_pos.offset))[0];
+    // ssize_t next_offset = file_pos.offset + rec_len;
+    // if(next_offset < BLOCK_SIZE)
+    // {
+    //     memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
+    // }
+    // write_data_block(file_pos.p_plock_num, buffer);
+    // altfs_free_memory(file_pos.p_block);
+
+    // time_t curr_time = time(NULL);
+    // parent->i_ctime = curr_time;
+    // parent->i_mtime = curr_time;
+    // parent->i_child_num--;
+    if(!remove_directory_entry(&parent))
     {
-        fuse_log(FUSE_LOG_ERR, "%s : No entry found for child %s in parent %s.\n", UNLINK, child_name, parent_path);
+        fuse_log(FUSE_LOG_ERR, "%s : Could not delete entry for child %s in parent %s.\n", UNLINK, child_name, parent_path);
         altfs_free_memory(node);
         altfs_free_memory(parent);
         return -1;
     }
-
-    // Rewrite block with child entry deleted
-    char buffer[BLOCK_SIZE];
-    memset(buffer, 0, BLOCK_SIZE);
-    memcpy(buffer, file_pos.p_block, file_pos.offset);
-    unsigned short rec_len = ((unsigned short*)(file_pos.p_block + file_pos.offset))[0];
-    ssize_t next_offset = file_pos.offset + rec_len;
-    if(next_offset < BLOCK_SIZE)
-    {
-        memcpy(buffer + file_pos.offset, file_pos.p_block + next_offset, BLOCK_SIZE - next_offset);
-    }
-    write_data_block(file_pos.p_plock_num, buffer);
-    altfs_free_memory(file_pos.p_block);
-
-    time_t curr_time = time(NULL);
-    parent->i_ctime = curr_time;
-    parent->i_mtime = curr_time;
-    parent->i_child_num--;
 
     node->i_links_count--;
     if(node->i_links_count == 0)
