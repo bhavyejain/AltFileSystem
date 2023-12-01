@@ -150,4 +150,9 @@ Rename a file.
 */
 ssize_t altfs_rename(const char *from, const char *to);
 
+/*
+Graceful shutdown of the filesystem
+*/
+void altfs_destroy();
+
 #endif

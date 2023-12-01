@@ -204,3 +204,18 @@ bool altfs_makefs()
     fuse_log(FUSE_LOG_DEBUG, "%s Successfully created free list for FS\n", ALTFS_MAKEFS);
     return true;
 }
+
+void teardown()
+{
+    if(!altfs_write_superblock())
+    {
+        fuse_log(FUSE_LOG_ERR, "teardown : Failed to write superblock!\n");
+    }
+    fuse_log(FUSE_LOG_ERR, "teardown : Freeing superblock!\n");
+    altfs_free_memory(altfs_superblock);
+    fuse_log(FUSE_LOG_ERR, "teardown : Freeing mem disk!\n");
+    if(!altfs_dealloc_memory())
+    {
+        fuse_log(FUSE_LOG_ERR, "teardown : Failed to deallocate memory!\n");
+    }
+}

@@ -969,3 +969,8 @@ ssize_t altfs_rename(const char *from, const char *to)
     fuse_log(FUSE_LOG_DEBUG, "%s : Renaming complete.\n", RENAME);
     return 0;
 }
+
+void altfs_destroy()
+{
+    teardown();
+}

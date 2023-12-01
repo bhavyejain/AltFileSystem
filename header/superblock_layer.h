@@ -67,6 +67,9 @@ bool load_superblock();
 // makefs - Calls disk layer to allocate memory, initializes superblock, i-list and free list
 bool altfs_makefs();
 
+// Free the superblock memory and the disk memory
+void teardown();
+
 static struct superblock* altfs_superblock = NULL;
 
 #endif

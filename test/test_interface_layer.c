@@ -1158,6 +1158,9 @@ int main()
     //     return -1;
     // }
 
+    printf("\n");
+    altfs_destroy();
+
     printf("\n=============== ALL TESTS RUN =============\n\n");
     return 0;
 }
