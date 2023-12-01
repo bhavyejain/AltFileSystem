@@ -189,6 +189,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
         {
             // fuse_log(FUSE_LOG_DEBUG, "%s Freeing indirect data block: %ld.\n", FREE_INODE, block_num);
             // Free the data block
+            fuse_log(FUSE_LOG_DEBUG, "%s : Freeing leaf data block %ld.\n", FREE_INODE, block_num);
             if(!free_data_block(block_num))
             {
                 fuse_log(FUSE_LOG_ERR, "%s Error freeing data block: %ld\n", FREE_INODE, block_num);
@@ -208,6 +209,7 @@ bool free_indirect_blocks(ssize_t i_block_num, ssize_t indirection)
 
     // fuse_log(FUSE_LOG_DEBUG, "%s Freeing the %ld indirect data block %ld itself.\n", FREE_INODE, indirection, i_block_num);
     // Free the block containing the indirect addresses itself
+    fuse_log(FUSE_LOG_DEBUG, "%s : Freeing indirect data block %ld.\n", FREE_INODE, i_block_num);
     if(!free_data_block(i_block_num))
     {
         fuse_log(FUSE_LOG_ERR, "%s Error freeing data block %ld\n", FREE_INODE, i_block_num);
@@ -228,6 +230,7 @@ bool free_data_blocks_in_inode(struct inode* node)
         ssize_t block_num = node->i_direct_blocks[i];
         if(block_num != 0)
         {
+            fuse_log(FUSE_LOG_DEBUG, "%s : Freeing direct data block %ld.\n", FREE_INODE, node->i_direct_blocks[i]);
             if(!free_data_block(block_num))
             {
                 fuse_log(FUSE_LOG_ERR, "%s Error freeing direct data block %ld\n", FREE_INODE, block_num);
