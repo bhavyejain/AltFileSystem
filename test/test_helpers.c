@@ -12,7 +12,7 @@ unsigned long long get_num_of_free_blocks()
     // read block 0 = superblock
     if (!altfs_read_block(0, buffer))
     {
-        fprintf(stderr, "%s : Failed to read block 0 for superblock\n", SUPERBLOCK_LAYER_TEST);
+        fprintf(stderr, "Failed to read block 0 for superblock\n");
         return -1;
     }
     struct superblock *superblockObj = (struct superblock*)buffer;
@@ -27,13 +27,13 @@ unsigned long long get_num_of_free_blocks()
 
         if (!altfs_read_block(nextfreeblock, buff))
         {
-            printf("Print freelist: Error reading contents of free list block number: %ld\n",blocknum);
+            printf("Print freelist: Error reading contents of free list block \n");
             return -1;
         }
         
         ssize_t *buff_numptr = (ssize_t *)buff;
         nextfreeblock = buff_numptr[0]; 
-        
+
         for(int i = 1; i < NUM_OF_ADDRESSES_PER_BLOCK; i++)
         {
             if (buff_numptr[i] != 0)
