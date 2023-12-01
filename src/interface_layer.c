@@ -412,7 +412,7 @@ ssize_t altfs_open(const char* path, ssize_t oflag)
         if(inum <= -1)
         {
             fuse_log(FUSE_LOG_ERR, "%s : Error creating file %s, errno: %ld.\n", OPEN, path, inum);
-            return -1;
+            return inum;
         }
         write_inode(inum, node);
         altfs_free_memory(node);

@@ -950,6 +950,14 @@ bool test_rename()
         fprintf(stderr, "%s : Failed to write to /dir2/file4.", INTERFACE_LAYER_TEST);
         return false;
     }
+
+    // The target path does not have valid parent
+    printf("TEST 1\n");
+    if(altfs_rename("/dir2/file4", "/dir3/file1") != -ENOENT)
+    {
+        fprintf(stderr, "%s : Failed to flag non existing parent for destination.", INTERFACE_LAYER_TEST);
+        return false;
+    }
     
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
@@ -1047,11 +1055,11 @@ int main()
         return -1;
     }
 
-    // if(!test_rename())
-    // {
-    //     printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
-    //     return -1;
-    // }
+    if(!test_rename())
+    {
+        printf("%s : Testing altfs_rename() failed!\n", INTERFACE_LAYER_TEST);
+        return -1;
+    }
 
     // if(!test_chmod())
     // {
