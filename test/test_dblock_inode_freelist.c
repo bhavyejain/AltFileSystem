@@ -182,7 +182,6 @@ int test_data_block_ops()
             return -1;
         }
     sb = (struct superblock*)sb_buf;
-    fprintf(stdout, "%s: Number of free blocks left: %llu\n",DBLOCK_INODE_FREELIST_TEST, get_num_of_free_blocks());
     print_freelist(sb->s_freelist_head);
 
     // free all 10 data blocks allocated
