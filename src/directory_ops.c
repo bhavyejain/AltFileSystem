@@ -7,7 +7,7 @@
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
 
-static struct inode_cache inodeCache;
+static struct inode_cache* inodeCache = NULL;
 
 ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length)
 {
@@ -184,7 +184,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
 
     if(!add_datablock_to_inode((*dir_inode), data_block_num))
     {
-        printf("couldn't add dblock to inode\n");
+        fuse_log(FUSE_LOG_ERR, "%s : Error adding data block to inode.\n", ADD_DIRECTORY_ENTRY);
         return false;
     }
 
@@ -295,7 +295,7 @@ ssize_t name_i(const char* const file_path)
     }
 
     // Check for presence in cache
-    ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
+    ssize_t inum_from_cache = get_cache_entry(inodeCache, file_path);
     if (inum_from_cache > 0)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning inum %ld for %s from cache.\n", NAME_I, inum_from_cache, file_path);
@@ -333,7 +333,7 @@ ssize_t name_i(const char* const file_path)
     ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
     
     altfs_free_memory(filepos.p_block);
-    set_cache_entry(&inodeCache, file_path, inum);
+    set_cache_entry(inodeCache, file_path, inum);
     // fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
     return inum;
 }
@@ -348,7 +348,7 @@ bool setup_filesystem()
     }
 
     // Create a cache that can be used to implement namei
-    create_inode_cache(&inodeCache, CACHE_CAPACITY);
+    create_inode_cache(inodeCache, CACHE_CAPACITY);
     fuse_log(FUSE_LOG_DEBUG, "%s : Created inode cache to retrieve inode data faster.\n", SETUP_FILESYSTEM);
 
     // Check for root directory
@@ -380,27 +380,27 @@ bool setup_filesystem()
 
     char* dir_name = ".";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added . entry for root directory\n", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added . entry for root directory\n", SETUP_FILESYSTEM);
 
     dir_name = "..";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully added .. entry for root directory\n", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added .. entry for root directory\n", SETUP_FILESYSTEM);
 
     if(!write_inode(ROOT_INODE_NUM, root_dir)){
-        fuse_log(FUSE_LOG_ERR, "%s Failed to write inode for root directory\n", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to write inode for root directory\n", SETUP_FILESYSTEM);
         // TODO: remove directory entries?
         return false;
     }
     
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote root dir inode with %ld data blocks\n", SETUP_FILESYSTEM, root_dir->i_blocks_num);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully wrote root dir inode with %ld data blocks\n", SETUP_FILESYSTEM, root_dir->i_blocks_num);
     altfs_free_memory(root_dir);
 
     return true;
@@ -408,9 +408,15 @@ bool setup_filesystem()
 
 bool remove_from_inode_cache(const char* path)
 {
-    if(!remove_cache_entry(&inodeCache, path))
+    if(!remove_cache_entry(inodeCache, path))
     {
         return false;
     }
     return true;
+}
+
+void flush_inode_cache()
+{
+    free_inode_cache(inodeCache);
+    create_inode_cache(inodeCache, CACHE_CAPACITY);
 }

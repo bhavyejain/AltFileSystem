@@ -956,7 +956,6 @@ ssize_t altfs_rename(const char *from, const char *to)
         altfs_free_memory(from_parent_inode);
         return -1;
     }
-    remove_from_inode_cache(from);
     if(!write_inode(from_parent_inode_num, from_parent_inode))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Could not write directory inode.\n", RENAME);
@@ -965,6 +964,13 @@ ssize_t altfs_rename(const char *from, const char *to)
     }
     altfs_free_memory(from_parent_inode);
 
+    flush_inode_cache();
+
     fuse_log(FUSE_LOG_DEBUG, "%s : Renaming complete.\n", RENAME);
     return 0;
+}
+
+void altfs_destroy()
+{
+    teardown();
 }

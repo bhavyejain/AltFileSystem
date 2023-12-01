@@ -7,10 +7,10 @@
 #include "superblock_layer.h"
 
 #define ALLOCATE_INODE "allocate_inode"
-#define GET_INODE "get_inode"
-#define WRITE_INODE "write_inode"
 #define FREE_INODE "free_inode"
 #define GET_DBLOCK_FROM_IBLOCK "get_disk_block_from_inode_block"
+#define GET_INODE "get_inode"
+#define WRITE_INODE "write_inode"
 
 #define ROOT_INODE_NUM ((ssize_t) 2)
 #define DEFAULT_PERMISSIONS (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)

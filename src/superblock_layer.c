@@ -13,10 +13,10 @@ bool altfs_write_superblock()
     memcpy(buffer, altfs_superblock, sizeof(struct superblock));
     if(!altfs_write_block(0, buffer))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error writing superblock to memory.\n", ALTFS_SUPERBLOCK);
+        fuse_log(FUSE_LOG_ERR, "%s : Error writing superblock to memory.\n", ALTFS_SUPERBLOCK);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s Superblock written!!!\n", ALTFS_SUPERBLOCK);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Superblock written!!!\n", ALTFS_SUPERBLOCK);
     return true;
 }
 
@@ -68,7 +68,7 @@ bool altfs_create_superblock()
     // first data block will be the head of free list
     altfs_superblock->s_freelist_head = INODE_BLOCK_COUNT + 1;
 
-    fuse_log(FUSE_LOG_DEBUG, "%s Writing superblock for the first time...\n", ALTFS_SUPERBLOCK);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Writing superblock for the first time...\n", ALTFS_SUPERBLOCK);
     return altfs_write_superblock();
 }
 
@@ -99,7 +99,7 @@ bool altfs_create_ilist()
     node.i_child_num = 0;
     
     char buffer[BLOCK_SIZE];
-    fuse_log(FUSE_LOG_DEBUG, "%s Creating ilist...\n", ALTFS_CREATE_ILIST);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Creating ilist...\n", ALTFS_CREATE_ILIST);
     // initialize ilist for all blocks meant for inodes
     // start with index = 1 since superblock will take block 0
     for(ssize_t blocknum = 1; blocknum <= INODE_BLOCK_COUNT; blocknum++)
@@ -113,7 +113,7 @@ bool altfs_create_ilist()
         }
         //fuse_log(FUSE_LOG_DEBUG, "%s Writing blocknum %ld and buffer %s\n",ALTFS_CREATE_ILIST, blocknum, *buffer);
         if (!altfs_write_block(blocknum, buffer)){
-            fuse_log(FUSE_LOG_ERR, "%s Error writing to inode block number %d\n", ALTFS_CREATE_ILIST, blocknum);
+            fuse_log(FUSE_LOG_ERR, "%s : Error writing to inode block number %d\n", ALTFS_CREATE_ILIST, blocknum);
             return false;
         }
     }
@@ -156,7 +156,7 @@ bool altfs_create_freelist()
         
         if (!altfs_write_block(currblocknum, buffer))  
         {
-            fuse_log(FUSE_LOG_ERR, "%s Error writing block number %d to free list\n", ALTFS_CREATE_FREELIST, currblocknum);
+            fuse_log(FUSE_LOG_ERR, "%s : Error writing block number %d to free list\n", ALTFS_CREATE_FREELIST, currblocknum);
             return false;
         }
         //fuse_log(FUSE_LOG_DEBUG, "%s Successfully wrote block number %ld with contents %s\n", ALTFS_CREATE_FREELIST, currblocknum, buffer);
@@ -174,33 +174,48 @@ bool altfs_makefs()
     bool allocateFSMemory = altfs_alloc_memory();
     if (!allocateFSMemory)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error allocating memory while initializing FS\n",ALTFS_MAKEFS);
+        fuse_log(FUSE_LOG_ERR, "%s : Error allocating memory while initializing FS\n",ALTFS_MAKEFS);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s Allocated memory for FS while initializing\n", ALTFS_MAKEFS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Allocated memory for FS while initializing\n", ALTFS_MAKEFS);
 
     bool createSuperBlock = altfs_create_superblock();
     if (!createSuperBlock)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error creating superblock while initializing FS\n",ALTFS_MAKEFS);
+        fuse_log(FUSE_LOG_ERR, "%s : Error creating superblock while initializing FS\n",ALTFS_MAKEFS);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully created superblock for FS\n", ALTFS_MAKEFS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created superblock for FS\n", ALTFS_MAKEFS);
 
     bool createInodeList = altfs_create_ilist();
     if (!createInodeList)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error creating inode list while initializing FS\n",ALTFS_MAKEFS);
+        fuse_log(FUSE_LOG_ERR, "%s : Error creating inode list while initializing FS\n",ALTFS_MAKEFS);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully created inode list for FS\n", ALTFS_MAKEFS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created inode list for FS\n", ALTFS_MAKEFS);
 
     bool createFreeList = altfs_create_freelist();
     if (!createFreeList)
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error creating free list while initializing FS\n",ALTFS_MAKEFS);
+        fuse_log(FUSE_LOG_ERR, "%s : Error creating free list while initializing FS\n",ALTFS_MAKEFS);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s Successfully created free list for FS\n", ALTFS_MAKEFS);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created free list for FS\n", ALTFS_MAKEFS);
     return true;
+}
+
+void teardown()
+{
+    if(!altfs_write_superblock())
+    {
+        fuse_log(FUSE_LOG_ERR, "teardown : Failed to write superblock!\n");
+    }
+    fuse_log(FUSE_LOG_ERR, "teardown : Freeing superblock!\n");
+    altfs_free_memory(altfs_superblock);
+    fuse_log(FUSE_LOG_ERR, "teardown : Freeing mem disk!\n");
+    if(!altfs_dealloc_memory())
+    {
+        fuse_log(FUSE_LOG_ERR, "teardown : Failed to deallocate memory!\n");
+    }
 }

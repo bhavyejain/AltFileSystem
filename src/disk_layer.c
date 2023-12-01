@@ -77,7 +77,7 @@ bool altfs_read_block(ssize_t blockid, char *buffer)
         return false;
     if (isBlockOutOfRange(blockid))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error reading block from disk. Block id out of range: %ld\n", ALTFS_READ_BLOCK, blockid);
+        fuse_log(FUSE_LOG_ERR, "%s : Error reading block from disk. Block id out of range: %ld\n", ALTFS_READ_BLOCK, blockid);
         return false;
     }
     #ifdef DISK_MEMORY
@@ -106,7 +106,7 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
         return false;
     if (isBlockOutOfRange(blockid))
     {
-        fuse_log(FUSE_LOG_ERR, "%s Error writing block to disk. Block id is out of range\n",ALTFS_WRITE_BLOCK);
+        fuse_log(FUSE_LOG_ERR, "%s : Error writing block to disk. Block id is out of range\n",ALTFS_WRITE_BLOCK);
         return false;
     }
     

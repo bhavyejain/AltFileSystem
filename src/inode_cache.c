@@ -11,7 +11,8 @@ unsigned long hash_func(const char *str)
 }
 
 void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
-    if(cache == NULL){
+    if(cache == NULL)
+    {
         cache = (struct inode_cache*) malloc(sizeof(struct inode_cache));
     }
     cache->head = NULL;
@@ -22,8 +23,11 @@ void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
 }
 
 void free_cache_entry(struct cache_entry* node) {
-    free(node->key);
-    free(node);
+    if(node != NULL)
+    {
+        free(node->key);
+        free(node);
+    }
 }
 
 void free_list(struct cache_entry* node) {
@@ -35,9 +39,13 @@ void free_list(struct cache_entry* node) {
 }
 
 void free_inode_cache(struct inode_cache* cache) {
-    free_list(cache->head);
-    free(cache->map);
-    free(cache);
+    if(cache != NULL)
+    {
+        free_list(cache->head);
+        free(cache->map);
+        free(cache->tail);
+        free(cache);
+    }
 }
 
 void delete_node(struct inode_cache* cache, struct cache_entry* node) {

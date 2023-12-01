@@ -5,19 +5,19 @@
 
 #include "common_includes.h"
 
-#define MKDIR "altfs_mkdir"
-#define MKNOD "altfs_mknod"
-#define TRUNCATE "altfs_truncate"
-#define UNLINK "altfs_unlink"
-#define CLOSE "altfs_close"
-#define OPEN "altfs_open"
-#define READ "altfs_read"
-#define WRITE "altfs_write"
 #define ACCESS "altfs_access"
 #define CHMOD "altfs_chmod"
+#define CLOSE "altfs_close"
 #define GETATTR "altfs_getattr"
+#define MKDIR "altfs_mkdir"
+#define MKNOD "altfs_mknod"
+#define OPEN "altfs_open"
+#define READ "altfs_read"
 #define READDIR "altfs_readdir"
 #define RENAME "altfs_rename"
+#define TRUNCATE "altfs_truncate"
+#define UNLINK "altfs_unlink"
+#define WRITE "altfs_write"
 
 // Wrapper over setup_filesystem()
 bool altfs_init();
@@ -149,5 +149,10 @@ Rename a file.
 @return 0 if successful, -errno otherwise.
 */
 ssize_t altfs_rename(const char *from, const char *to);
+
+/*
+Graceful shutdown of the filesystem
+*/
+void altfs_destroy();
 
 #endif
