@@ -319,10 +319,10 @@ ssize_t altfs_unlink(const char* path)
     }
     if(inum == ROOT_INODE_NUM)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting. %s.\n", UNLINK);
+        fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting.\n", UNLINK);
         return -EACCES;
     }
-    
+
     ssize_t path_len = strlen(path);
     char child_name[path_len + 1];
     if(!copy_file_name(child_name, path, path_len))
