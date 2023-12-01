@@ -253,6 +253,7 @@ bool test_mknod()
 {
     printf("\n########## %s : Testing mknod() ##########\n", INTERFACE_LAYER_TEST);
     
+    printf("TEST 1\n");
     if(!altfs_mknod("/dir2/file2", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
     {
         fprintf(stderr, "%s : Failed to create file /dir2/file2.\n", INTERFACE_LAYER_TEST);
@@ -279,8 +280,16 @@ bool test_mknod()
         altfs_free_memory(node);
         return false;
     }
-
     altfs_free_memory(node);
+    printf("\n");
+
+    printf("TEST 2\n");
+    if(altfs_mknod("/dir3/file1", S_IFREG|S_IRUSR|S_IRGRP|S_IROTH, -1))
+    {
+        fprintf(stderr, "%s : Failed to flag parent does not exist for file /dir3/file1.\n", INTERFACE_LAYER_TEST);
+        return false;
+    }
+    
     printf("########## %s : Done! ##########\n", INTERFACE_LAYER_TEST);
     return true;
 }
@@ -935,6 +944,7 @@ bool test_rename()
 {
     printf("\n########## %s : Testing rename() ##########\n", INTERFACE_LAYER_TEST);
 
+    // Prepare
     if(altfs_write("/dir2/file4", "This is a test string.", 22, 0) != 22)
     {
         fprintf(stderr, "%s : Failed to write to /dir2/file4.", INTERFACE_LAYER_TEST);
