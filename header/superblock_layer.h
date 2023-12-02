@@ -19,7 +19,7 @@
 #define NUM_OF_DIRECT_BLOCKS ((ssize_t) 12)
 #define ADDRESS_SIZE ((ssize_t) 8)
 // TODO: check if all inodes have max size files, can disk handle the scenario
-#define INODE_BLOCK_COUNT ((ssize_t) (BLOCK_COUNT/10)) // 10% blocks reserved for inodes TODO: Check if we can reduce this
+#define INODE_BLOCK_COUNT ((ssize_t) (BLOCK_COUNT * 0.015)) // 1.5% blocks reserved for inodes TODO: Check if we can reduce this
 #define NUM_OF_DATA_BLOCKS ((ssize_t) (BLOCK_COUNT - INODE_BLOCK_COUNT - 1)) // -1 for superblock
 #define NUM_OF_ADDRESSES_PER_BLOCK ((ssize_t) (BLOCK_SIZE / ADDRESS_SIZE)) // Assuming each address is 8B 
 #define NUM_OF_FREE_LIST_BLOCKS ((ssize_t) (NUM_OF_DATA_BLOCKS / NUM_OF_ADDRESSES_PER_BLOCK + 1)) // Num of free list blocks = data required to store that many addresses
@@ -65,8 +65,20 @@ bool altfs_write_superblock();
 
 bool load_superblock();
 
-// makefs - Calls disk layer to allocate memory, initializes superblock, i-list and free list
+/*
+Wrapper for in-memory mode - Calls disk layer to allocate memory, initializes superblock, inode blocks and free list
+*/
 bool altfs_makefs();
+
+/*
+Make the file system.
+
+@param erase: Set true to erase contents on disk.
+@param format: Set true to format as AltFS.
+
+@return True if success, false if failure.
+*/
+bool altfs_makefs_options(bool erase, bool format);
 
 // Free the superblock memory and the disk memory
 void teardown();

@@ -9,7 +9,7 @@
     static char *mem_ptr;
 #endif 
 
-bool altfs_alloc_memory()
+bool altfs_alloc_memory(bool erase)
 {
     #ifdef DISK_MEMORY
         mem_ptr = open(DEVICE_NAME, O_RDWR);
@@ -18,24 +18,29 @@ bool altfs_alloc_memory()
             fuse_log(FUSE_LOG_ERR, "%s : Error opening device %s\n", ALTFS_ALLOC_MEMORY, DEVICE_NAME);
             return false;
         }
-        fuse_log(FUSE_LOG_DEBUG, "%s : Allocated memory for FS at %p\n", ALTFS_ALLOC_MEMORY, &mem_ptr);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Ready to format disk\n", ALTFS_ALLOC_MEMORY);
         
         // Initialize all blocks with zero
-        char buff[BLOCK_SIZE];
-        memset(&buff, 0, BLOCK_SIZE);
-        off_t lseek_status = lseek(mem_ptr, 0, SEEK_SET);
-        if(lseek_status == -1)
+        if(erase)
         {
-            fuse_log(FUSE_LOG_ERR, "%s : lseek to 0 failed.\n", ALTFS_ALLOC_MEMORY);
-            return false;
-        }
-        for(ssize_t i=0; i < BLOCK_COUNT; i++)
-        {
-            if(write(mem_ptr, buff, BLOCK_SIZE) != BLOCK_SIZE)
+            fuse_log(FUSE_LOG_DEBUG, "%s : Erasing device contents...\n", ALTFS_ALLOC_MEMORY);
+            char buff[BLOCK_SIZE];
+            memset(&buff, 0, BLOCK_SIZE);
+            off_t lseek_status = lseek(mem_ptr, 0, SEEK_SET);
+            if(lseek_status == -1)
             {
-                fuse_log(FUSE_LOG_ERR, "%s: Formatting the disk failed!!\n", ALTFS_WRITE_BLOCK);
+                fuse_log(FUSE_LOG_ERR, "%s : lseek to 0 failed.\n", ALTFS_ALLOC_MEMORY);
                 return false;
             }
+            for(ssize_t i=0; i < BLOCK_COUNT; i++)
+            {
+                if(write(mem_ptr, buff, BLOCK_SIZE) != BLOCK_SIZE)
+                {
+                    fuse_log(FUSE_LOG_ERR, "%s: Formatting the disk failed!!\n", ALTFS_WRITE_BLOCK);
+                    return false;
+                }
+            }
+            fuse_log(FUSE_LOG_DEBUG, "%s : Erasing device contents : Done!\n", ALTFS_ALLOC_MEMORY);
         }
     #else 
         // TODO: Check that it works for all data types in files

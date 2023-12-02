@@ -10,15 +10,17 @@
 
 #ifdef DISK_MEMORY
     #define DEVICE_NAME "/dev/vdb"
-    #define FS_SIZE ((ssize_t) 1073741824*10) // Currently 10GB TODO - Change to 40 GB later
+    // Currently 10GB TODO - Change to 40 GB later
+    #define FS_SIZE ((ssize_t) 1073741824*10)
 #else
-    #define FS_SIZE ((ssize_t) 104857600*5) 
+    // 10M * n 
+    #define FS_SIZE ((ssize_t) 104857600*5)
 #endif
 
 #define BLOCK_COUNT ((ssize_t) (FS_SIZE/BLOCK_SIZE))
 
 // Allocates memory - returns true on success
-bool altfs_alloc_memory();
+bool altfs_alloc_memory(bool erase);
 
 // Frees memory - returns true on success
 bool altfs_dealloc_memory();
