@@ -353,8 +353,10 @@ bool setup_filesystem()
 
     // Check for root directory
     struct inode* root_dir = get_inode(ROOT_INODE_NUM);
-    if(root_dir == NULL){
+    if(root_dir == NULL)
+    {
         fuse_log(FUSE_LOG_ERR, "%s : The root inode is null\n", SETUP_FILESYSTEM);
+        teardown();
         return false;
     }
 
@@ -381,6 +383,7 @@ bool setup_filesystem()
     char* dir_name = ".";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
         fuse_log(FUSE_LOG_ERR, "%s : Failed to add . entry for root directory\n", SETUP_FILESYSTEM);
+        teardown();
         return false;
     }
 
@@ -389,6 +392,7 @@ bool setup_filesystem()
     dir_name = "..";
     if(!add_directory_entry(&root_dir, ROOT_INODE_NUM, dir_name)){
         fuse_log(FUSE_LOG_ERR, "%s : Failed to add .. entry for root directory\n", SETUP_FILESYSTEM);
+        teardown();
         return false;
     }
 
@@ -396,6 +400,7 @@ bool setup_filesystem()
 
     if(!write_inode(ROOT_INODE_NUM, root_dir)){
         fuse_log(FUSE_LOG_ERR, "%s : Failed to write inode for root directory\n", SETUP_FILESYSTEM);
+        teardown();
         // TODO: remove directory entries?
         return false;
     }

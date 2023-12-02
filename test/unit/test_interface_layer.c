@@ -5,14 +5,14 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "../src/disk_layer.c"
-#include "../src/superblock_layer.c"
-#include "../src/inode_ops.c"
-#include "../src/data_block_ops.c"
-#include "../src/inode_data_block_ops.c"
-#include "../src/inode_cache.c"
-#include "../src/directory_ops.c"
-#include "../src/interface_layer.c"
+#include "../../src/disk_layer.c"
+#include "../../src/superblock_layer.c"
+#include "../../src/inode_ops.c"
+#include "../../src/data_block_ops.c"
+#include "../../src/inode_data_block_ops.c"
+#include "../../src/inode_cache.c"
+#include "../../src/directory_ops.c"
+#include "../../src/interface_layer.c"
 
 #include "test_helpers.c"
 
@@ -1072,12 +1072,14 @@ int main()
 {
     printf("=============== TESTING INTERFACE OPERATIONS =============\n\n");
 
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!\n");
         return -1;
     }
     printf("Makefs complete!\n");
+    #endif
 
     if(!altfs_init())
     {

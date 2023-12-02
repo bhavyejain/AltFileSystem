@@ -1,6 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
-#include "../src/disk_layer.c"
+
+#include "../../src/disk_layer.c"
 
 #define DISK_LAYER_TEST "altfs_disklayer_test"
 #define SUCCESS "Success: "

@@ -108,8 +108,9 @@ struct inode* get_inode(ssize_t inum)
 {
     fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to get inode %ld\n", GET_INODE, inum);
 
-    if(!is_valid_inode_number(inum)){
-        fuse_log(FUSE_LOG_ERR, "%s : Invalid inode number provided for allocation:%ld\n", GET_INODE, altfs_superblock->s_first_ino);
+    if(!is_valid_inode_number(inum))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Invalid inode number to get: %ld, max: %ld.\n", GET_INODE, inum, altfs_superblock->s_inodes_count);
         return NULL;
     }
 

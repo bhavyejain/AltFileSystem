@@ -3,11 +3,11 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "../src/disk_layer.c"
-#include "../src/superblock_layer.c"
-#include "../src/inode_ops.c"
-#include "../src/data_block_ops.c"
-#include "../src/inode_data_block_ops.c"
+#include "../../src/disk_layer.c"
+#include "../../src/superblock_layer.c"
+#include "../../src/inode_ops.c"
+#include "../../src/data_block_ops.c"
+#include "../../src/inode_data_block_ops.c"
 
 #define INODE_DATA_BLOCK_OPS "altfs_inode_data_block_ops_test"
 
@@ -201,14 +201,17 @@ int main()
 {
     printf("=============== TESTING INODE DATA BLOCK OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!");
         return -1;
     }
+    #endif
 
     if (test_add_data_block_to_inode() == -1)
         fprintf(stderr, "%s : Testing add data block to inode failed\n", INODE_DATA_BLOCK_OPS);
 
+    teardown();
     return 0;
 }
