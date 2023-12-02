@@ -284,12 +284,14 @@ int main()
 {
     printf("=============== TESTING DIRECTORY OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!\n");
         return -1;
     }
     printf("Makefs complete!\n");
+    #endif
 
     if(!test_add_directory_entry())
     {
@@ -316,5 +318,6 @@ int main()
     }
 
     printf("=============== ALL TESTS RUN =============\n\n");
+    teardown();
     return 0;
 }

@@ -201,14 +201,17 @@ int main()
 {
     printf("=============== TESTING INODE DATA BLOCK OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!");
         return -1;
     }
+    #endif
 
     if (test_add_data_block_to_inode() == -1)
         fprintf(stderr, "%s : Testing add data block to inode failed\n", INODE_DATA_BLOCK_OPS);
 
+    teardown();
     return 0;
 }

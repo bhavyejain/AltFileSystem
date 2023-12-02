@@ -23,10 +23,17 @@ bool altfs_alloc_memory()
         // Initialize all blocks with zero
         char buff[BLOCK_SIZE];
         memset(&buff, 0, BLOCK_SIZE);
-        for(ssize_t i=0; i < BLOCK_COUNT; i++){
-            if(!altfs_write_block(i, buff))
+        off_t lseek_status = lseek(mem_ptr, 0, SEEK_SET);
+        if(lseek_status == -1)
+        {
+            fuse_log(FUSE_LOG_ERR, "%s : lseek to 0 failed.\n", ALTFS_ALLOC_MEMORY);
+            return false;
+        }
+        for(ssize_t i=0; i < BLOCK_COUNT; i++)
+        {
+            if(write(mem_ptr, buff, BLOCK_SIZE) != BLOCK_SIZE)
             {
-                fuse_log(FUSE_LOG_ERR, "%s : Error initializing block num %zd\n", ALTFS_ALLOC_MEMORY, i);
+                fuse_log(FUSE_LOG_ERR, "%s: Formatting the disk failed!!\n", ALTFS_WRITE_BLOCK);
                 return false;
             }
         }
@@ -45,6 +52,21 @@ bool altfs_alloc_memory()
     return true;
 }
 
+bool altfs_open_volume()
+{
+    #ifdef DISK_MEMORY
+    mem_ptr = open(DEVICE_NAME, O_RDWR);
+    if (mem_ptr == -1)
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error opening device %s\n", ALTFS_ALLOC_MEMORY, DEVICE_NAME);
+        return false;
+    }
+    fuse_log(FUSE_LOG_DEBUG, "%s : Opened device.\n", ALTFS_ALLOC_MEMORY);
+    #endif
+
+    return true;
+}
+
 bool altfs_dealloc_memory()
 {
     #ifdef DISK_MEMORY
@@ -58,11 +80,11 @@ bool altfs_dealloc_memory()
             free(mem_ptr);
         else
         {
-            fuse_log(FUSE_LOG_ERR, "%s No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
+            fuse_log(FUSE_LOG_ERR, "%s : No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
             return false;
         }
     #endif
-    fuse_log(FUSE_LOG_DEBUG, "%s Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     return true;
 }
 
@@ -120,7 +142,7 @@ bool altfs_write_block(ssize_t blockid, char *buffer)
         }
         if(write(mem_ptr, buffer, BLOCK_SIZE) != BLOCK_SIZE)
         {
-            fuse_log(FUSE_LOG_ERR, "%s: Writing contents to disk failed\n", ALTFS_WRITE_BLOCK);
+            fuse_log(FUSE_LOG_ERR, "%s : Writing contents to disk failed\n", ALTFS_WRITE_BLOCK);
             return false;
         }
     #else

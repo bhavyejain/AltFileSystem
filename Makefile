@@ -14,13 +14,17 @@ DEBUG_FLAGS  = -g -O0 -I./header -Wall -std=gnu11 $(PKGFLAGS)
 filesystem: $(BIN)/altfs 
 filesystem_debug: $(BIN)/altfs_debug
 
-$(BIN)/altfs: $(SOURCE)/disk_layer.c
+$(BIN)/altfs: $(SOURCE)/fuse_layer.c
 	$(shell  mkdir -p $(BIN))
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) -DDISK_MEMORY
 
-$(BIN)/altfs_debug: $(SOURCE)/disk_layer.c
+$(BIN)/altfs_debug: $(SOURCE)/fuse_layer.c
 		$(shell mkdir -p $(BIN))
 		$(CC) -o $@ $^ $(DEBUG_FLAGS)
+
+mkfs: $(SOURCE)/mkfs.c
+	$(shell  mkdir -p $(BIN))
+	$(CC) -o $@ $^ $(CFLAGS) -DDISK_MEMORY
 
 # ============= TESTING =============
 TEST=./test
@@ -53,6 +57,10 @@ test_directory_ops: test/test_directory_ops.c
 test_interface_layer: test/test_interface_layer.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
+
+test_interface_layer_disk: test/test_interface_layer.c
+	$(shell  mkdir -p $(TEST_BIN))
+	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS) -DDISK_MEMORY
 
 tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_dblock_inode_freelist test_inode_data_block_ops test_directory_ops test_interface_layer
 

@@ -27,6 +27,17 @@ Reads the first block of memory and assigns it to the static superblock object.
 */
 bool load_superblock()
 {
+    #ifdef DISK_MEMORY
+    fuse_log(FUSE_LOG_DEBUG, "load_superblock : Loading superblock from disk...\n");
+    if(!altfs_open_volume())
+    {
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Could not open disk!!!\n");
+        return false;
+    }
+    #else
+    fuse_log(FUSE_LOG_DEBUG, "load_superblock : Loading superblock from memory...\n");
+    #endif
+
     char sb_buffer[BLOCK_SIZE];
     memset(sb_buffer, 0, BLOCK_SIZE);
     altfs_read_block(0, sb_buffer);
@@ -52,6 +63,11 @@ bool load_superblock()
         altfs_superblock = (struct superblock*)malloc(sizeof(struct superblock));
     }
     memcpy(altfs_superblock, sb, sizeof(struct superblock));
+    if(altfs_superblock->s_inodes_count == 0 || altfs_superblock->s_num_of_inodes_per_block == 0)
+    {
+        fuse_log(FUSE_LOG_ERR, "load_superblock : Superblock loaded incorrectly!\n");
+        return false;
+    }
     fuse_log(FUSE_LOG_DEBUG, "load_superblock : Superblock loaded!\n");
     return true;
 }
@@ -169,8 +185,6 @@ bool altfs_create_freelist()
 
 bool altfs_makefs()
 {
-    // TODO: Check if this is remounting 
-    // if yes, read superblock and skip init steps
     bool allocateFSMemory = altfs_alloc_memory();
     if (!allocateFSMemory)
     {
@@ -187,13 +201,13 @@ bool altfs_makefs()
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created superblock for FS\n", ALTFS_MAKEFS);
 
-    bool createInodeList = altfs_create_ilist();
-    if (!createInodeList)
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : Error creating inode list while initializing FS\n",ALTFS_MAKEFS);
-        return false;
-    }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created inode list for FS\n", ALTFS_MAKEFS);
+    // bool createInodeList = altfs_create_ilist();
+    // if (!createInodeList)
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : Error creating inode list while initializing FS\n",ALTFS_MAKEFS);
+    //     return false;
+    // }
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created inode list for FS\n", ALTFS_MAKEFS);
 
     bool createFreeList = altfs_create_freelist();
     if (!createFreeList)
@@ -202,6 +216,11 @@ bool altfs_makefs()
         return false;
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : Successfully created free list for FS\n", ALTFS_MAKEFS);
+
+    #ifdef DISK_MEMORY
+    altfs_free_memory(altfs_superblock);
+    #endif
+
     return true;
 }
 

@@ -8,8 +8,6 @@
 #define ALTFS_READ_BLOCK "altfs_read_block"
 #define ALTFS_WRITE_BLOCK "altfs_write_block"
 
-#define DISK_MEMORY 1
-
 #ifdef DISK_MEMORY
     #define DEVICE_NAME "/dev/vdb"
     #define FS_SIZE ((ssize_t) 1073741824*10) // Currently 10GB TODO - Change to 40 GB later
@@ -30,5 +28,8 @@ bool altfs_write_block(ssize_t blockid, char *buffer);
 
 // read from the block to the buffer
 bool altfs_read_block(ssize_t blockid, char *buffer);
+
+// Open the mounted volume
+bool altfs_open_volume();
 
 #endif 

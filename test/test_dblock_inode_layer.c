@@ -16,11 +16,13 @@ int main()
 {
     printf("=============== TESTING DATA BLOCK & INODE OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!");
         return -1;
     }
+    #endif
 
     /*
     * Check data block ops.
@@ -262,5 +264,6 @@ int main()
     fprintf(stdout, "%s : Free inode verified.\n\n", DATABLOCK_LAYER_TEST);
 
     printf("=============== ALL TESTS RUN ================\n\n");
+    teardown();
     return 0;
 }

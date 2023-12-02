@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
     // Test1 : Call makefs
     print_constants();
     printf("\n========== TESTING SUPERBLOCK LAYER ==========\n\n");
+    #ifndef DISK_LAYER
     bool makefs = altfs_makefs();
     if (!makefs)
     {
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     fprintf(stderr, "%s Test1: %s Makefs completed\n",SUPERBLOCK_LAYER_TEST,SUCCESS);
+    #endif
 
     char *buffer = (char*)malloc(BLOCK_SIZE);
     // read block 0 = superblock

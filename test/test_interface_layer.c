@@ -1072,12 +1072,14 @@ int main()
 {
     printf("=============== TESTING INTERFACE OPERATIONS =============\n\n");
 
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!\n");
         return -1;
     }
     printf("Makefs complete!\n");
+    #endif
 
     if(!altfs_init())
     {
