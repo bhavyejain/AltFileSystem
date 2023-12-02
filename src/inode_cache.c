@@ -1,12 +1,18 @@
 #include "../header/inode_cache.h"
 
 // source - https://stackoverflow.com/questions/64699597/how-to-write-djb2-hashing-function-in-c
-unsigned long hash_func(const char *str)
+unsigned long int hash_func(const char *str)
 {
-    unsigned long hash = 5381;
+    unsigned long int hash = 5381;
     int c;
     while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    {
+        if (isupper(c))
+        {
+            c = c + 32;
+            hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        }
+    }
     return hash;
 }
 
@@ -75,7 +81,7 @@ bool remove_cache_entry(struct inode_cache* cache, const char* key)
         return -1;
     }
     // Find the node with the given key
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
     while (curr != NULL) {
@@ -96,7 +102,7 @@ void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value)
         return;
     }
    
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
 
@@ -149,7 +155,7 @@ ssize_t get_cache_entry(struct inode_cache* cache, const char* key){
         return -1;
     }
 
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
 
