@@ -91,7 +91,7 @@ bool remove_cache_entry(struct inode_cache* cache, const char* key)
 
 void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value) 
 {
-    if (cache == NULL || key == NULL) {
+    if (cache == NULL || key == NULL || strlen(key) == 0) {
         return;
     }
    
@@ -144,7 +144,7 @@ void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value)
 }
 
 ssize_t get_cache_entry(struct inode_cache* cache, const char* key){
-    if (cache == NULL || key == NULL) {
+    if (cache == NULL || key == NULL || strlen(key) == 0) {
         return -1;
     }
 
