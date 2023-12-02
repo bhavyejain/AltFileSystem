@@ -84,7 +84,7 @@ bool altfs_dealloc_memory()
             return false;
         }
     #else
-        if (!mem_ptr)
+        if(mem_ptr != NULL)
             free(mem_ptr);
         else
         {
