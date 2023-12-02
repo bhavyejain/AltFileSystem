@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "../../header/inode_cache.h"
+#include "../../src/inode_cache.c"
 
 #define TEST_INODE_CACHE "test_inode_cache"
 

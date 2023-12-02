@@ -25,7 +25,8 @@ void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
 void free_cache_entry(struct cache_entry* node) {
     if(node != NULL)
     {
-        free(node->key);
+        if (node->key != NULL)
+            free(node->key);
         free(node);
     }
 }
