@@ -1,4 +1,4 @@
-#include "../../header/inode_cache.h"
+#include "../header/inode_cache.h"
 
 // source - https://stackoverflow.com/questions/64699597/how-to-write-djb2-hashing-function-in-c
 unsigned long hash_func(const char *str)

@@ -1,6 +1,3 @@
-#ifndef __INODE_CACHE__
-#define __INODE_CACHE__
-
 #include "common_includes.h"
 
 struct cache_entry {
@@ -27,5 +24,3 @@ void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value);
 ssize_t get_cache_entry(struct inode_cache* cache, const char* key);
 
 void free_inode_cache(struct inode_cache* cache);
-
-#endif
