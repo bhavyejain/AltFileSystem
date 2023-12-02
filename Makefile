@@ -46,7 +46,7 @@ test_inode_data_block_ops: test/test_inode_data_block_ops.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_inode_cache: test/test_inode_cache.cflags
+test_inode_cache: test/test_inode_cache.c
 	$(shell  mkdir -p $(TEST_BIN))
 	$(CC) -o $(TEST_BIN)/$@ $^ $(DEBUG_FLAGS)
 
