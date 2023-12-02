@@ -7,13 +7,13 @@
 #include "common_includes.h"
 #include "superblock_layer.h"
 
-#define SETUP_FILESYSTEM "setup_filesystem"
 #define ADD_DIRECTORY_ENTRY "add_directory_entry"
-#define NAME_I "name_i"
+#define COPY_CHILD_FILE_NAME "copy_child_file_name"
+#define COPY_PARENT_PATH "copy_parent_path"
 #define GET_FILE_POS_IN_DIR "get_file_position_in_dir"
 #define IS_DIR_EMPTY "is_dir_empty"
-#define COPY_PARENT_PATH "copy_parent_path"
-#define COPY_CHILD_FILE_NAME "copy_child_file_name"
+#define NAME_I "name_i"
+#define SETUP_FILESYSTEM "setup_filesystem"
 
 // Directory entry contants
 #define MAX_FILE_NAME_LENGTH ((ssize_t) 255)

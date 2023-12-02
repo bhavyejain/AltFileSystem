@@ -27,5 +27,4 @@ void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value);
 ssize_t get_cache_entry(struct inode_cache* cache, const char* key);
 
 void free_inode_cache(struct inode_cache* cache);
-
 #endif

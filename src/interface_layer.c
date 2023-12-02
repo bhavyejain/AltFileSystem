@@ -63,7 +63,7 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     if(node == NULL)
     {
         fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", GETATTR, path);
-        return -1;
+        return -EIO;
     }
 
     inode_to_stat(&node, st);
@@ -351,7 +351,7 @@ ssize_t altfs_unlink(const char* path)
     // If path is a directory which is not empty, fail operation
     if(S_ISDIR(node->i_mode) && !is_empty_dir(&node))
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to unnlink, dir is not empty: %s.\n", UNLINK, path);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to unlink, dir is not empty: %s.\n", UNLINK, path);
         altfs_free_memory(node);
         return -ENOTEMPTY;
     }
@@ -483,6 +483,11 @@ ssize_t altfs_read(const char* path, char* buff, size_t nbytes, off_t offset)
     }
 
     struct inode* node= get_inode(inum);
+    if(!(bool)(node->i_mode & S_IRUSR))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have read permission.\n", READ, path);
+        return -EACCES;
+    }
     if (node->i_file_size == 0)
     {
         return 0;
@@ -603,11 +608,16 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     ssize_t inum = name_i(path);
     if (inum == -1)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", READ, path);
+        fuse_log(FUSE_LOG_ERR, "%s : Inode for file %s not found.\n", WRITE, path);
         return -ENOENT;
     }
 
     struct inode* node = get_inode(inum);
+    if(!(bool)(node->i_mode & S_IWUSR))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", WRITE, path);
+        return -EACCES;
+    }
     size_t bytes_written = 0;
 
     ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);

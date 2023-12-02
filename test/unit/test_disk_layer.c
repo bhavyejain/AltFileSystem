@@ -1,6 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
-#include "../src/disk_layer.c"
+
+#include "../../src/disk_layer.c"
 
 #define DISK_LAYER_TEST "altfs_disklayer_test"
 #define SUCCESS "Success: "
@@ -9,7 +10,7 @@
 int main(int argc, char *argv[])
 {
     // Test1 : Allocate memory
-    bool altfs_alloc = altfs_alloc_memory();
+    bool altfs_alloc = altfs_alloc_memory(true);
     if (!altfs_alloc)
     {
         printf("%s Test1: %s Failed to allocate memory\n",DISK_LAYER_TEST,FAILED);

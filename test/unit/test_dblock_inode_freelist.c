@@ -3,9 +3,9 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "../src/data_block_ops.c"
-#include "../src/disk_layer.c"
-#include "../src/superblock_layer.c"
+#include "../../src/data_block_ops.c"
+#include "../../src/disk_layer.c"
+#include "../../src/superblock_layer.c"
 
 #include "test_helpers.c"
 
@@ -216,11 +216,13 @@ int main()
 {
      printf("=============== TESTING DATA BLOCK & INODE OPERATIONS =============\n\n");
     // Create filesystem (assumes superblock layer tests pass)
+    #ifndef DISK_MEMORY
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!");
         return -1;
     }
+    #endif
 
     // Test 1 - Test data block ops
     if (test_data_block_ops() == -1)
@@ -229,6 +231,8 @@ int main()
     // Test 2 - Test free list update after allocating > 512 blocks
     if (test_verify_freelist_allocation() == -1)
         fprintf(stderr, "%s : Test2 - testing for free list updation failed\n", DBLOCK_INODE_FREELIST_TEST);
+    
+    teardown();
 
     return 0;
 }

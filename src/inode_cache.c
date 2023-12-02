@@ -1,12 +1,19 @@
+#include<ctype.h>
 #include "../header/inode_cache.h"
 
 // source - https://stackoverflow.com/questions/64699597/how-to-write-djb2-hashing-function-in-c
-unsigned long hash_func(const char *str)
+unsigned long int hash_func(const char *str)
 {
-    unsigned long hash = 5381;
+    unsigned long int hash = 5381;
     int c;
     while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    {
+        if (isupper(c))
+        {
+            c = c + 32;
+            hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        }
+    }
     return hash;
 }
 
@@ -25,7 +32,8 @@ void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
 void free_cache_entry(struct cache_entry* node) {
     if(node != NULL)
     {
-        free(node->key);
+        if (node->key != NULL)
+            free(node->key);
         free(node);
     }
 }
@@ -74,7 +82,7 @@ bool remove_cache_entry(struct inode_cache* cache, const char* key)
         return -1;
     }
     // Find the node with the given key
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
     while (curr != NULL) {
@@ -91,11 +99,11 @@ bool remove_cache_entry(struct inode_cache* cache, const char* key)
 
 void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value) 
 {
-    if (cache == NULL || key == NULL) {
+    if (cache == NULL || key == NULL || strlen(key) == 0) {
         return;
     }
    
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
 
@@ -144,11 +152,11 @@ void set_cache_entry(struct inode_cache* cache, const char* key, ssize_t value)
 }
 
 ssize_t get_cache_entry(struct inode_cache* cache, const char* key){
-    if (cache == NULL || key == NULL) {
+    if (cache == NULL || key == NULL || strlen(key) == 0) {
         return -1;
     }
 
-    unsigned long hash = hash_func(key);
+    unsigned long int hash = hash_func(key);
     ssize_t hash_index = hash % cache->capacity;
     struct cache_entry* curr = cache->map[hash_index];
 

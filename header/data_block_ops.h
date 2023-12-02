@@ -6,9 +6,9 @@
 #include "common_includes.h"
 
 #define ALLOCATE_DATA_BLOCK "allocate_data_block"
+#define FREE_DATA_BLOCK "free_data_block"
 #define READ_DATA_BLOCK "read_data_block"
 #define WRITE_DATA_BLOCK "write_data_block"
-#define FREE_DATA_BLOCK "free_data_block"
 
 /*
 Allocate a new data block
