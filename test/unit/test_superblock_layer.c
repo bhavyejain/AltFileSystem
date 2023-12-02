@@ -1,6 +1,7 @@
 #include<stdio.h>
-#include "../src/disk_layer.c"
-#include "../src/superblock_layer.c"
+
+#include "../../src/disk_layer.c"
+#include "../../src/superblock_layer.c"
 
 #include "test_helpers.c"
 
