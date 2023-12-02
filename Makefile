@@ -22,7 +22,7 @@ $(BIN)/altfs_debug: $(SOURCE)/fuse_layer.c
 		$(shell mkdir -p $(BIN))
 		$(CC) -o $@ $^ $(DEBUG_FLAGS) -DDISK_MEMORY
 
-mkfs: $(SOURCE)/mkfs.c
+mkaltfs: $(SOURCE)/mkfs.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $@ $^ $(CFLAGS) -DDISK_MEMORY
 
