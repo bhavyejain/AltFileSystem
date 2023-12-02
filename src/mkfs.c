@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
         F = true;
     }
 
-    printf("mkaltfs (01-Dec-2023)\n");
+    printf("mkaltfs (02-Dec-2023)\n");
 
     ssize_t n_inodes = INODE_BLOCK_COUNT * (BLOCK_SIZE / sizeof(struct inode));
     if(F)
@@ -65,6 +65,6 @@ int main(int argc, char *argv[])
         printf("Failed to close fd for device.\n");
         return 0;
     }
-    printf("Mkfs complete!\n");
+    printf("\nMkfs complete!\n");
     return 0;
 }

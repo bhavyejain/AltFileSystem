@@ -39,7 +39,7 @@ bool altfs_alloc_memory(bool erase)
                     fuse_log(FUSE_LOG_ERR, "%s: Formatting the disk failed!!\n", ALTFS_WRITE_BLOCK);
                     return false;
                 }
-                printf("Erased: %d %%\r", (int)(((i+1)/BLOCK_COUNT)*100));
+                printf("Erased: %d %%\r", (int)(((i + 1.0)/BLOCK_COUNT)*100));
                 fflush(stdout);
             }
             printf("\n");
