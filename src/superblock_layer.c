@@ -84,7 +84,7 @@ bool altfs_create_superblock()
     // first data block will be the head of free list
     altfs_superblock->s_freelist_head = INODE_BLOCK_COUNT + 1;
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : Writing superblock for the first time...\n", ALTFS_SUPERBLOCK);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Writing superblock...\n", ALTFS_SUPERBLOCK);
     return altfs_write_superblock();
 }
 
@@ -117,6 +117,8 @@ bool altfs_create_freelist()
     char buffer[BLOCK_SIZE];
     ssize_t nullvalue = 0;
 
+    fuse_log(FUSE_LOG_DEBUG, "%s : Creating free list...\n", ALTFS_CREATE_FREELIST);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Free list blocks: %ld\n", ALTFS_CREATE_FREELIST, NUM_OF_FREE_LIST_BLOCKS);
     for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
     {
         ssize_t currblocknum = blocknum;
@@ -168,7 +170,6 @@ bool altfs_makefs_options(bool erase, bool format)
         fuse_log(FUSE_LOG_ERR, "%s : Error allocating memory while initializing FS\n",ALTFS_MAKEFS);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Allocated memory for FS while initializing\n", ALTFS_MAKEFS);
 
     if(format)
     {

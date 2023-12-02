@@ -88,8 +88,8 @@ bool altfs_dealloc_memory()
             fuse_log(FUSE_LOG_ERR, "%s : No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
             return false;
         }
+        fuse_log(FUSE_LOG_DEBUG, "%s : Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     #endif
-    fuse_log(FUSE_LOG_DEBUG, "%s : Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     return true;
 }
 

@@ -17,7 +17,7 @@ void usage()
     printf("-h \t Display this help\n");
     printf("-E \t Erase all contents on device\n");
     printf("-F \t Format device to AltFS\n");
-    printf("Note: If neither -E nor -F is/are specified, will be processed as both being set.");
+    printf("Note: If neither -E nor -F is/are specified, will be processed as both being set.\n");
 }
 
 int main(int argc, char *argv[])
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
                 usage();
                 return 0;
             case '?':
-                printf("Unrecognized flag! Do mkfs -h for usage.");
+                printf("Unrecognized flag!\n\nSee mkfs -h for usage.\n");
                 return 1;
         }
     }
