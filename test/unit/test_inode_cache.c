@@ -2,6 +2,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "../header/inode_cache.h"
 
@@ -48,18 +49,18 @@ int main()
     assert(get_cache_entry(&inodeCache, "/dir1/dir2/dir3/dir4/file6.txt") == -1);
     assert(get_cache_entry(&inodeCache, "/dir2/dir3/file7.mov") == 34567); 
 
-    fprintf("%s : Successfully verified cache eviction\n", TEST_INODE_CACHE);
+    fprintf(stdout, "%s : Successfully verified cache eviction\n", TEST_INODE_CACHE);
 
     remove_cache_entry(&inodeCache, "/dir1/dir2/dir3/file4.mov");
     assert(get_cache_entry(&inodeCache, "/dir1/dir2/dir3/file4.mov") == -1); 
 
-    fprintf("%s : Successfully removed cache entry\n", TEST_INODE_CACHE);
+    fprintf(stdout, "%s : Successfully removed cache entry\n", TEST_INODE_CACHE);
 
     set_cache_entry(&inodeCache, "", 1237);
 
     assert(get_cache_entry(&inodeCache, "") == -1); 
 
-    fprintf("%s : Successfully tested adding null entries to cache\n", TEST_INODE_CACHE);
+    fprintf(stdout, "%s : Successfully tested adding null entries to cache\n", TEST_INODE_CACHE);
 
     return 0;
 }
