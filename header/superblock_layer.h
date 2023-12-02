@@ -48,6 +48,7 @@ struct inode
     ssize_t i_double_indirect; // stores block num for double indirect block
     ssize_t i_triple_indirect; // stores block num for triple indirect block
     nlink_t i_child_num; // stores the current number of entries for a directory (minimum 2) or 0 for others
+    char padding;
 };
 
 struct superblock

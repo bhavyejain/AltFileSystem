@@ -10,7 +10,9 @@
 
 int main(int argc, char *argv[])
 {
-    printf("Starting mkfs...\n");
+    printf("mkaltfs (01-Dec-2023)\n");
+    ssize_t n_inodes = INODE_BLOCK_COUNT * (BLOCK_SIZE / sizeof(struct inode));
+    printf("Creating filesystem with %ld 4k blocks and %ld inodes\n", BLOCK_COUNT, n_inodes);
     if(!altfs_makefs())
     {
         printf("Altfs makefs failed!\n");
