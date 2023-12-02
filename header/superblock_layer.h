@@ -32,13 +32,13 @@ Follows a structure similar to ext4.
 struct inode 
 {
     mode_t i_mode; // permission mode
-    ssize_t i_uid; // lower 16-bits of owner id
-    ssize_t i_gid; // lower 16-bits of group id
+    id_t i_uid; // lower 16-bits of owner id
+    id_t i_gid; // lower 16-bits of group id
     time_t i_status_change_time; // status change time
     time_t i_atime; // last access time
     time_t i_ctime; // last inode change time
     time_t i_mtime; // last data modification time
-    ssize_t i_links_count; // hard link count
+    nlink_t i_links_count; // hard link count
     ssize_t i_file_size; // file size
     ssize_t i_blocks_num; // num of blocks the file has
     bool i_allocated; // flag to indicate if inode is allocated
@@ -47,7 +47,7 @@ struct inode
     ssize_t i_single_indirect; // stores block num for single indirect block
     ssize_t i_double_indirect; // stores block num for double indirect block
     ssize_t i_triple_indirect; // stores block num for triple indirect block
-    ssize_t i_child_num; // stores the current number of entries for a directory (minimum 2) or 0 for others
+    nlink_t i_child_num; // stores the current number of entries for a directory (minimum 2) or 0 for others
 };
 
 struct superblock
