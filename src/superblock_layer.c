@@ -118,7 +118,6 @@ bool altfs_create_freelist()
     ssize_t nullvalue = 0;
 
     fuse_log(FUSE_LOG_DEBUG, "%s : Creating free list...\n", ALTFS_CREATE_FREELIST);
-    fuse_log(FUSE_LOG_DEBUG, "%s : Free list blocks: %ld\n", ALTFS_CREATE_FREELIST, NUM_OF_FREE_LIST_BLOCKS);
     for(ssize_t i = 0; i < NUM_OF_FREE_LIST_BLOCKS; i++)
     {
         ssize_t currblocknum = blocknum;

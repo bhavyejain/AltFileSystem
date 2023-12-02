@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
     ssize_t n_inodes = INODE_BLOCK_COUNT * (BLOCK_SIZE / sizeof(struct inode));
     if(F)
-        printf("Creating filesystem with %ld 4k blocks and %ld inodes\n", BLOCK_COUNT, n_inodes);
+        printf("Creating filesystem with %ld 4k blocks and %ld inodes\n\n", BLOCK_COUNT, n_inodes);
 
     if(!altfs_makefs_options(E, F))
     {
