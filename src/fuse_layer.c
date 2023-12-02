@@ -85,7 +85,7 @@ static int fuse_open(const char* path, struct fuse_file_info* fi)
     ssize_t inum = altfs_open(path, fi->flags);
     if(inum <= -1)
     {
-        return -1;
+        return inum;
     }
     return 0;
 }
@@ -97,7 +97,8 @@ static int fuse_read(const char* path, char* buff, size_t size, off_t offset, st
 }
 
 static int fuse_readdir(const char* path, void* buff, fuse_fill_dir_t filler,
-                         off_t offset, struct fuse_file_info* fi){
+                         off_t offset, struct fuse_file_info* fi)
+{
     (void) offset;
     (void) fi;
     return altfs_readdir(path, buff, filler);
@@ -159,7 +160,8 @@ static void fuse_destroy(void *private_data)
     altfs_destroy();
 }
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
     if(!altfs_init())
     {
         printf("AltFS initialization failed!\n");
