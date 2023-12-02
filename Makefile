@@ -20,7 +20,7 @@ $(BIN)/altfs: $(SOURCE)/fuse_layer.c
 
 $(BIN)/altfs_debug: $(SOURCE)/fuse_layer.c
 		$(shell mkdir -p $(BIN))
-		$(CC) -o $@ $^ $(DEBUG_FLAGS)
+		$(CC) -o $@ $^ $(DEBUG_FLAGS) -DDISK_MEMORY
 
 mkfs: $(SOURCE)/mkfs.c
 	$(shell  mkdir -p $(BIN))
@@ -71,8 +71,10 @@ unit_tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_d
 
 clean:
 	rm -rf obj/*
-	rm -rf ./bin
-	rm -rf ./test/bin
+	rm -rf $(BIN)
+	rm -rf $(TEST_BIN)
+	rm -rf $(UNIT_TEST_BIN)
 
 clean_tests:
-	rm -rf ./test/bin
+	rm -rf $(TEST_BIN)
+	rm -rf $(UNIT_TEST_BIN)
