@@ -21,14 +21,14 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     fprintf(stdout, "%s : single indirect block %ld for inum %ld\n", INODE_DATA_BLOCK_OPS, node->i_single_indirect, inum);
     
     if (node->i_single_indirect == 0)
-        return;
+        return -1;
 
     fprintf(stdout, "\n************ BLOCK ADDRESSES IN SINGLE INDIRECT BLOCK: %ld *************\n",node->i_single_indirect);
     char *buff = (char*)malloc(BLOCK_SIZE);
     if (!altfs_read_block(node->i_single_indirect, buff))
     {
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_single_indirect);
-        return;
+        return -1;
     }
     ssize_t *buff_numptr = (ssize_t *)buff;
     altfs_free_memory(buff);
@@ -43,7 +43,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     }
 
     if (node->i_double_indirect == 0)
-        return;
+        return -1;
 
     fprintf(stdout, "\n************ BLOCK ADDRESSES IN DOUBLE INDIRECT BLOCK: %ld *************\n",node->i_double_indirect);
 
@@ -51,7 +51,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
     if (!double_indirect_block_arr)
     {
         fprintf(stderr, "%s : Error reading contents of block number: %ld\n",INODE_DATA_BLOCK_OPS, node->i_double_indirect);
-        return;
+        return -1;
     }
 
     for(ssize_t i = 0; i < NUM_OF_SINGLE_INDIRECT_BLOCK_ADDR; i++)
@@ -63,7 +63,7 @@ void print_inode_data_blocks(struct inode *node, ssize_t inum)
         if(data_block_num < 0)
         {
             fprintf(stdout, "Double indirect block num <= 0.\n");
-            return;
+            return -1;
         }
         fprintf(stdout, "Single indirect block num %zd\n", data_block_num);
 
@@ -210,7 +210,11 @@ int main()
     #endif
 
     if (test_add_data_block_to_inode() == -1)
+    {
         fprintf(stderr, "%s : Testing add data block to inode failed\n", INODE_DATA_BLOCK_OPS);
+        teardown();
+        return -1;
+    }
 
     teardown();
     return 0;

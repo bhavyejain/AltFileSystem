@@ -226,13 +226,20 @@ int main()
 
     // Test 1 - Test data block ops
     if (test_data_block_ops() == -1)
+    {
         fprintf(stderr, "%s : Test1 - testing for data block ops failed\n", DBLOCK_INODE_FREELIST_TEST);
+        teardown();
+        return -1;
+    }
     
     // Test 2 - Test free list update after allocating > 512 blocks
     if (test_verify_freelist_allocation() == -1)
+    {
         fprintf(stderr, "%s : Test2 - testing for free list updation failed\n", DBLOCK_INODE_FREELIST_TEST);
+        teardown();
+        return -1;
+    }
     
     teardown();
-
     return 0;
 }

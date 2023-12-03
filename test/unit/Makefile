@@ -11,35 +11,35 @@ DEBUG_FLAGS  = -g -O0 -I./header -Wall -std=gnu11 $(PKGFLAGS)
 
 .DELETE_ON_ERROR:
 
-test_disk_layer: ./test_disk_layer.c
+01_disk_layer: ./01_disk_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_superblock_layer: ./test_superblock_layer.c 
+02_superblock_layer: ./02_superblock_layer.c 
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_dblock_inode_layer: ./test_dblock_inode_layer.c
+03_dblock_inode_freelist: ./03_dblock_inode_freelist.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_dblock_inode_freelist: ./test_dblock_inode_freelist.c
+04_dblock_inode_layer: ./04_dblock_inode_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_inode_data_block_ops: ./test_inode_data_block_ops.c
+05_inode_data_block_ops: ./05_inode_data_block_ops.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_inode_cache: ./test_inode_cache.c
+06_inode_cache: ./06_inode_cache.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_directory_ops: ./test_directory_ops.c
+07_directory_ops: ./07_directory_ops.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_interface_layer: ./test_interface_layer.c
+08_interface_layer: ./08_interface_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
@@ -47,7 +47,7 @@ test_interface_layer_disk: ./test_interface_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS) -DDISK_MEMORY
 
-unit_tests: test_disk_layer test_superblock_layer test_dblock_inode_layer test_dblock_inode_freelist test_inode_data_block_ops test_directory_ops test_interface_layer
+unit_tests: 01_disk_layer 02_superblock_layer 03_dblock_inode_freelist 04_dblock_inode_layer 05_inode_data_block_ops 06_inode_cache 07_directory_ops 08_interface_layer
 
 # ============ CLEAN =============
 

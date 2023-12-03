@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
         if(strcmp(buff, teststr) != 0)
         {
             printf("%s Test8: String compare for block %ld failed\n",DISK_LAYER_TEST, i);
+            return -1;
         }
     }
     printf("%s Test8: Write, read and data compare for all blocks passed\n",DISK_LAYER_TEST);
