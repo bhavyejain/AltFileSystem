@@ -20,26 +20,6 @@
 #include "../src/directory_ops.c"
 #include "../src/interface_layer.c"
 
-static const struct fuse_operations fuse_ops = {
-    .access   = fuse_access,
-    .chown    = fuse_chown,
-    .chmod    = fuse_chmod,
-    .create   = fuse_create,
-    .getattr  = fuse_getattr,
-    .mkdir    = fuse_mkdir,
-    .rmdir    = fuse_rmdir,
-    .unlink   = fuse_unlink,
-    .truncate = fuse_truncate,
-    .mknod    = fuse_mknod,
-    .readdir  = fuse_readdir,
-    .open     = fuse_open,
-    .read     = fuse_read,
-    .write    = fuse_write,
-    .utimens  = fuse_utimens,
-    .rename   = fuse_rename,
-    .destroy = fuse_destroy,
-};
-
 static int fuse_access(const char* path, int mode)
 {
     return altfs_access(path);
@@ -159,6 +139,26 @@ static void fuse_destroy(void *private_data)
 {
     altfs_destroy();
 }
+
+static const struct fuse_operations fuse_ops = {
+    .access   = fuse_access,
+    .chown    = fuse_chown,
+    .chmod    = fuse_chmod,
+    .create   = fuse_create,
+    .getattr  = fuse_getattr,
+    .mkdir    = fuse_mkdir,
+    .rmdir    = fuse_rmdir,
+    .unlink   = fuse_unlink,
+    .truncate = fuse_truncate,
+    .mknod    = fuse_mknod,
+    .readdir  = fuse_readdir,
+    .open     = fuse_open,
+    .read     = fuse_read,
+    .write    = fuse_write,
+    .utimens  = fuse_utimens,
+    .rename   = fuse_rename,
+    .destroy = fuse_destroy,
+};
 
 int main(int argc, char* argv[])
 {
