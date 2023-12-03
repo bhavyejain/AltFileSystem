@@ -653,7 +653,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         bool written = false;
         if(i != start_i_block && i != end_i_block)
         {
-            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 mid block, writing %ls bytes.\n", WRITE, BLOCK_SIZE);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 mid block, writing %ld bytes.\n", WRITE, BLOCK_SIZE);
             memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;
             written = write_data_block(dblock_num, overwrite_buf);
@@ -671,13 +671,13 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
             if(i == start_i_block)  // first block to be written (i == start_i_block)
             {
                 ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
-                fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 start block, writing %ls bytes.\n", WRITE, to_write);
+                fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 start block, writing %ld bytes.\n", WRITE, to_write);
                 memcpy(buf_read + start_block_offset, buff, to_write);
                 bytes_written += to_write;
             }
             else   // last block to be written 
             {
-                fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 end block, writing %ls bytes.\n", WRITE, (end_block_offset + 1));
+                fuse_log(FUSE_LOG_DEBUG, "%s : Loop 1 end block, writing %ld bytes.\n", WRITE, (end_block_offset + 1));
                 memcpy(buf_read, buff + bytes_written, end_block_offset + 1);
                 bytes_written += (end_block_offset + 1);
             }
