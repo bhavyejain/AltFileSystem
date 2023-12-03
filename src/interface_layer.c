@@ -635,13 +635,13 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     ssize_t new_blocks_to_be_added = end_i_block - node->i_blocks_num + 1;
     ssize_t starting_block = start_i_block - node->i_blocks_num + 1; // In case offset > file size, we might be starting some blocks after what has been allocated.
 
-    char *buf_read = NULL;
     char overwrite_buf[BLOCK_SIZE];
     // First write to the data blocks that are allocated to the inode already.
     ssize_t prev_block = 0;
     bool complete = false;
     for(ssize_t i = start_i_block; i < node->i_blocks_num && !complete; i++)
     {
+        char *buf_read = NULL;
         ssize_t dblock_num = get_disk_block_from_inode_block(node, i, &prev_block);
         if(dblock_num <= 0)
         {
@@ -716,19 +716,19 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
         if(starting_block >= 1 && i == starting_block) // first block with data; only goes in if overall starts writing here
         {
             ssize_t to_write = ((start_block_offset + nbytes) > BLOCK_SIZE) ? (BLOCK_SIZE - start_block_offset) : nbytes;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 start block, writing %ls bytes.\n", WRITE, to_write);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 start block, writing %ld bytes.\n", WRITE, to_write);
             memcpy(overwrite_buf + start_block_offset, buff, to_write);
             bytes_written += to_write;
         }
         else if(i == new_blocks_to_be_added) // last block to be written
         {
-            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 end block, writing %ls bytes.\n", WRITE, (end_block_offset + 1));
+            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 end block, writing %ld bytes.\n", WRITE, (end_block_offset + 1));
             memcpy(overwrite_buf, buff + bytes_written, end_block_offset + 1);
             bytes_written += (end_block_offset + 1);
         }
         else if(i >= starting_block)    // write entire block
         {
-            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 mid block, writing %ls bytes.\n", WRITE, BLOCK_SIZE);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Loop 2 mid block, writing %ld bytes.\n", WRITE, BLOCK_SIZE);
             memcpy(overwrite_buf, buff + bytes_written, BLOCK_SIZE);
             bytes_written += BLOCK_SIZE;
         }
