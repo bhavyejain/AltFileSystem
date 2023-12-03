@@ -92,8 +92,6 @@ Make sure a file does not exist through name_i() before calling this.
 ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode, ssize_t* parent_inum)
 {
     // getting parent path 
-    // TODO: check if this works correctly when paths are of the forms below:
-    // ./a/b/c.txt, ./.././../a/b/c.txt, /a.txt
     ssize_t path_len = strlen(path);
     char parent_path[path_len+1];
     if(!copy_parent_path(parent_path, path, path_len))
