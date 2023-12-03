@@ -4,10 +4,9 @@ BIN=./bin
 SOURCE=./src
 
 SHELL = /bin/sh
-PKGFLAGS = `pkg-config fuse3 --cflags --libs`
 
-CFLAGS = -g -Og -I./header -Wall -std=gnu11 $(PKGFLAGS)
-DEBUG_FLAGS  = -g -O0 -I./header -Wall -std=gnu11 $(PKGFLAGS)
+CFLAGS = -g -Og -Wall -std=gnu11
+DEBUG_FLAGS  = -g -O0 -Wall -std=gnu11
 
 .DELETE_ON_ERROR:
 

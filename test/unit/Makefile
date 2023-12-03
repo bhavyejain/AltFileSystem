@@ -43,7 +43,7 @@ DEBUG_FLAGS  = -g -O0 -I./header -Wall -std=gnu11 $(PKGFLAGS)
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS)
 
-test_interface_layer_disk: ./test_interface_layer.c
+test_interface_layer_disk: ./08_interface_layer.c
 	$(shell  mkdir -p $(BIN))
 	$(CC) -o $(BIN)/$@ $^ $(DEBUG_FLAGS) -DDISK_MEMORY
 
