@@ -12,12 +12,12 @@ void usage()
 {
     printf("Usage:\n");
     printf("mkaltfs [options]\n\n");
-    printf("Make an AltFS filesystem.\n\n");
+    printf("Make an AltFS filesystem.\n");
+    printf("No options are required if the intent is to only format the device.\n\n");
     printf("Options:\n");
     printf("-h \t Display this help\n");
-    printf("-E \t Erase all contents on device\n");
-    printf("-F \t Format device to AltFS\n");
-    printf("Note: If neither -E nor -F is/are specified, will be processed as both being set.\n");
+    printf("-E \t Erase all contents on device (without -F, this will only erase the disk)\n");
+    printf("-F \t Format device to AltFS (without -E, this is same as no flag)\n");
 }
 
 int main(int argc, char *argv[])
@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     }
     if(!E && !F)
     {
-        E = true;
         F = true;
     }
 
