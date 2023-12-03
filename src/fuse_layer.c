@@ -25,13 +25,13 @@ static int my_access(const char* path, int mode)
     return altfs_access(path);
 }
 
-static int my_chown(const char* path, uid_t uid, gid_t gid)
+static int my_chown(const char* path, uid_t uid, gid_t gid, struct fuse_file_info *fi)
 {
     // TODO: Check for improvement
     return 0; // out of scope as of now as only one user
 }
 
-static int my_chmod(const char* path, mode_t mode)
+static int my_chmod(const char* path, mode_t mode, struct fuse_file_info *fi)
 {
     return altfs_chmod(path, mode);
 } 
@@ -55,7 +55,7 @@ static int my_create(const char* path, mode_t mode, struct fuse_file_info* fi)
     return 0;
 }
 
-static int my_getattr(const char* path, struct stat* st)
+static int my_getattr(const char* path, struct stat* st, struct fuse_file_info *fi)
 {
     return altfs_getattr(path, &st);
 }
@@ -76,8 +76,8 @@ static int my_read(const char* path, char* buff, size_t size, off_t offset, stru
     return nbytes;
 }
 
-static int my_readdir(const char* path, void* buff, fuse_fill_dir_t filler,
-                         off_t offset, struct fuse_file_info* fi)
+static int my_readdir(const char* path, void* buff, fuse_fill_dir_t filler, off_t offset,
+                        struct fuse_file_info* fi, enum fuse_readdir_flags)
 {
     (void) offset;
     (void) fi;
@@ -109,13 +109,13 @@ static int my_mknod(const char* path, mode_t mode, dev_t dev)
     return 0;
 }
 
-static int my_utimens(const char* path, const struct timespec time_spec[2])
+static int my_utimens(const char* path, const struct timespec time_spec[2], struct fuse_file_info *fi)
 {
     // TODO: check
     return 0;
 }
 
-static int my_truncate(const char* path, off_t offset)
+static int my_truncate(const char* path, off_t offset, struct fuse_file_info *fi)
 {
     return altfs_truncate(path, offset);
 }
