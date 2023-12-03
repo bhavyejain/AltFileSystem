@@ -266,6 +266,8 @@ ssize_t altfs_readdir(const char* path, void* buff, fuse_fill_dir_t filler)
             unsigned short rec_len = ((unsigned short*)record)[0];
             ssize_t file_inum = ((ssize_t*)(record + RECORD_LENGTH))[0];
             unsigned short name_len = rec_len - RECORD_FIXED_LEN;
+            if(rec_len == 0)
+                break;
 
             char file_name[name_len];
             memcpy(file_name, record + RECORD_FIXED_LEN, name_len);
