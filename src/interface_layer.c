@@ -719,7 +719,7 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
             bytes_written += BLOCK_SIZE;
         }
 
-        if(!write_data_block(new_block_num, overwrite_buf))
+        if((i >= starting_block) && !write_data_block(new_block_num, overwrite_buf))
         {
             fuse_log(FUSE_LOG_ERR, "%s : Could not write data block number %ld.\n", WRITE, new_block_num);
             break;
