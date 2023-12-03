@@ -23,7 +23,7 @@ void inum_to_block_pos(ssize_t inum, ssize_t* block, ssize_t* offset)
 
 ssize_t allocate_inode()
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to allocate a new inode.\n", ALLOCATE_INODE);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to allocate a new inode.\n", ALLOCATE_INODE);
     // Get the next free inode number
     ssize_t inum_to_allocate = altfs_superblock->s_first_ino;
     if(inum_to_allocate == altfs_superblock->s_inodes_count)
@@ -61,7 +61,7 @@ ssize_t allocate_inode()
     }
     // Mark the inode as allocated.
     node->i_allocated = true;
-    fuse_log(FUSE_LOG_DEBUG, "%s : Allocated inum: %ld (block: %ld; offset: %ld)\n",
+    fuse_log(FUSE_LOG_DEBUG, "%s : Allocated inode: %ld (block: %ld; offset: %ld)\n",
         ALLOCATE_INODE, inum_to_allocate, block_num, offset);
 
     // Search for the next smallest inode number that is unallocated.
@@ -77,8 +77,9 @@ ssize_t allocate_inode()
             if(!node->i_allocated)
             {
                 altfs_superblock->s_first_ino = inum_to_allocate + visited;
-                fuse_log(FUSE_LOG_DEBUG, "%s : Marking inode %ld as next free inode.\n",
-                    ALLOCATE_INODE, altfs_superblock->s_first_ino);
+                // fuse_log(FUSE_LOG_DEBUG, "%s : Marking inode %ld as next free inode.\n",
+                //     ALLOCATE_INODE, altfs_superblock->s_first_ino);
+                altfs_write_superblock();
                 return inum_to_allocate;
             }
             offset++;
@@ -99,14 +100,15 @@ ssize_t allocate_inode()
         nodes_in_block = (struct inode*)buffer;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : All inodes allocated.\n", ALLOCATE_INODE);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : All inodes allocated.\n", ALLOCATE_INODE);
     altfs_superblock->s_first_ino = altfs_superblock->s_inodes_count;
+    altfs_write_superblock();
     return inum_to_allocate;
 }
 
 struct inode* get_inode(ssize_t inum)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to get inode %ld\n", GET_INODE, inum);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to get inode %ld\n", GET_INODE, inum);
 
     if(!is_valid_inode_number(inum))
     {
@@ -134,7 +136,7 @@ struct inode* get_inode(ssize_t inum)
 
 bool write_inode(ssize_t inum, struct inode* node)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to write to inode %ld\n", WRITE_INODE, inum);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to write to inode %ld\n", WRITE_INODE, inum);
 
     if(!is_valid_inode_number(inum)){
         fuse_log(FUSE_LOG_ERR, "%s : Invalid inode number provided for write:%ld\n", WRITE_INODE, inum);
@@ -159,8 +161,8 @@ bool write_inode(ssize_t inum, struct inode* node)
         return false;
     }
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : Written inode %ld in block %ld at offset %ld\n", WRITE_INODE,
-        inum, block_num, offset);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Written inode %ld in block %ld at offset %ld\n", WRITE_INODE,
+    //     inum, block_num, offset);
     return true;
 }
 
@@ -276,7 +278,7 @@ bool free_data_blocks_in_inode(struct inode* node)
 
 bool free_inode(ssize_t inum)
 {
-    fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to free inode %ld\n", FREE_INODE, inum);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Attempting to free inode %ld\n", FREE_INODE, inum);
 
     if(!is_valid_inode_number(inum)){
         fuse_log(FUSE_LOG_ERR, "%s : Invalid inode number provided for free-ing:%ld\n", FREE_INODE, inum);
@@ -326,7 +328,8 @@ bool free_inode(ssize_t inum)
     }
 
     altfs_superblock->s_first_ino = min(inum, altfs_superblock->s_first_ino);
-    fuse_log(FUSE_LOG_DEBUG, "%s : Inode marked as next free: %ld\n", FREE_INODE, altfs_superblock->s_first_ino);
+    altfs_write_superblock();
+    fuse_log(FUSE_LOG_DEBUG, "%s : Inode freed: %ld\n", FREE_INODE, inum);
     return true;
 }
 
@@ -366,7 +369,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         data_block_num = single_indirect_block_arr[logical_block_num];
         altfs_free_memory(single_indirect_block_arr);
 
-        fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from single indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+        // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from single indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
         return data_block_num;
     }
 
@@ -390,7 +393,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
             data_block_num = single_indirect_block_arr[inner_idx];
             altfs_free_memory(single_indirect_block_arr);
 
-            fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+            // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
             return data_block_num;
         }
 
@@ -408,7 +411,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         data_block_num = single_indirect_block_arr[inner_idx];
         altfs_free_memory(single_indirect_block_arr);
 
-        fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+        // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
         return data_block_num;
     }
 
@@ -432,7 +435,7 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
         data_block_num = single_indirect_block_arr[inner_idx];
         altfs_free_memory(single_indirect_block_arr);
 
-        fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+        // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from double indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
         return data_block_num;
     }
 
@@ -461,6 +464,6 @@ ssize_t get_disk_block_from_inode_block(const struct inode* const node, ssize_t 
     data_block_num = single_indirect_block_arr[inner_idx];
     altfs_free_memory(single_indirect_block_arr);
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from triple indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Returning data block num %ld from triple indirect block\n", GET_DBLOCK_FROM_IBLOCK, data_block_num);
     return data_block_num;
 }

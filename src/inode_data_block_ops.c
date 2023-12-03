@@ -12,7 +12,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
     // Follow same structure of translating to data blocks as in directory_ops
     if(logical_block_num < NUM_OF_DIRECT_BLOCKS){
         inodeObj->i_direct_blocks[logical_block_num] = data_block_num;
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block to direct block\n", ADD_DATABLOCK_TO_INODE);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Added data block to direct block\n", ADD_DATABLOCK_TO_INODE);
         inodeObj->i_blocks_num++;
         return true;
     }
@@ -31,7 +31,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
                 return false;
             }
             inodeObj->i_single_indirect = single_indirect_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new single indirect block\n", ADD_DATABLOCK_TO_INODE);
+            // fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new single indirect block\n", ADD_DATABLOCK_TO_INODE);
         }
 
         ssize_t* single_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_single_indirect);
@@ -43,7 +43,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
             return false;
         }
 
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block in single indirect block\n", ADD_DATABLOCK_TO_INODE);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Added data block in single indirect block\n", ADD_DATABLOCK_TO_INODE);
         altfs_free_memory(single_indirect_block_arr);
         inodeObj->i_blocks_num++;
         return true;
@@ -64,7 +64,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
                 return false;
             }
             inodeObj->i_double_indirect = double_indirect_data_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new double indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
+            // fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new double indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
         }
 
         ssize_t double_i_idx = logical_block_num / NUM_OF_ADDRESSES_PER_BLOCK;
@@ -83,7 +83,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
             }
             
             double_indirect_block_arr[double_i_idx] = single_indirect_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added data block in single indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
+            fuse_log(FUSE_LOG_DEBUG, "%s : Added data block in single indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
             
             if(!write_data_block(inodeObj->i_double_indirect, (char*)double_indirect_block_arr))
             {
@@ -111,7 +111,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
         }
         
         altfs_free_memory(single_indirect_block_arr);
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added double indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Added double indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
         inodeObj->i_blocks_num++;
         return true;
     }
@@ -129,7 +129,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
                 return false;
             }
             inodeObj->i_triple_indirect = triple_data_block_num;
-            fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new triple indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
+            // fuse_log(FUSE_LOG_DEBUG, "%s : Successfully allocated new data block for new triple indirect block with file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
         }
 
         ssize_t* triple_indirect_block_arr = (ssize_t*) read_data_block(inodeObj->i_triple_indirect);
@@ -195,7 +195,7 @@ bool add_datablock_to_inode(struct inode *inodeObj, const ssize_t data_block_num
         }
         altfs_free_memory(single_indirect_block_arr);
         inodeObj->i_blocks_num++;
-        fuse_log(FUSE_LOG_DEBUG, "%s : Successfully added triple indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Added triple indirect data block for file block num %zd\n", ADD_DATABLOCK_TO_INODE, logical_block_num);
         return true;
     }
     fuse_log(FUSE_LOG_ERR, "%s : Reached end of function without going into any conditions\n", ADD_DATABLOCK_TO_INODE);
