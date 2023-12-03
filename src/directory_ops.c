@@ -155,7 +155,7 @@ bool add_directory_entry(struct inode** dir_inode, ssize_t child_inum, char* fil
             altfs_free_memory(dblock);
         }
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : No space found in existing data blocks for directory entry, allocating a new block.\n", ADD_DIRECTORY_ENTRY);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : No space found in existing data blocks for directory entry, allocating a new block.\n", ADD_DIRECTORY_ENTRY);
 
     // Add a data block to the inode
     ssize_t data_block_num = allocate_data_block();
@@ -290,7 +290,7 @@ ssize_t name_i(const char* const file_path)
 
     if (file_path_len == 1 && file_path[0] == '/')
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Path is /. Returning root inum\n", NAME_I);
+        // fuse_log(FUSE_LOG_DEBUG, "%s : Path is /. Returning root inum\n", NAME_I);
         return ROOT_INODE_NUM;
     }
 
@@ -362,10 +362,10 @@ bool setup_filesystem()
 
     if(root_dir->i_allocated && root_dir->i_child_num >= 2)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.\n", SETUP_FILESYSTEM);
         return true;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...\n", SETUP_FILESYSTEM);
 
     time_t curr_time = time(NULL);
 
