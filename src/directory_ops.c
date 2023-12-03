@@ -362,10 +362,10 @@ bool setup_filesystem()
 
     if(root_dir->i_allocated && root_dir->i_child_num >= 2)
     {
-        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.", SETUP_FILESYSTEM);
+        fuse_log(FUSE_LOG_DEBUG, "%s : Root directory found! Initialization complete.\n", SETUP_FILESYSTEM);
         return true;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...", SETUP_FILESYSTEM);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Root directory not found, creating root...\n", SETUP_FILESYSTEM);
 
     time_t curr_time = time(NULL);
 
