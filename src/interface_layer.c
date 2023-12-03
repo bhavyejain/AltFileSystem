@@ -351,7 +351,7 @@ ssize_t altfs_unlink(const char* path)
     // If path is a directory which is not empty, fail operation
     if(S_ISDIR(node->i_mode) && !is_empty_dir(&node))
     {
-        fuse_log(FUSE_LOG_ERR, "%s : Failed to unnlink, dir is not empty: %s.\n", UNLINK, path);
+        fuse_log(FUSE_LOG_ERR, "%s : Failed to unlink, dir is not empty: %s.\n", UNLINK, path);
         altfs_free_memory(node);
         return -ENOTEMPTY;
     }

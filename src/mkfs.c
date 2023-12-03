@@ -12,12 +12,12 @@ void usage()
 {
     printf("Usage:\n");
     printf("mkaltfs [options]\n\n");
-    printf("Make an AltFS filesystem.\n\n");
+    printf("Make an AltFS filesystem.\n");
+    printf("No options are required if the intent is to only format the device.\n\n");
     printf("Options:\n");
     printf("-h \t Display this help\n");
-    printf("-E \t Erase all contents on device\n");
-    printf("-F \t Format device to AltFS\n");
-    printf("Note: If neither -E nor -F is/are specified, will be processed as both being set.");
+    printf("-E \t Erase all contents on device (without -F, this will only erase the disk)\n");
+    printf("-F \t Format device to AltFS (without -E, this is same as no flag)\n");
 }
 
 int main(int argc, char *argv[])
@@ -39,21 +39,20 @@ int main(int argc, char *argv[])
                 usage();
                 return 0;
             case '?':
-                printf("Unrecognized flag! Do mkfs -h for usage.");
+                printf("Unrecognized flag!\n\nSee mkfs -h for usage.\n");
                 return 1;
         }
     }
     if(!E && !F)
     {
-        E = true;
         F = true;
     }
 
-    printf("mkaltfs (01-Dec-2023)\n");
+    printf("mkaltfs (02-Dec-2023)\n");
 
     ssize_t n_inodes = INODE_BLOCK_COUNT * (BLOCK_SIZE / sizeof(struct inode));
     if(F)
-        printf("Creating filesystem with %ld 4k blocks and %ld inodes\n", BLOCK_COUNT, n_inodes);
+        printf("Creating filesystem with %ld 4k blocks and %ld inodes\n\n", BLOCK_COUNT, n_inodes);
 
     if(!altfs_makefs_options(E, F))
     {
@@ -65,6 +64,6 @@ int main(int argc, char *argv[])
         printf("Failed to close fd for device.\n");
         return 0;
     }
-    printf("Mkfs complete!\n");
+    printf("\nMkfs complete!\n");
     return 0;
 }

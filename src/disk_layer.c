@@ -39,7 +39,10 @@ bool altfs_alloc_memory(bool erase)
                     fuse_log(FUSE_LOG_ERR, "%s: Formatting the disk failed!!\n", ALTFS_WRITE_BLOCK);
                     return false;
                 }
+                printf("Erased: %d %%\r", (int)(((i + 1.0)/BLOCK_COUNT)*100));
+                fflush(stdout);
             }
+            printf("\n");
             fuse_log(FUSE_LOG_DEBUG, "%s : Erasing device contents : Done!\n", ALTFS_ALLOC_MEMORY);
         }
     #else 
@@ -81,15 +84,15 @@ bool altfs_dealloc_memory()
             return false;
         }
     #else
-        if (!mem_ptr)
+        if(mem_ptr != NULL)
             free(mem_ptr);
         else
         {
             fuse_log(FUSE_LOG_ERR, "%s : No pointer to deallocate memory\n",ALTFS_DEALLOC_MEMORY);
             return false;
         }
+        fuse_log(FUSE_LOG_DEBUG, "%s : Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     #endif
-    fuse_log(FUSE_LOG_DEBUG, "%s : Deallocated memory\n",ALTFS_DEALLOC_MEMORY);
     return true;
 }
 

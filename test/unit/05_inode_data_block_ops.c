@@ -220,7 +220,11 @@ int main()
     #endif
 
     if (test_add_data_block_to_inode() == -1)
+    {
         fprintf(stderr, "%s : Testing add data block to inode failed\n", INODE_DATA_BLOCK_OPS);
+        teardown();
+        return -1;
+    }
 
     teardown();
     return 0;
