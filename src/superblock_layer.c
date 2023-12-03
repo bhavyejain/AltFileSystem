@@ -212,9 +212,9 @@ void teardown()
     }
     fuse_log(FUSE_LOG_ERR, "teardown : Freeing superblock!\n");
     altfs_free_memory(altfs_superblock);
-    fuse_log(FUSE_LOG_ERR, "teardown : Freeing mem disk!\n");
+    fuse_log(FUSE_LOG_ERR, "teardown : Unmounting disk!\n");
     if(!altfs_dealloc_memory())
     {
-        fuse_log(FUSE_LOG_ERR, "teardown : Failed to deallocate memory!\n");
+        fuse_log(FUSE_LOG_ERR, "teardown : Failed to unmount!\n");
     }
 }
