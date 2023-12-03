@@ -8,7 +8,7 @@
 
 bool is_valid_inode_number(ssize_t inum)
 {
-    return inum > 0 && inum < altfs_superblock->s_inodes_count;
+    return inum >= 0 && inum < altfs_superblock->s_inodes_count;
 }
 
 /*
