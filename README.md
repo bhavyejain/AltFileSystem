@@ -1,20 +1,20 @@
 # AltFileSystem
 
-# Overview
+## Overview
 
 A UNIX-like file system that can be used with Fuse
 
-# Dependencies
+## Dependencies
 
-# Installation 
+## Installation 
 
-# Configuration
+## Configuration
 
-# Mounting file system
+## Mounting file system
 
-# Debug and logging information
+## Debug and logging information
 
-# Contributors
+## Contributors
 <a href="https://github.com/bhavyejain/AltFileSystem/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=bhavyejain/AltFileSystem" />
 </a>    
