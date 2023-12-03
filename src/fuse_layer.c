@@ -20,20 +20,6 @@
 #include "../src/directory_ops.c"
 #include "../src/interface_layer.c"
 
-char* get_pruned_path(const char *path)
-{
-    char* pruned_path;
-    for(ssize_t i = 1; i < strlen(path); i++)
-    {
-        if (path[i] == '/' && path[i] == path[i-1])
-            continue;
-        pruned_path[i] = path[i];
-
-    }
-    pruned_path[i] = '\0';
-    return pruned_path;
-}
-
 static int my_access(const char* path, int mode)
 {
     return altfs_access(path);
@@ -47,21 +33,19 @@ static int my_chown(const char* path, uid_t uid, gid_t gid, struct fuse_file_inf
 
 static int my_chmod(const char* path, mode_t mode, struct fuse_file_info *fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_chmod(pruned_path, mode);
+    return altfs_chmod(path, mode);
 } 
 
 static int my_create(const char* path, mode_t mode, struct fuse_file_info* fi)
 {
     bool status = false;
-    char* pruned_path = get_pruned_path(path);
     if(fi->flags & O_CREAT)
     {
-        status = altfs_mknod(pruned_path, S_IFREG|mode, -1);
+        status = altfs_mknod(path, S_IFREG|mode, -1);
     }
     else
     {
-        status = altfs_mknod(pruned_path, S_IFREG|0775, -1);
+        status = altfs_mknod(path, S_IFREG|0775, -1);
     }
 
     if(!status)
@@ -73,14 +57,12 @@ static int my_create(const char* path, mode_t mode, struct fuse_file_info* fi)
 
 static int my_getattr(const char* path, struct stat* st, struct fuse_file_info *fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_getattr(pruned_path, &st);
+    return altfs_getattr(path, &st);
 }
 
 static int my_open(const char* path, struct fuse_file_info* fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    ssize_t inum = altfs_open(pruned_path, fi->flags);
+    ssize_t inum = altfs_open(path, fi->flags);
     if(inum <= -1)
     {
         return inum;
@@ -90,8 +72,7 @@ static int my_open(const char* path, struct fuse_file_info* fi)
 
 static int my_read(const char* path, char* buff, size_t size, off_t offset, struct fuse_file_info* fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    ssize_t nbytes = altfs_read(pruned_path, buff, size, offset);
+    ssize_t nbytes = altfs_read(path, buff, size, offset);
     return nbytes;
 }
 
@@ -100,20 +81,17 @@ static int my_readdir(const char* path, void* buff, fuse_fill_dir_t filler, off_
 {
     (void) offset;
     (void) fi;
-    char* pruned_path = get_pruned_path(path);
-    return altfs_readdir(pruned_path, buff, filler);
+    return altfs_readdir(path, buff, filler);
 }
 
 static int my_rmdir(const char* path)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_unlink(pruned_path);
+    return altfs_unlink(path);
 }
 
 static int my_mkdir(const char* path, mode_t mode)
 {
-    char* pruned_path = get_pruned_path(path);
-    bool status = altfs_mkdir(pruned_path, mode);
+    bool status = altfs_mkdir(path, mode);
     if(!status)
     {
         return -1;
@@ -123,8 +101,7 @@ static int my_mkdir(const char* path, mode_t mode)
 
 static int my_mknod(const char* path, mode_t mode, dev_t dev)
 {
-    char* pruned_path = get_pruned_path(path);
-    bool status = altfs_mknod(pruned_path, mode, dev);
+    bool status = altfs_mknod(path, mode, dev);
     if(!status)
     {
         return -1;
@@ -140,27 +117,22 @@ static int my_utimens(const char* path, const struct timespec time_spec[2], stru
 
 static int my_truncate(const char* path, off_t offset, struct fuse_file_info *fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_truncate(pruned_path, offset);
+    return altfs_truncate(path, offset);
 }
 
 static int my_unlink(const char* path)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_unlink(pruned_path);
+    return altfs_unlink(path);
 }
 
 static int my_write(const char* path, const char* buff, size_t size, off_t offset, struct fuse_file_info* fi)
 {
-    char* pruned_path = get_pruned_path(path);
-    return altfs_write(pruned_path, buff, size, offset);
+    return altfs_write(path, buff, size, offset);
 }
 
 static int my_rename(const char *from, const char *to, unsigned int flags)
 {
-    char* pruned_path_from = get_pruned_path(from);
-    char* pruned_path_to = get_pruned_path(to);
-    return altfs_rename(pruned_path_from, pruned_path_to);
+    return altfs_rename(from, to);
 }
 
 static void my_destroy(void *private_data)
