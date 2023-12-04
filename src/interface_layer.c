@@ -490,11 +490,11 @@ ssize_t altfs_read(const char* path, char* buff, size_t nbytes, off_t offset)
     }
 
     struct inode* node= get_inode(inum);
-    if(!(bool)(node->i_mode & S_IRUSR))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have read permission.\n", READ, path);
-        return -EACCES;
-    }
+    // if(!(bool)(node->i_mode & S_IRUSR))
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : File %s does not have read permission.\n", READ, path);
+    //     return -EACCES;
+    // }
     if (node->i_file_size == 0)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : File size 0, read 0 bytes from %s.\n", READ, path);
@@ -622,11 +622,11 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     }
 
     struct inode* node = get_inode(inum);
-    if(!(bool)(node->i_mode & S_IWUSR))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", WRITE, path);
-        return -EACCES;
-    }
+    // if(!(bool)(node->i_mode & S_IWUSR))
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", WRITE, path);
+    //     return -EACCES;
+    // }
     size_t bytes_written = 0;
 
     ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);
