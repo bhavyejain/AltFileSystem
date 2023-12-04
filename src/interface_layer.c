@@ -389,7 +389,7 @@ ssize_t altfs_unlink(const char* path)
     altfs_free_memory(node);
     if(!remove_from_inode_cache(path))
     {
-        flush_inode_cache();
+        flush_inode_cache(true);
     }
     fuse_log(FUSE_LOG_DEBUG, "%s : Deleted file %s\n", UNLINK, path);
     return 0;
@@ -997,7 +997,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     }
     altfs_free_memory(from_parent_inode);
 
-    flush_inode_cache();
+    flush_inode_cache(true);
 
     fuse_log(FUSE_LOG_DEBUG, "%s : Renamed %s to %s\n", RENAME, from, to);
     return 0;
@@ -1005,5 +1005,6 @@ ssize_t altfs_rename(const char *from, const char *to)
 
 void altfs_destroy()
 {
+    flush_inode_cache(false);
     teardown();
 }
