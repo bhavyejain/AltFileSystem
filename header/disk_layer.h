@@ -9,9 +9,15 @@
 #define ALTFS_WRITE_BLOCK "altfs_write_block"
 
 #ifdef DISK_MEMORY
+    #ifndef DEVICE_NAME
     #define DEVICE_NAME "/dev/vdb"
+    #endif
     // Currently 10GB TODO - Change to 40 GB later
-    #define FS_SIZE ((ssize_t) 1073741824*40)
+    #ifndef FS_GB
+    #define FS_GB 40
+    #endif
+
+    #define FS_SIZE ((ssize_t) 1073741824 * FS_GB)
 #else
     // 10M * n 
     #define FS_SIZE ((ssize_t) 104857600*5)
