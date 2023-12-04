@@ -61,6 +61,13 @@ ssize_t allocate_inode()
     }
     // Mark the inode as allocated.
     node->i_allocated = true;
+    node->i_links_count = 0;
+    if(!altfs_write_block(block_num, buffer))
+    {
+        fuse_log(FUSE_LOG_ERR, "%s : Error writing data block number %ld\n", ALLOCATE_INODE, block_num);
+        return -1;
+    }
+
     fuse_log(FUSE_LOG_DEBUG, "%s : Allocated inode: %ld (block: %ld; offset: %ld)\n",
         ALLOCATE_INODE, inum_to_allocate, block_num, offset);
 
@@ -77,8 +84,8 @@ ssize_t allocate_inode()
             if(!node->i_allocated)
             {
                 altfs_superblock->s_first_ino = inum_to_allocate + visited;
-                // fuse_log(FUSE_LOG_DEBUG, "%s : Marking inode %ld as next free inode.\n",
-                //     ALLOCATE_INODE, altfs_superblock->s_first_ino);
+                fuse_log(FUSE_LOG_DEBUG, "%s : Marking inode %ld as next free inode.\n",
+                    ALLOCATE_INODE, altfs_superblock->s_first_ino);
                 altfs_write_superblock();
                 return inum_to_allocate;
             }
@@ -329,7 +336,7 @@ bool free_inode(ssize_t inum)
 
     altfs_superblock->s_first_ino = min(inum, altfs_superblock->s_first_ino);
     altfs_write_superblock();
-    fuse_log(FUSE_LOG_DEBUG, "%s : Inode freed: %ld\n", FREE_INODE, inum);
+    fuse_log(FUSE_LOG_DEBUG, "%s : Inode freed: %ld, next free in superblock: %ld\n", FREE_INODE, inum, altfs_superblock->s_first_ino);
     return true;
 }
 

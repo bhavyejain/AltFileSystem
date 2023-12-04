@@ -22,6 +22,7 @@
 
 static int my_access(const char* path, int mode)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     return altfs_access(path);
 }
 
@@ -33,11 +34,13 @@ static int my_chown(const char* path, uid_t uid, gid_t gid, struct fuse_file_inf
 
 static int my_chmod(const char* path, mode_t mode, struct fuse_file_info *fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nCHMOD %s %d\n", path, mode);
     return altfs_chmod(path, mode);
 } 
 
 static int my_create(const char* path, mode_t mode, struct fuse_file_info* fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nCREATE %s\n", path);
     bool status = false;
     if(fi->flags & O_CREAT)
     {
@@ -57,11 +60,13 @@ static int my_create(const char* path, mode_t mode, struct fuse_file_info* fi)
 
 static int my_getattr(const char* path, struct stat* st, struct fuse_file_info *fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     return altfs_getattr(path, &st);
 }
 
 static int my_open(const char* path, struct fuse_file_info* fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nOPEN %s\n", path);
     ssize_t inum = altfs_open(path, fi->flags);
     if(inum <= -1)
     {
@@ -72,6 +77,7 @@ static int my_open(const char* path, struct fuse_file_info* fi)
 
 static int my_read(const char* path, char* buff, size_t size, off_t offset, struct fuse_file_info* fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     ssize_t nbytes = altfs_read(path, buff, size, offset);
     return nbytes;
 }
@@ -79,6 +85,7 @@ static int my_read(const char* path, char* buff, size_t size, off_t offset, stru
 static int my_readdir(const char* path, void* buff, fuse_fill_dir_t filler, off_t offset,
                         struct fuse_file_info* fi, enum fuse_readdir_flags)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     (void) offset;
     (void) fi;
     return altfs_readdir(path, buff, filler);
@@ -86,11 +93,13 @@ static int my_readdir(const char* path, void* buff, fuse_fill_dir_t filler, off_
 
 static int my_rmdir(const char* path)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nRMDIR %s\n", path);
     return altfs_unlink(path);
 }
 
 static int my_mkdir(const char* path, mode_t mode)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nMKDIR %s\n", path);
     bool status = altfs_mkdir(path, mode);
     if(!status)
     {
@@ -101,6 +110,7 @@ static int my_mkdir(const char* path, mode_t mode)
 
 static int my_mknod(const char* path, mode_t mode, dev_t dev)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nMKNOD %s\n", path);
     bool status = altfs_mknod(path, mode, dev);
     if(!status)
     {
@@ -117,21 +127,25 @@ static int my_utimens(const char* path, const struct timespec time_spec[2], stru
 
 static int my_truncate(const char* path, off_t offset, struct fuse_file_info *fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     return altfs_truncate(path, offset);
 }
 
 static int my_unlink(const char* path)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nUNLINK %s\n", path);
     return altfs_unlink(path);
 }
 
 static int my_write(const char* path, const char* buff, size_t size, off_t offset, struct fuse_file_info* fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\n");
     return altfs_write(path, buff, size, offset);
 }
 
 static int my_rename(const char *from, const char *to, unsigned int flags)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nRENAME %s %s\n", from , to);
     return altfs_rename(from, to);
 }
 
