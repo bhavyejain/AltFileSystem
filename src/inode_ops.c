@@ -61,6 +61,7 @@ ssize_t allocate_inode()
     }
     // Mark the inode as allocated.
     node->i_allocated = true;
+    node->i_links_count = 0;
     if(!altfs_write_block(block_num, buffer))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Error writing data block number %ld\n", ALLOCATE_INODE, block_num);

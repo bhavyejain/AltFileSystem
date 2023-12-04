@@ -157,7 +157,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
     }
 
     *buff = get_inode(child_inode_num);
-    (*buff)->i_links_count++;
+    (*buff)->i_links_count = 1;
     (*buff)->i_mode = mode;
     (*buff)->i_blocks_num = 0;
     (*buff)->i_file_size = 0;
@@ -333,6 +333,7 @@ ssize_t altfs_unlink(const char* path)
         fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting.\n", UNLINK);
         return -EACCES;
     }
+    remove_from_inode_cache(path);
 
     ssize_t path_len = strlen(path);
     char child_name[path_len + 1];
@@ -377,7 +378,6 @@ ssize_t altfs_unlink(const char* path)
     node->i_links_count--;
     if(node->i_links_count == 0)
     {
-        remove_from_inode_cache(path);
         free_inode(inum);
     } else
     {
