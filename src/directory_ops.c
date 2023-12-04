@@ -7,7 +7,7 @@
 #include "../header/inode_cache.h"
 #include "../header/inode_data_block_ops.h"
 
-static struct inode_cache* inodeCache = NULL;
+static struct inode_cache inodeCache;
 
 ssize_t get_last_index_of_parent_path(const char* const path, ssize_t path_length)
 {
@@ -294,7 +294,7 @@ ssize_t name_i(const char* const file_path)
     }
 
     // Check for presence in cache
-    ssize_t inum_from_cache = get_cache_entry(inodeCache, file_path);
+    ssize_t inum_from_cache = get_cache_entry(&inodeCache, file_path);
     if (inum_from_cache > 0)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : Returning inum %ld for %s from cache.\n", NAME_I, inum_from_cache, file_path);
@@ -332,7 +332,7 @@ ssize_t name_i(const char* const file_path)
     ssize_t inum = ((ssize_t*) (filepos.p_block + filepos.offset + RECORD_LENGTH))[0];
     
     altfs_free_memory(filepos.p_block);
-    set_cache_entry(inodeCache, file_path, inum);
+    set_cache_entry(&inodeCache, file_path, inum);
     // fuse_log(FUSE_LOG_DEBUG, "%s : Added cache entry %ld for %s.\n", NAME_I, inum, file_path);
     return inum;
 }
@@ -422,7 +422,7 @@ bool setup_filesystem()
 
 bool remove_from_inode_cache(const char* path)
 {
-    if(!remove_cache_entry(inodeCache, path))
+    if(!remove_cache_entry(&inodeCache, path))
     {
         return false;
     }
