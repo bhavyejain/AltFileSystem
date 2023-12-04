@@ -53,7 +53,7 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     ssize_t inum = name_i(path);
     if(inum == -1)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
+        // fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
         return -ENOENT;
     }
 
