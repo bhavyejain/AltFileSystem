@@ -208,7 +208,7 @@ bool altfs_mkdir(const char* path, mode_t mode)
         altfs_free_memory(dir_inode);
         return false;
     }
-    fuse_log(FUSE_LOG_DEBUG, "%s : Alloted inode number %ld to directory.\n", MKDIR, dir_inode_num);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Alloted inode number %ld to directory %s.\n", MKDIR, dir_inode_num, path);
 
     char* name = ".";
     if(!add_directory_entry(&dir_inode, dir_inode_num, name))
@@ -925,7 +925,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     /*
     Add record in to's parent.
     */
-    fuse_log(FUSE_LOG_DEBUG, "%s : Adding record in TO's parent.\n", RENAME);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Adding record in TO's parent.\n", RENAME);
     char to_child_name[to_path_len + 1];
     if(!copy_file_name(to_child_name, to, to_path_len))
     {
@@ -954,7 +954,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     /*
     Remove record in from's parent.
     */
-    fuse_log(FUSE_LOG_DEBUG, "%s : Removing record from FROM's parent.\n", RENAME);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Removing record from FROM's parent.\n", RENAME);
     ssize_t from_path_len = strlen(from);
     char from_parent_path[from_path_len + 1];
     if(!copy_parent_path(from_parent_path, from, from_path_len))
