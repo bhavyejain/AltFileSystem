@@ -35,6 +35,7 @@ void free_cache_entry(struct cache_entry* node) {
         if (node->key != NULL)
             free(node->key);
         free(node);
+        node = NULL;
     }
 }
 
@@ -50,9 +51,11 @@ void free_inode_cache(struct inode_cache* cache) {
     if(cache != NULL)
     {
         free_list(cache->head);
+        cache->head = NULL;
         free(cache->map);
-        free(cache->tail);
-        free(cache);
+        cache->map = NULL;
+        cache->tail = NULL;
+        cache = NULL;
     }
 }
 
