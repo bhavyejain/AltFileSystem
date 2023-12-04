@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[])
 {
-    int results_f = open("2_seek_read_write.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
+    int results_f = open("2_seek_read_write_logs.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
     assert(results_f != -1);
 
     int fd, nsuccess = 0, nfail = 0;
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
         strcat(fname, num);
         strcat(fname, fname_ext);
         // Form: test_1_files/test_<num>.txt
-        strcat(test_file_path, "test_2_files/");
+        strcat(test_file_path, "test_1_files/");
         strcat(test_file_path, fname);
 
         // opening the directory with create mode
