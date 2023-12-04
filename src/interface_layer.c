@@ -333,7 +333,6 @@ ssize_t altfs_unlink(const char* path)
         fuse_log(FUSE_LOG_ERR, "%s : Cannot unlink root! Aborting.\n", UNLINK);
         return -EACCES;
     }
-    remove_from_inode_cache(path);
 
     ssize_t path_len = strlen(path);
     char child_name[path_len + 1];
@@ -388,6 +387,10 @@ ssize_t altfs_unlink(const char* path)
     write_inode(parent_inum, parent);
     altfs_free_memory(parent);
     altfs_free_memory(node);
+    if(!remove_from_inode_cache(path))
+    {
+        flush_inode_cache();
+    }
     fuse_log(FUSE_LOG_DEBUG, "%s : Deleted file %s\n", UNLINK, path);
     return 0;
 }
