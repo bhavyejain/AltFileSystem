@@ -347,7 +347,7 @@ bool setup_filesystem()
     }
 
     // Create a cache that can be used to implement namei
-    create_inode_cache(inodeCache, CACHE_CAPACITY);
+    inodeCache = create_inode_cache(CACHE_CAPACITY);
     if(inodeCache == NULL)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : Inode cache is null!!.\n", SETUP_FILESYSTEM);
@@ -429,8 +429,9 @@ bool remove_from_inode_cache(const char* path)
     return true;
 }
 
-void flush_inode_cache()
+void flush_inode_cache(bool create)
 {
     free_inode_cache(inodeCache);
-    create_inode_cache(inodeCache, CACHE_CAPACITY);
+    if(create)
+        inodeCache = create_inode_cache(CACHE_CAPACITY);
 }
