@@ -18,10 +18,7 @@ unsigned long int hash_func(const char *str)
 }
 
 void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
-    if(cache == NULL)
-    {
-        cache = (struct inode_cache*) malloc(sizeof(struct inode_cache));
-    }
+    cache = (struct inode_cache*) malloc(sizeof(struct inode_cache));
     cache->head = NULL;
     cache->tail = NULL;
     cache->size = 0;
