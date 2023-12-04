@@ -68,7 +68,7 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     (*st)->st_ino = inum;
     altfs_free_memory(node);
 
-    fuse_log(FUSE_LOG_DEBUG, "%s : Got attributes for %s\n", GETATTR, path);
+    // fuse_log(FUSE_LOG_DEBUG, "%s : Got attributes for %s\n", GETATTR, path);
     return 0;
 }
 
