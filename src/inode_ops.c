@@ -61,17 +61,13 @@ ssize_t allocate_inode()
     }
     // Mark the inode as allocated.
     node->i_allocated = true;
+    node->i_links_count = 0;
     if(!altfs_write_block(block_num, buffer))
     {
         fuse_log(FUSE_LOG_ERR, "%s : Error writing data block number %ld\n", ALLOCATE_INODE, block_num);
         return -1;
     }
-    struct inode* temp = get_inode(inum_to_allocate);
-    if(!temp->i_allocated)
-    {
-        printf("HYA BAWAL HAI 2\n");
-    }
-    altfs_free_memory(temp);
+
     fuse_log(FUSE_LOG_DEBUG, "%s : Allocated inode: %ld (block: %ld; offset: %ld)\n",
         ALLOCATE_INODE, inum_to_allocate, block_num, offset);
 
@@ -337,13 +333,6 @@ bool free_inode(ssize_t inum)
         fuse_log(FUSE_LOG_ERR, "%s : Error writing data to block number %ld\n", FREE_INODE, block_num);
         return false;
     }
-
-    struct inode* temp = get_inode(inum);
-    if(temp->i_allocated)
-    {
-        printf("KYA BAWAL HAI!\n");
-    }
-    altfs_free_memory(temp);
 
     altfs_superblock->s_first_ino = min(inum, altfs_superblock->s_first_ino);
     altfs_write_superblock();

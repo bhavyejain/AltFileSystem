@@ -18,7 +18,7 @@ struct inode_cache {
     struct cache_entry* tail;
 };
 
-void create_inode_cache(struct inode_cache* cache, ssize_t capacity);
+struct inode_cache* create_inode_cache(ssize_t capacity);
 
 bool remove_cache_entry(struct inode_cache* cache, const char* key);
 

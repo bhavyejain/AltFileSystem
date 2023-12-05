@@ -134,6 +134,6 @@ bool remove_from_inode_cache(const char* path);
 /*
 Remove all entries from the inode cache.
 */
-void flush_inode_cache();
+void flush_inode_cache(bool create);
 
 #endif

@@ -34,6 +34,7 @@ static int my_chown(const char* path, uid_t uid, gid_t gid, struct fuse_file_inf
 
 static int my_chmod(const char* path, mode_t mode, struct fuse_file_info *fi)
 {
+    fuse_log(FUSE_LOG_DEBUG, "\nCHMOD %s %d\n", path, mode);
     return altfs_chmod(path, mode);
 } 
 

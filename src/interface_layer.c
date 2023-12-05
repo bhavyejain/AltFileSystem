@@ -53,7 +53,7 @@ ssize_t altfs_getattr(const char* path, struct stat** st)
     ssize_t inum = name_i(path);
     if(inum == -1)
     {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
+        // fuse_log(FUSE_LOG_ERR, "%s : File %s not found.\n", GETATTR, path);
         return -ENOENT;
     }
 
@@ -157,7 +157,7 @@ ssize_t create_new_file(const char* const path, struct inode** buff, mode_t mode
     }
 
     *buff = get_inode(child_inode_num);
-    (*buff)->i_links_count++;
+    (*buff)->i_links_count = 1;
     (*buff)->i_mode = mode;
     (*buff)->i_blocks_num = 0;
     (*buff)->i_file_size = 0;
@@ -377,7 +377,6 @@ ssize_t altfs_unlink(const char* path)
     node->i_links_count--;
     if(node->i_links_count == 0)
     {
-        remove_from_inode_cache(path);
         free_inode(inum);
     } else
     {
@@ -388,6 +387,10 @@ ssize_t altfs_unlink(const char* path)
     write_inode(parent_inum, parent);
     altfs_free_memory(parent);
     altfs_free_memory(node);
+    if(!remove_from_inode_cache(path))
+    {
+        flush_inode_cache(true);
+    }
     fuse_log(FUSE_LOG_DEBUG, "%s : Deleted file %s\n", UNLINK, path);
     return 0;
 }
@@ -487,11 +490,11 @@ ssize_t altfs_read(const char* path, char* buff, size_t nbytes, off_t offset)
     }
 
     struct inode* node= get_inode(inum);
-    if(!(bool)(node->i_mode & S_IRUSR))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have read permission.\n", READ, path);
-        return -EACCES;
-    }
+    // if(!(bool)(node->i_mode & S_IRUSR))
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : File %s does not have read permission.\n", READ, path);
+    //     return -EACCES;
+    // }
     if (node->i_file_size == 0)
     {
         fuse_log(FUSE_LOG_DEBUG, "%s : File size 0, read 0 bytes from %s.\n", READ, path);
@@ -619,11 +622,11 @@ ssize_t altfs_write(const char* path, const char* buff, size_t nbytes, off_t off
     }
 
     struct inode* node = get_inode(inum);
-    if(!(bool)(node->i_mode & S_IWUSR))
-    {
-        fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", WRITE, path);
-        return -EACCES;
-    }
+    // if(!(bool)(node->i_mode & S_IWUSR))
+    // {
+    //     fuse_log(FUSE_LOG_ERR, "%s : File %s does not have write permission.\n", WRITE, path);
+    //     return -EACCES;
+    // }
     size_t bytes_written = 0;
 
     ssize_t start_i_block = (ssize_t)(offset / BLOCK_SIZE);
@@ -994,7 +997,7 @@ ssize_t altfs_rename(const char *from, const char *to)
     }
     altfs_free_memory(from_parent_inode);
 
-    flush_inode_cache();
+    flush_inode_cache(true);
 
     fuse_log(FUSE_LOG_DEBUG, "%s : Renamed %s to %s\n", RENAME, from, to);
     return 0;
@@ -1002,5 +1005,6 @@ ssize_t altfs_rename(const char *from, const char *to)
 
 void altfs_destroy()
 {
+    flush_inode_cache(false);
     teardown();
 }

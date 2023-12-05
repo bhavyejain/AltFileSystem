@@ -17,16 +17,14 @@ unsigned long int hash_func(const char *str)
     return hash;
 }
 
-void create_inode_cache(struct inode_cache* cache, ssize_t capacity) {
-    if(cache == NULL)
-    {
-        cache = (struct inode_cache*) malloc(sizeof(struct inode_cache));
-    }
+struct inode_cache* create_inode_cache(ssize_t capacity) {
+    struct inode_cache* cache = (struct inode_cache*) malloc(sizeof(struct inode_cache));
     cache->head = NULL;
     cache->tail = NULL;
     cache->size = 0;
     cache->capacity = capacity;
     cache->map = (struct cache_entry**) calloc(capacity, sizeof(struct cache_entry**));
+    return cache;
 }
 
 void free_cache_entry(struct cache_entry* node) {
