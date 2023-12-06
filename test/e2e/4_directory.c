@@ -5,7 +5,7 @@
 #include <limits.h>
 
 int main() {
-    const char *dir_name = "tada";
+    const char *dir_name = "dir_name";
     const int num_dirs = 30; // number of directories to create
     char path[255] = { 0 }; // path buffer
     // Create directories
