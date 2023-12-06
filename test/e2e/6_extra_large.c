@@ -8,7 +8,7 @@
 
 int main(int agrc, char **argv){
     //opening the log file
-    int log_file = open("ExtraLargeFileLog.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
+    int log_file = open("6_extra_large_logs.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
     int fd, res=-1;
     char msg[4096];
     memset(msg, 'h', 4096);

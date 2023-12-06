@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]) {
     // Open the logfile
-    int log_file = open("basicAPITest.txt", O_CREAT | O_WRONLY | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
+    int log_file = open("3_delete_log.txt", O_CREAT | O_WRONLY | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
     int nsuccess = 0, nfail = 0;
     int res = -1;
     char msg[1000];
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
             // Construct the filename and directory path
             sprintf(num, "%d", i);
             strcat(strcat(strcat(filename, fname_prefix), num), fname_suffix);
-            strcat(strcat(dir_name, "basic_api_test_files/"), filename);
+            strcat(strcat(dir_name, "test_1_files/"), filename);
             memset(num, 0, 5);
 
             // Attempt to unlink the file and update the test results accordingly

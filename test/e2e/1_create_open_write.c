@@ -12,7 +12,11 @@
 
 int main(int argc, char *argv[])
 {
+<<<<<<< HEAD
     int results_f = open("1_create_open_write.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
+=======
+    int results_f = open("1_create_open_write_logs.txt", O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
+>>>>>>> 4b8bf804143f404bab74dba096a40462262feb7e
     assert(results_f != -1);
 
     int res = -1, nsuccess = 0, nfail = 0;
